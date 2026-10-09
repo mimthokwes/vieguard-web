@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500" fill="none">
+  <rect width="400" height="500" fill="#F3EDE6"/>
+  <rect x="20" y="20" width="360" height="460" rx="16" fill="#FAF7F2" stroke="#E6E1DA" stroke-dasharray="4 4"/>
+  <g transform="translate(140, 190)">
+    <circle cx="60" cy="50" r="40" fill="#F9F2EB" stroke="#C48B54" stroke-width="2"/>
+    <path d="M45 45L60 30L75 45" stroke="#C48B54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M60 30V65" stroke="#C48B54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="50%" y="310" text-anchor="middle" fill="#938C82" font-family="sans-serif" font-size="14" font-weight="500">VIEGUARD ATELIER</text>
+  <text x="50%" y="330" text-anchor="middle" fill="#C48B54" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="2">PRODUK BACKEND</text>
+</svg>

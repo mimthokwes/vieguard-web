@@ -1,26 +1,165 @@
 @import "tailwindcss";
 
+@theme {
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  --color-main: #FAF7F2;
+  --color-card: #FFFFFF;
+  --color-dark: #161616;
+  --color-dark-card: #222222;
+  --color-subtle: #F3EDE6;
+  --color-accent-soft: #F9F2EB;
+  --color-hover: #F0EAE1;
+
+  --color-primary: #1C1C1C;
+  --color-secondary: #6B655C;
+  --color-muted: #938C82;
+  --color-gold: #C48B54;
+  --color-gold-dark: #A26E3A;
+  --color-gold-light: #FAF2EA;
+
+  --color-border-subtle: #E6E1DA;
+  --color-border-gold: #DDB892;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  --bg-main: #FAF7F2;
+  --bg-card: #FFFFFF;
+  --bg-dark: #161616;
+  --bg-dark-card: #222222;
+  --bg-subtle: #F3EDE6;
+  --bg-accent-soft: #F9F2EB;
+  --bg-hover: #F0EAE1;
+
+  --text-primary: #1C1C1C;
+  --text-secondary: #6B655C;
+  --text-muted: #938C82;
+  --text-gold: #B8860B;
+  --text-gold-dark: #A26E3A;
+
+  --accent-gold: #C48B54;
+  --accent-gold-dark: #A26E3A;
+  --accent-gold-light: #FAF2EA;
+  --accent-dark: #161616;
+
+  --border-color: #E6E1DA;
+  --border-dark: #2C2C2C;
+  --border-gold: #DDB892;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+/* Custom Utilities */
+.bg-main {
+  background-color: var(--bg-main);
+}
+
+.bg-card {
+  background-color: var(--bg-card);
+}
+
+.bg-subtle {
+  background-color: var(--bg-subtle);
+}
+
+.bg-dark {
+  background-color: var(--bg-dark);
+}
+
+.bg-gold-light {
+  background-color: var(--accent-gold-light);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-gold {
+  color: var(--accent-gold);
+}
+
+.border-subtle {
+  border-color: var(--border-color);
+}
+
+.border-gold {
+  border-color: var(--border-gold);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D5CFC7;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B5AFA7;
+}
+
+/* Badge styling */
+.badge-gold {
+  background-color: var(--accent-gold-light);
+  color: var(--accent-gold-dark);
+  border: 1px solid var(--border-gold);
+}
+
+/* Form Controls Reset */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
 }
