@@ -1,12 +1,19 @@
 import { Metadata } from 'next';
-import { LoginView } from '@/modules/auth/views/login-view';
+import { redirect } from 'next/navigation';
+import { AuthView } from '@/modules/auth/views/auth-view';
+import { getSessionUser } from '@/lib/session';
 
-// Render strategy: SSG (Form statis yang tidak memerlukan fetch data awal dinamis)
 export const metadata: Metadata = {
-  title: 'Masuk ke Akun Klien | VIEGUARD Boutique & Rental',
-  description: 'Akses portal klien privat VIEGUARD untuk reservasi gaun & jas desainer premium serta konsultasi fitting eksklusif.',
+  title: 'Masuk | VIEGUARD',
+  description: 'Masuk ke portal pelanggan VIEGUARD untuk memesan seragam, menyewa perlengkapan, dan melacak pesanan.',
 };
 
-export default function LoginPage() {
-  return <LoginView />;
+interface LoginPageProps {
+  searchParams: Promise<{ next?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  if (await getSessionUser()) redirect('/');
+  const { next } = await searchParams;
+  return <AuthView mode="login" next={next} />;
 }

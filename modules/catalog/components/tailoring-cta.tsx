@@ -1,33 +1,47 @@
 import React from 'react';
-import Link from 'next/link';
-import { Scissors, ArrowRight } from 'lucide-react';
+import { ClipboardList, ShieldCheck, SprayCan, Truck } from 'lucide-react';
 
-export function TailoringCta() {
+const PROTOCOLS = [
+  {
+    icon: SprayCan,
+    title: 'Sterilisasi Uap 100°C',
+    body: 'Semua seragam melalui pencucian higienis dan setrika uap suhu tinggi sebelum dimasukkan ke garment bag tersegel.',
+  },
+  {
+    icon: ClipboardList,
+    title: 'Deposit Fleksibel / SPK Resmi',
+    body: 'Institusi pendidikan dapat mengganti uang deposit tunai dengan Surat Perintah Kerja (SPK) atau rekomendasi resmi kepala sekolah.',
+  },
+  {
+    icon: Truck,
+    title: 'Pengiriman H-2 Acara',
+    body: 'Armada tiba 48 jam sebelum hari gladi resik atau pentas guna memastikan fitting ukuran dan pengecekan fungsi alat.',
+  },
+];
+
+/** "Jaminan & Protokol Sewa Resmi" block on the rental catalog (Figma screen 12). */
+export function RentalGuarantees() {
   return (
-    <div className="w-full mt-14 bg-white border border-[#E6E1DA] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-      <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-[#FAF2EA] border border-[#DDB892] text-[#C48B54] flex items-center justify-center flex-shrink-0">
-          <Scissors className="w-6 h-6" />
+    <section id="kebijakan" className="scroll-mt-28 rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
+      <div className="flex flex-col gap-3 border-b border-line pb-5 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-ink">Jaminan & Protokol Sewa Resmi</h2>
+          <p className="pt-0.5 text-sm text-ink-soft">Standar kepatuhan resmi untuk sekolah, yayasan, instansi kedinasan, dan perkumpulan orkes drum.</p>
         </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold tracking-widest text-[#C48B54] uppercase">
-            LAYANAN ADIBUSANA & JAHIT KUSTOM
-          </span>
-          <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C]">
-            Punya Rencana Busana Impian atau Desain Sendiri?
-          </h3>
-          <p className="text-xs text-[#6B655C] max-w-xl leading-relaxed">
-            Wujudkan gaun pesta, beskap adat, atau setelan jas eksklusif Anda dengan konsultasi privat, pemilihan kain premium, dan pengukuran langsung bersama Master Tailor VIEGUARD.
-          </p>
-        </div>
+        <span className="flex w-fit shrink-0 items-center gap-1.5 rounded-md border border-beige bg-beige-soft px-2.5 py-1 text-xs font-bold uppercase text-primary">
+          <ShieldCheck className="size-3.5" aria-hidden="true" /> Kebijakan Armada Terverifikasi
+        </span>
       </div>
-
-      <Link href="/chat">
-        <button className="bg-[#1C1C1C] hover:bg-[#C48B54] text-white text-xs font-bold px-6 py-3.5 rounded-xl transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer">
-          <span>Konsultasikan Model</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </Link>
-    </div>
+      <div className="grid grid-cols-1 gap-5 pt-5 md:grid-cols-3">
+        {PROTOCOLS.map(({ icon: Icon, title, body }) => (
+          <div key={title} className="rounded-xl bg-beige-soft/70 p-5 ring-1 ring-beige">
+            <p className="flex items-center gap-2 font-bold text-ink">
+              <Icon className="size-4 text-primary" aria-hidden="true" /> {title}
+            </p>
+            <p className="pt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

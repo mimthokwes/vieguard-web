@@ -3,7 +3,7 @@ import { apiClient } from '../api-client';
 import { Order } from '@/types/cart';
 import { getSessionToken } from '../session';
 
-export async function createOrder(orderPayload: any): Promise<Order | null> {
+export async function createOrder(orderPayload: Record<string, unknown>): Promise<Order | null> {
   const token = await getSessionToken();
   if (!token) throw new Error('Pengguna belum login.');
 
