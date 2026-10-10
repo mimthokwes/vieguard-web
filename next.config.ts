@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // Payment proof photos are capped at 5MB in the action; leave room for multipart overhead.
+      bodySizeLimit: '6mb',
+    },
+  },
   images: {
     remotePatterns: [
       {

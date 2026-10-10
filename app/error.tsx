@@ -1,35 +1,34 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { RefreshCw, ServerCrash } from 'lucide-react';
+import { Button, ButtonLink } from '@/components/ui/button';
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error('[Root Error Boundary]:', error);
   }, [error]);
 
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-6 bg-[#FAF7F2]">
-      <div className="bg-white rounded-3xl p-8 sm:p-10 border border-[#E6E1DA] shadow-lg max-w-md w-full flex flex-col items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-red-50 text-red-500 border border-red-200 flex items-center justify-center font-bold text-xl">
-          !
-        </div>
-        <h2 className="font-serif font-bold text-xl text-[#1C1C1C]">
-          Terjadi Kesalahan Sistem
-        </h2>
-        <p className="text-xs text-[#6B655C]">
-          {error.message || 'Maaf, terjadi kendala saat memuat halaman ini. Silakan coba beberapa saat lagi.'}
+    <main className="flex min-h-[70vh] items-center justify-center px-4 py-12">
+      <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-2xl bg-surface p-8 text-center shadow-card ring-1 ring-line sm:p-10">
+        <span className="flex size-16 items-center justify-center rounded-full bg-danger-bg text-danger">
+          <ServerCrash className="size-7" aria-hidden="true" />
+        </span>
+        <h1 className="text-xl font-extrabold text-ink">Terjadi Kesalahan Sistem</h1>
+        <p className="text-sm text-ink-soft">
+          Maaf, terjadi kendala saat memuat halaman ini. Pastikan koneksi Anda stabil lalu coba lagi.
         </p>
-        <Button onClick={() => reset()} variant="primary" className="mt-2">
-          Coba Lagi
-        </Button>
+        <div className="flex flex-wrap justify-center gap-2 pt-2">
+          <Button onClick={() => reset()}>
+            <RefreshCw className="size-4" aria-hidden="true" /> Coba Lagi
+          </Button>
+          <ButtonLink href="/" variant="soft">
+            Ke Beranda
+          </ButtonLink>
+        </div>
+        {error.digest && <p className="pt-2 font-mono text-xs text-muted">Kode: {error.digest}</p>}
       </div>
-    </div>
+    </main>
   );
 }

@@ -1,135 +1,84 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { ArrowRight, Archive, Shirt } from 'lucide-react';
 import { Product } from '@/types/product';
-import { formatImageUrl } from '@/lib/image';
-import { Heart, Plus, ShoppingBag, Star } from 'lucide-react';
+import { buttonClasses } from '@/components/ui/button';
+import { formatRupiah, toNumber } from '@/lib/format';
+import { primaryImage } from '@/lib/image';
 
-interface ProductCardProps {
-  product: Product;
-  showBuyPrice?: boolean;
-  variant?: 'compact' | 'full';
+export type CatalogMode = 'all' | 'sewa';
+
+export function rentStock(product: Product) {
+  return product.variants.reduce((s, v) => s + Math.max(0, v.stockRent - (v.stockInService ?? 0)), 0);
 }
 
-export function ProductCard({ product, showBuyPrice = true, variant = 'full' }: ProductCardProps) {
-  const rawImage = product.images?.find((img) => img.isPrimary)?.imageUrl || product.images?.[0]?.imageUrl;
-  const primaryImage = formatImageUrl(rawImage);
+export function buyStock(product: Product) {
+  return product.variants.reduce((s, v) => s + Math.max(0, v.stockBuy), 0);
+}
 
-  const badgeText = product.badgeTag || (product.basePriceBuy ? 'SEWA / BELI' : 'SEWA');
-  const categoryName = product.category?.name || product.subCategoryTag || 'GAUN & COUTURE';
-  
-  const formattedRentPrice = new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(product.basePriceRent3d || 350000);
+export function canRent(product: Product) {
+  return toNumber(product.basePriceRent) > 0;
+}
 
-  const formattedBuyPrice = new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(product.basePriceBuy || 1450000);
+export function canBuy(product: Product) {
+  return toNumber(product.basePriceBuy) > 0;
+}
 
-  const rating = product.rating || 4.9;
-  const likesCount = product.likesCount || 128;
+export function ProductCard({ product, mode, detailHref }: { product: Product; mode: CatalogMode; detailHref: string }) {
+  const image = primaryImage(product.images);
+  const rentable = canRent(product);
+  const showRent = mode === 'sewa' || rentable;
+  const price = showRent ? product.basePriceRent : product.basePriceBuy;
+  const stock = showRent ? rentStock(product) : buyStock(product);
 
   return (
-    <div className="group bg-card rounded-[20px] p-3.5 sm:p-4 border border-[#E6E1DA] hover:border-[#C48B54] hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full relative">
-      <div>
-        {/* Image Container */}
-        <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#FAF7F2] mb-3.5">
-          <Image
-            src={primaryImage}
-            alt={product.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          />
-
-          {/* Badge */}
-          <div className="absolute top-3 left-3 bg-[#161616]/90 backdrop-blur-md text-white text-[10px] font-bold uppercase px-2.5 py-1 rounded-md tracking-wider">
-            {badgeText}
-          </div>
-
-          {/* Wishlist Capsule Button with Likes Count (matching Figma) */}
-          <button
-            type="button"
-            aria-label="Simpan ke favorit"
-            className="absolute top-3 right-3 bg-white/90 backdrop-blur-md hover:bg-white text-[#1C1C1C] hover:text-red-500 px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm transition-all cursor-pointer"
-          >
-            <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
-            <span className="text-[11px]">{likesCount}</span>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex flex-col gap-1 px-1">
-          <span className="text-[10px] font-bold tracking-widest text-[#C48B54] uppercase">
-            {categoryName}
-          </span>
-          <Link href={`/catalog/${product.id}`} className="group-hover:text-[#C48B54] transition-colors">
-            <h3 className="font-serif font-bold text-base text-[#1C1C1C] line-clamp-1 leading-snug">
-              {product.name}
-            </h3>
-          </Link>
-
-          {/* Truncated Description snippet if available */}
-          {product.description && (
-            <p className="text-[11px] text-[#6B655C] line-clamp-2 mt-0.5 leading-relaxed">
-              {product.description}
-            </p>
-          )}
-
-          {/* Rating */}
-          <div className="flex items-center gap-1.5 text-xs text-[#6B655C] my-1">
-            <div className="flex items-center text-amber-500 font-bold">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 mr-0.5 inline" />
-              <span>{rating}</span>
-            </div>
-            <span className="text-[11px] text-[#8C857B]">({likesCount} orang menyukai model ini)</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Pricing & Actions */}
-      <div className="mt-3 pt-3 border-t border-[#F3EDE6] flex flex-col gap-2.5 px-1">
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div>
-            <span className="text-[9px] uppercase text-[#8C857B] block font-bold tracking-wider">
-              SEWA 3 HARI
-            </span>
-            <span className="font-bold text-sm text-[#1C1C1C]">
-              {formattedRentPrice}
-            </span>
-          </div>
-          {showBuyPrice && product.basePriceBuy > 0 && (
-            <div className="text-right">
-              <span className="text-[9px] uppercase text-[#8C857B] block font-bold tracking-wider">
-                HARGA BELI
-              </span>
-              <span className="text-xs text-[#6B655C] font-semibold">
-                {formattedBuyPrice}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {variant === 'full' ? (
-          <Link href={`/catalog/${product.id}`} className="mt-1">
-            <button className="w-full bg-[#161616] hover:bg-[#C48B54] text-white text-xs font-bold py-2.5 px-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Pesan / Sewa Sekarang</span>
-            </button>
-          </Link>
+    <article className="flex flex-col rounded-2xl bg-surface p-5 shadow-card ring-1 ring-line">
+      <div className="relative flex h-48 items-center justify-center overflow-hidden rounded-xl bg-canvas ring-1 ring-line">
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={image} alt={product.name} className="size-full object-cover" loading="lazy" />
         ) : (
-          <Link href={`/catalog/${product.id}`} className="self-end mt-1">
-            <div className="w-8 h-8 rounded-lg bg-[#FAF7F2] border border-[#E6E1DA] hover:bg-[#161616] hover:text-white text-[#1C1C1C] flex items-center justify-center transition-colors">
-              <Plus className="w-4 h-4" />
-            </div>
-          </Link>
+          <div className="flex flex-col items-center gap-3 text-ink-soft">
+            <span className="flex size-12 items-center justify-center rounded-full bg-surface text-primary shadow-soft">
+              <Shirt className="size-5" aria-hidden="true" />
+            </span>
+            Gambar Produk
+          </div>
         )}
       </div>
-    </div>
+
+      <div className="flex items-center justify-between gap-2 pt-5">
+        <span className="rounded-md border border-beige bg-beige-soft px-2.5 py-0.5 text-[11px] font-bold uppercase text-primary">
+          {product.category?.name ?? 'Armada'}
+        </span>
+        {product.sku && <span className="font-mono text-xs tracking-wider text-muted">KODE: {product.sku}</span>}
+      </div>
+      <h3 className="pt-4 text-[15px] font-bold text-ink">{product.name}</h3>
+
+      {product.description && (
+        <div className="mt-4 rounded-xl bg-canvas p-3.5 ring-1 ring-line">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+            <Archive className="size-4 text-gold-dark" aria-hidden="true" /> Komponen Termasuk:
+          </p>
+          <p className="line-clamp-2 pt-1 text-sm leading-6 text-ink-soft">{product.description}</p>
+        </div>
+      )}
+
+      <div className="mt-auto">
+        <div className="mt-4 border-t border-line pt-4">
+          <p className="text-ink-soft">
+            <span className="text-xl font-extrabold text-primary">{toNumber(price) > 0 ? formatRupiah(price) : 'Hubungi Admin'}</span>{' '}
+            {toNumber(price) > 0 && <span className="text-sm">{showRent ? '/ unit / hari' : '/ unit'}</span>}
+          </p>
+          <p className={`flex items-center gap-1.5 pt-1 text-sm font-semibold ${stock > 0 ? 'text-success' : 'text-danger'}`}>
+            <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
+            {stock > 0 ? `Tersedia: ${stock} unit` : 'Stok sedang kosong'}
+          </p>
+        </div>
+        <Link href={detailHref} className={buttonClasses({ fullWidth: true, className: 'mt-4 !h-11' })}>
+          {showRent ? 'Cek Tanggal & Sewa' : 'Lihat Detail & Beli'} <ArrowRight className="size-4" aria-hidden="true" />
+        </Link>
+      </div>
+    </article>
   );
 }
-

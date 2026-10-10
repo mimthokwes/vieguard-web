@@ -50,14 +50,14 @@ export function CartView() {
   if (orderSubmitted) {
     return (
       <div className="max-w-2xl mx-auto py-16 px-4 text-center">
-        <div className="bg-card rounded-3xl p-8 border border-border-subtle shadow-lg flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gold-light border border-border-gold text-gold flex items-center justify-center">
+        <div className="bg-surface rounded-3xl p-8 border border-line shadow-lg flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-beige-soft border border-beige text-primary flex items-center justify-center">
             <ShieldCheck className="w-8 h-8" />
           </div>
-          <h1 className="font-serif text-2xl font-bold text-primary">
+          <h1 className=" text-2xl font-bold text-ink">
             Pesanan Berhasil Dibuat!
           </h1>
-          <p className="text-xs text-secondary max-w-md">
+          <p className="text-xs text-ink-soft max-w-md">
             Terima kasih telah melakukan reservasi di VIEGUARD. Tim kami akan memproses pesanan Anda.
           </p>
           <Link href="/catalog" className="mt-4">
@@ -69,14 +69,14 @@ export function CartView() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-main py-8 sm:py-12">
+    <div className="w-full min-h-screen bg-canvas py-8 sm:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="mb-6">
-          <h1 className="font-serif text-3xl font-bold text-primary">
+          <h1 className=" text-3xl font-bold text-ink">
             Keranjang Reservasi
           </h1>
-          <p className="text-xs text-secondary mt-1">
+          <p className="text-xs text-ink-soft mt-1">
             Tinjau kembali busana pilihan Anda sebelum melakukan konfirmasi booking.
           </p>
         </div>
@@ -87,7 +87,7 @@ export function CartView() {
             description="Belum ada produk yang dimasukkan ke dalam keranjang reservasi Anda."
             actionText="Jelajahi Katalog Busana"
             actionHref="/catalog"
-            icon={<ShoppingBag className="w-8 h-8 text-gold" />}
+            icon={<ShoppingBag className="w-8 h-8 text-primary" />}
           />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -97,10 +97,10 @@ export function CartView() {
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-card rounded-2xl p-4 border border-border-subtle shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4"
+                  className="bg-surface rounded-2xl p-4 border border-line shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-4 w-full sm:w-auto">
-                    <div className="relative w-20 h-24 rounded-xl overflow-hidden bg-main flex-shrink-0 border border-border-subtle">
+                    <div className="relative w-20 h-24 rounded-xl overflow-hidden bg-canvas flex-shrink-0 border border-line">
                       <Image
                         src={item.image}
                         alt={item.name}
@@ -110,36 +110,36 @@ export function CartView() {
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-bold text-gold uppercase">
+                      <span className="text-[10px] font-bold text-primary uppercase">
                         {item.type}
                       </span>
-                      <h3 className="font-serif font-bold text-sm text-primary">
+                      <h3 className=" font-bold text-sm text-ink">
                         {item.name}
                       </h3>
-                      <p className="text-xs text-secondary">
-                        Ukuran: <span className="font-bold text-primary">{item.size}</span> | {item.date}
+                      <p className="text-xs text-ink-soft">
+                        Ukuran: <span className="font-bold text-ink">{item.size}</span> | {item.date}
                       </p>
-                      <span className="text-xs font-bold text-primary mt-1">
+                      <span className="text-xs font-bold text-ink mt-1">
                         {formatCurrency(item.price)}
                       </span>
                     </div>
                   </div>
 
                   {/* Controls */}
-                  <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-subtle">
-                    <div className="flex items-center border border-border-subtle rounded-xl px-3 py-1.5 bg-card">
+                  <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-line">
+                    <div className="flex items-center border border-line rounded-xl px-3 py-1.5 bg-surface">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
-                        className="text-sm font-bold text-primary px-1 hover:text-gold cursor-pointer"
+                        className="text-sm font-bold text-ink px-1 hover:text-primary cursor-pointer"
                       >
                         -
                       </button>
-                      <span className="text-xs font-bold text-primary px-3">
+                      <span className="text-xs font-bold text-ink px-3">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => updateQuantity(item.id, 1)}
-                        className="text-sm font-bold text-primary px-1 hover:text-gold cursor-pointer"
+                        className="text-sm font-bold text-ink px-1 hover:text-primary cursor-pointer"
                       >
                         +
                       </button>
@@ -158,30 +158,30 @@ export function CartView() {
             </div>
 
             {/* Right Summary Card */}
-            <div className="lg:col-span-4 bg-card rounded-3xl p-6 border border-border-subtle shadow-sm flex flex-col gap-4">
-              <h2 className="font-serif font-bold text-lg text-primary">
+            <div className="lg:col-span-4 bg-surface rounded-3xl p-6 border border-line shadow-sm flex flex-col gap-4">
+              <h2 className=" font-bold text-lg text-ink">
                 Ringkasan Biaya
               </h2>
-              <div className="flex flex-col gap-2.5 text-xs text-secondary">
+              <div className="flex flex-col gap-2.5 text-xs text-ink-soft">
                 <div className="flex justify-between">
                   <span>Subtotal Sewa</span>
-                  <span className="font-bold text-primary">{formatCurrency(subtotal)}</span>
+                  <span className="font-bold text-ink">{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Asuransi & Proteksi</span>
-                  <span className="font-bold text-primary">{formatCurrency(protectionTotal)}</span>
+                  <span className="font-bold text-ink">{formatCurrency(protectionTotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Ongkos Kirim Kurir</span>
-                  <span className="font-bold text-primary">{formatCurrency(shippingFee)}</span>
+                  <span className="font-bold text-ink">{formatCurrency(shippingFee)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Deposit Pengembalian (refundable)</span>
-                  <span className="font-bold text-primary">{formatCurrency(depositTotal)}</span>
+                  <span className="font-bold text-ink">{formatCurrency(depositTotal)}</span>
                 </div>
-                <div className="pt-3 border-t border-border-subtle flex justify-between items-baseline font-bold text-sm text-primary">
+                <div className="pt-3 border-t border-line flex justify-between items-baseline font-bold text-sm text-ink">
                   <span>Total Pembayaran</span>
-                  <span className="text-base text-gold">{formatCurrency(grandTotal)}</span>
+                  <span className="text-base text-primary">{formatCurrency(grandTotal)}</span>
                 </div>
               </div>
 

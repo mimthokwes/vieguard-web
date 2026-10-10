@@ -1,102 +1,58 @@
 "use client";
 
 import React, { useState } from 'react';
-import Image from 'next/image';
-import { Heart, Sparkles } from 'lucide-react';
-import { ProductImage } from '@/types/product';
+import { BadgeCheck, Shirt } from 'lucide-react';
+import { Product } from '@/types/product';
 import { formatImageUrl } from '@/lib/image';
 
-interface ProductGalleryProps {
-  images?: ProductImage[];
-  title: string;
-}
-
-export function ProductGallery({ images = [], title }: ProductGalleryProps) {
-  const defaultLabels = ['Tampak Depan', 'Detail Drapery', 'Fitting Room', 'Serat Sutra'];
-
-  const formattedImages = images.length > 0 
-    ? images.map((img, idx) => ({
-        id: String(img.id || idx),
-        imageUrl: formatImageUrl(img.imageUrl),
-        label: defaultLabels[idx % defaultLabels.length],
-      }))
-    : [
-        { id: '1', imageUrl: formatImageUrl(null), label: 'Tampak Depan' },
-        { id: '2', imageUrl: formatImageUrl(null), label: 'Detail Drapery' },
-        { id: '3', imageUrl: formatImageUrl(null), label: 'Fitting Room' },
-        { id: '4', imageUrl: formatImageUrl(null), label: 'Serat Sutra' },
-      ];
-
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const currentImage = formattedImages[selectedImageIndex]?.imageUrl || formatImageUrl(null);
+export function ProductGallery({ product, availabilityLabel }: { product: Product; availabilityLabel: string }) {
+  const images = [...product.images].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+  const [active, setActive] = useState(0);
+  const current = images[active];
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Main Image View */}
-      <div className="relative w-full aspect-[3/4] rounded-3xl overflow-hidden bg-[#FAF7F2] border border-[#E6E1DA] shadow-lg">
-        <Image
-          src={currentImage}
-          alt={title}
-          fill
-          className="object-cover transition-opacity duration-300"
-          priority
-          sizes="(max-width: 1024px) 100vw, 50vw"
-        />
-
-        {/* Badges in Figma */}
-        <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-          <span className="bg-[#161616]/90 backdrop-blur-md text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-md tracking-widest shadow-sm">
-            SEWA & BELI TERSEDIA
+    <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
+      <div className="relative flex h-[300px] items-center justify-center overflow-hidden rounded-xl bg-canvas sm:h-[488px]">
+        {current ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={formatImageUrl(current.imageUrl)} alt={product.name} className="size-full object-cover" />
+        ) : (
+          <div className="flex flex-col items-center gap-3 text-ink-soft">
+            <span className="flex size-16 items-center justify-center rounded-full bg-surface text-primary shadow-soft">
+              <Shirt className="size-7" aria-hidden="true" />
+            </span>
+            Gambar Produk
+          </div>
+        )}
+        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+          <span className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-on-primary">
+            <span className="size-1.5 rounded-full bg-gold-light" aria-hidden="true" /> {availabilityLabel}
           </span>
-          <span className="bg-white/90 backdrop-blur-md text-[#C48B54] border border-[#DDB892] text-[10px] font-extrabold uppercase px-3 py-1 rounded-md tracking-widest shadow-sm flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-[#C48B54]" />
-            <span>BEST SELLER ATELIER</span>
+          {product.sku && <span className="rounded-full bg-surface/90 px-3 py-1 text-xs font-semibold text-ink">Kode Armada: {product.sku}</span>}
+        </div>
+        {product.category && (
+          <span className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-surface/95 px-3 py-1 text-xs font-bold text-ink">
+            <BadgeCheck className="size-3.5 text-primary" aria-hidden="true" /> {product.category.name}
           </span>
-        </div>
-
-        {/* Wishlist Button */}
-        <button
-          type="button"
-          aria-label="Wishlist"
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-[#1C1C1C] hover:bg-white hover:text-red-500 transition-colors shadow-sm cursor-pointer"
-        >
-          <Heart className="w-5 h-5" />
-        </button>
-
-        {/* Product Code Tag at bottom right matching Figma */}
-        <div className="absolute bottom-4 right-4 text-[10px] font-mono tracking-wider text-[#1C1C1C]/70 bg-white/70 backdrop-blur-sm px-2.5 py-1 rounded-md border border-white/50">
-          MOD-2025-EMR09
-        </div>
+        )}
       </div>
-
-      {/* Thumbnails Row (4 Thumbnails matching Figma) */}
-      <div className="grid grid-cols-4 gap-3">
-        {formattedImages.slice(0, 4).map((img, idx) => {
-          const isSelected = selectedImageIndex === idx;
-          return (
+      {images.length > 1 && (
+        <div className="grid grid-cols-4 gap-2 pt-4">
+          {images.slice(0, 8).map((img, i) => (
             <button
               key={img.id}
               type="button"
-              onClick={() => setSelectedImageIndex(idx)}
-              className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${
-                isSelected ? 'border-[#C48B54] ring-2 ring-[#C48B54]/30 scale-95' : 'border-[#E6E1DA] opacity-80 hover:opacity-100'
-              }`}
+              onClick={() => setActive(i)}
+              aria-label={`Lihat gambar ${i + 1}`}
+              aria-pressed={i === active}
+              className={`h-24 overflow-hidden rounded-xl transition-all sm:h-[118px] ${i === active ? 'ring-2 ring-primary' : 'opacity-80 hover:opacity-100'}`}
             >
-              <Image
-                src={img.imageUrl}
-                alt={img.label}
-                fill
-                className="object-cover"
-                sizes="150px"
-              />
-              <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] font-semibold text-center py-1 backdrop-blur-sm truncate px-1">
-                {img.label}
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={formatImageUrl(img.imageUrl)} alt="" className="size-full object-cover" />
             </button>
-          );
-        })}
-      </div>
-    </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
-
