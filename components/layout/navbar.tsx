@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, MessageSquare, User as UserIcon, ShoppingBag, Menu, X, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, MessageCircle, User as UserIcon, ShoppingBag, Menu, X, LogOut } from 'lucide-react';
 import { User } from '@/types/user';
 import { logoutAction } from '@/app/actions';
 
@@ -12,232 +12,211 @@ interface NavbarProps {
   cartCount?: number;
 }
 
+// Serif font comes from next/font (--font-playfair), with a safe fallback
+const SERIF = 'font-[family-name:var(--font-playfair),Georgia,serif]';
+
+const NAV_CATEGORIES = [
+  { label: 'Koleksi Terbaru', href: '/catalog?category=terbaru' },
+  { label: 'Kebaya & Encim', href: '/catalog?category=kebaya' },
+  { label: 'Traditional Batik', href: '/catalog?category=batik' },
+  { label: 'Baju Bodo & Songket', href: '/catalog?category=songket' },
+  { label: 'Kostum Pawai & Festival', href: '/catalog?category=pawai' },
+  { label: 'Jas & Beskap Adat', href: '/catalog?category=jas' },
+  { label: 'Busana Muslim & Kaftan', href: '/catalog?category=muslim' },
+  { label: 'Aksesoris', href: '/catalog?category=aksesoris' },
+  { label: 'Best Seller', href: '/catalog?category=bestseller' },
+];
+
 export function Navbar({ user, cartCount = 2 }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/catalog?search=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      router.push('/catalog');
-    }
+    const query = searchQuery.trim();
+    router.push(query ? `/catalog?search=${encodeURIComponent(query)}` : '/catalog');
   };
 
-  const navCategories = [
-    { label: 'Semua Model', href: '/catalog' },
-    { label: 'Koleksi Terbaru', href: '/catalog?category=terbaru' },
-    { label: 'Kebaya & Encim', href: '/catalog?category=kebaya' },
-    { label: 'Traditional Batik', href: '/catalog?category=batik' },
-    { label: 'Baju Bodo & Songket', href: '/catalog?category=songket' },
-    { label: 'Kostum Pawai & Festival', href: '/catalog?category=pawai' },
-    { label: 'Jas & Beskap Adat', href: '/catalog?category=jas' },
-    { label: 'Busana Muslim & Kaftan', href: '/catalog?category=muslim' },
-    { label: 'Aksesoris', href: '/catalog?category=aksesoris' },
-  ];
+  // Shared style for the icon-over-label action buttons (Chat, Akun, Keranjang)
+  const actionClass =
+    'group flex flex-col items-center gap-1 text-[#1A1714] transition-colors hover:text-[#C4563A]';
+  const actionLabelClass = 'hidden text-[8px] font-medium leading-none sm:block';
 
   return (
-    <header className="w-full bg-white border-b border-[#E6E1DA] sticky top-0 z-50">
-      {/* Main Top Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-        <div className="flex items-center justify-between gap-4">
-
-          {/* Logo */}
-          <Link href="/" className="flex flex-col flex-shrink-0 group">
-            <span className="font-serif text-xl sm:text-2xl font-bold tracking-[0.25em] text-[#1C1C1C] group-hover:text-[#C48B54] transition-colors">
+    <header className="sticky top-3 z-50 mx-auto w-[95%] max-w-7xl px-3 pt-3 sm:px-4 lg:px-6">
+      {/* Floating card */}
+      <div className="rounded-sm border border-[#E8E1D6] bg-white shadow-[0_8px_24px_-12px_rgba(40,25,10,0.18)]">
+        {/* Top row: logo | search | actions (same layout on every screen size) */}
+        <div className="flex items-center justify-around gap-2 px-3 py-2 sm:gap-6 sm:px-8 sm:py-4">
+          {/* Logo: compact on mobile, roomy from sm and up */}
+          <Link
+            href="/"
+            className="flex shrink-0 flex-col items-center px-1 py-2 leading-none sm:ml-5 sm:p-5"
+          >
+            <span
+              className={`${SERIF} text-sm font-bold tracking-wide text-[#1A1714] sm:text-base md:text-[1.15rem]`}
+            >
               VIEGUARD
             </span>
-            <span className="text-[9px] sm:text-[10px] tracking-[0.2em] font-semibold text-[#8C857B] uppercase -mt-1">
-              Boutique & Rental
+            <span className="mt-1 text-[7px] font-semibold uppercase tracking-[0.12em] text-[#8C857B] sm:text-[9px] sm:tracking-[0.18em]">
+              Pesan &amp; Rental
             </span>
           </Link>
 
-          {/* Search Bar (Desktop & Tablet) */}
+          {/* Search: single form for all screen sizes.
+              min-w-0 + flex-1 lets it shrink with the screen instead of overflowing. */}
           <form
             onSubmit={handleSearchSubmit}
-            className="hidden md:flex flex-1 max-w-xl mx-4 items-center bg-[#FAF7F2] border border-[#E6E1DA] rounded-full overflow-hidden focus-within:border-[#C48B54] focus-within:ring-1 focus-within:ring-[#C48B54] transition-all"
+            className="flex min-w-0 flex-1 items-center rounded-lg border border-[#E8E1D6] bg-[#F7F4EF] p-1 pl-2 transition-colors focus-within:border-[#1A1714]/40 sm:max-w-md sm:pl-4"
           >
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari pakaian, gaun pesta, jas, tren terkini..."
-              className="w-full px-5 py-2.5 text-xs sm:text-sm bg-transparent text-[#1C1C1C] placeholder-[#8C857B] focus:outline-none"
+              className="w-full min-w-0 bg-transparent text-xs text-[#1A1714] placeholder-[#A39B90] placeholder:text-[10px] focus:outline-none"
             />
             <button
               type="submit"
               aria-label="Cari produk"
-              className="bg-[#1C1C1C] hover:bg-[#C48B54] text-white p-2.5 px-4 transition-colors flex items-center justify-center"
+              className="m-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#161616] text-white transition-colors hover:bg-[#2E2A26] sm:m-1"
             >
-              <Search className="w-4 h-4" />
+              <Search className="h-4 w-4" />
             </button>
           </form>
 
-          {/* Right Action Icons */}
-          <div className="flex items-center gap-3 sm:gap-6">
-
+          {/* Right actions: never shrink, so the search absorbs the remaining space */}
+          <div className="flex shrink-0 items-center gap-3 sm:gap-6">
             {/* Chat */}
-            <Link
-              href="/chat"
-              className="flex items-center gap-1.5 text-xs font-semibold text-[#1C1C1C] hover:text-[#C48B54] transition-colors"
-            >
-              <div className="w-8 h-8 rounded-full bg-[#FAF7F2] border border-[#E6E1DA] flex items-center justify-center">
-                <MessageSquare className="w-4 h-4" />
-              </div>
-              <span className="hidden lg:inline">Chat</span>
+            <Link href="/chat" className={actionClass}>
+              <MessageCircle className="h-4 w-4" strokeWidth={1.75} />
+              <span className={actionLabelClass}>Chat</span>
             </Link>
 
-            {/* Account / User Menu */}
+            {/* Account */}
             {user ? (
-              <div className="relative group">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#1C1C1C] cursor-pointer">
-                  <div className="w-8 h-8 rounded-full bg-[#FAF2EA] border border-[#DDB892] text-[#C48B54] flex items-center justify-center font-bold">
+              <div className="group relative">
+                <button type="button" className={actionClass}>
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1A1714] text-[10px] font-bold text-white">
                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                  <span className={`${actionLabelClass} max-w-[64px] truncate`}>
+                    {user.name?.split(' ')[0] ?? 'Akun'}
+                  </span>
+                </button>
+
+                {/* Dropdown: pt-2 (not mt-2) keeps hover alive between button and menu */}
+                <div className="absolute right-0 top-full hidden pt-2 group-focus-within:block group-hover:block">
+                  <div className="w-52 rounded-xl border border-[#E8E1D6] bg-white py-2 shadow-lg">
+                    <div className="border-b border-[#F1ECE4] px-4 py-2">
+                      <p className="truncate text-xs font-semibold text-[#1A1714]">{user.name}</p>
+                      <p className="truncate text-[11px] text-[#8C857B]">{user.email}</p>
+                    </div>
+                    <form action={logoutAction}>
+                      <button
+                        type="submit"
+                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-xs text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        <LogOut className="h-3.5 w-3.5" />
+                        Keluar (Logout)
+                      </button>
+                    </form>
                   </div>
-                  <span className="hidden lg:inline max-w-[100px] truncate">{user.name}</span>
-                </div>
-                {/* Dropdown Menu */}
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-[#E6E1DA] rounded-xl shadow-lg py-2 hidden group-hover:block z-50">
-                  <div className="px-4 py-2 border-b border-[#F3EDE6]">
-                    <p className="text-xs font-bold text-[#1C1C1C] truncate">{user.name}</p>
-                    <p className="text-[10px] text-[#8C857B] truncate">{user.email}</p>
-                  </div>
-                  <form action={logoutAction}>
-                    <button
-                      type="submit"
-                      className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      Keluar (Logout)
-                    </button>
-                  </form>
                 </div>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="flex items-center gap-1.5 text-xs font-semibold text-[#1C1C1C] hover:text-[#C48B54] transition-colors"
-              >
-                <div className="w-8 h-8 rounded-full bg-[#FAF7F2] border border-[#E6E1DA] flex items-center justify-center">
-                  <UserIcon className="w-4 h-4" />
-                </div>
-                <span className="hidden lg:inline">Akun</span>
+              <Link href="/login" className={actionClass}>
+                <UserIcon className="h-4 w-4" strokeWidth={1.75} />
+                <span className={actionLabelClass}>Akun</span>
               </Link>
             )}
 
             {/* Cart */}
-            <Link
-              href="/cart"
-              className="flex items-center gap-1.5 text-xs font-semibold text-[#1C1C1C] hover:text-[#C48B54] transition-colors relative"
-            >
-              <div className="w-8 h-8 rounded-full bg-[#FAF7F2] border border-[#E6E1DA] flex items-center justify-center relative">
-                <ShoppingBag className="w-4 h-4" />
+            <Link href="/cart" className={actionClass}>
+              <span className="relative">
+                <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#C48B54] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                  <span className="absolute -right-2 -top-2 flex h-3 min-w-3 items-center justify-center rounded-full bg-[#D9822B] px-1 text-[10px] font-bold leading-none text-white">
                     {cartCount}
                   </span>
                 )}
-              </div>
-              <span className="hidden lg:inline">Keranjang</span>
+              </span>
+              <span className={actionLabelClass}>Keranjang</span>
             </Link>
 
-            {/* Mobile Menu Toggle Button */}
+            {/* Mobile menu toggle */}
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-[#1C1C1C] hover:text-[#C48B54]"
-              aria-label="Toggle Menu"
+              className="p-1 text-[#1A1714] transition-colors hover:text-[#C4563A] md:hidden"
+              aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
-
           </div>
-
         </div>
 
-        {/* Mobile Search Bar */}
-        <form
-          onSubmit={handleSearchSubmit}
-          className="mt-3 md:hidden flex items-center bg-[#FAF7F2] border border-[#E6E1DA] rounded-full overflow-hidden"
-        >
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari pakaian, gaun pesta, jas..."
-            className="w-full px-4 py-2 text-xs bg-transparent text-[#1C1C1C] focus:outline-none"
-          />
-          <button
-            type="submit"
-            aria-label="Cari"
-            className="bg-[#1C1C1C] text-white p-2 px-3 flex items-center justify-center"
-          >
-            <Search className="w-3.5 h-3.5" />
-          </button>
-        </form>
-
-      </div>
-
-      {/* Category Links Sub-bar (Desktop) */}
-      <nav className="border-t border-[#F3EDE6] bg-[#FAF7F2] hidden md:block">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ul className="flex items-center gap-6 overflow-x-auto py-2.5 text-xs font-semibold text-[#6B655C] whitespace-nowrap scrollbar-none">
-            <li className="flex items-center gap-1.5 text-[#1C1C1C] font-bold hover:text-[#C48B54] cursor-pointer">
-              <Menu className="w-3.5 h-3.5" />
-              <span>Menu</span>
-            </li>
-            {navCategories.map((cat) => (
-              <li key={cat.label}>
-                <Link
-                  href={cat.href}
-                  className="hover:text-[#1C1C1C] hover:underline transition-colors"
-                >
-                  {cat.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </nav>
-
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#E6E1DA] bg-white px-4 py-4 space-y-3 shadow-xl">
-          <div className="text-xs font-bold text-[#8C857B] uppercase tracking-wider mb-2">
-            Kategori Koleksi
+        {/* Category sub-bar (desktop) */}
+        <nav className="hidden border-t border-[#EFE9E0] md:block">
+          <div className="flex items-center gap-6 px-6 py-3 sm:px-8">
+            <Link
+              href="/catalog"
+              className="flex shrink-0 items-center gap-2 pr-6 text-[12px] font-semibold text-[#1A1714] transition-colors hover:text-[#C4563A]"
+            >
+              <Menu className="h-3 w-3" />
+              Menu
+            </Link>
+            <ul className="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-[9px] font-medium text-[#3D3832] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {NAV_CATEGORIES.map((cat) => (
+                <li key={cat.label}>
+                  <Link href={cat.href} className="transition-colors hover:text-[#C4563A]">
+                    {cat.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-          {navCategories.map((cat) => (
-            <Link
-              key={cat.label}
-              href={cat.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-[#1C1C1C] py-2 border-b border-[#F3EDE6] hover:text-[#C48B54]"
-            >
-              {cat.label}
-            </Link>
-          ))}
-          {!user ? (
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-center bg-[#1C1C1C] text-white py-2.5 rounded-xl text-xs font-semibold mt-4"
-            >
-              Masuk / Daftar Akun
-            </Link>
-          ) : (
-            <form action={logoutAction}>
-              <button
-                type="submit"
-                className="w-full text-center bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-xl text-xs font-semibold mt-4"
+        </nav>
+
+        {/* Mobile drawer */}
+        {mobileMenuOpen && (
+          <div className="max-h-[70vh] overflow-y-auto border-t border-[#EFE9E0] px-4 py-4 md:hidden">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#8C857B]">
+              Kategori Koleksi
+            </div>
+            {[{ label: 'Semua Model', href: '/catalog' }, ...NAV_CATEGORIES].map((cat) => (
+              <Link
+                key={cat.label}
+                href={cat.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block border-b border-[#F1ECE4] py-3 text-sm font-medium text-[#1A1714] transition-colors hover:text-[#C4563A]"
               >
-                Keluar (Logout)
-              </button>
-            </form>
-          )}
-        </div>
-      )}
+                {cat.label}
+              </Link>
+            ))}
+            {!user ? (
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mt-4 block rounded-full bg-[#161616] py-3 text-center text-sm font-semibold text-white"
+              >
+                Masuk / Daftar Akun
+              </Link>
+            ) : (
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  className="mt-4 w-full rounded-full border border-red-200 bg-red-50 py-3 text-center text-sm font-semibold text-red-600"
+                >
+                  Keluar (Logout)
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+      </div>
     </header>
   );
 }

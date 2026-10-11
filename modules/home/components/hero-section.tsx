@@ -1,89 +1,112 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShieldCheck, Sparkles, Zap, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Sparkles, Clock, ArrowRight } from 'lucide-react';
+
+// Replace with your real showroom photo, e.g. '/images/hero-showroom.jpg'
+const HERO_IMAGE_SRC = '/placeholder-product.svg';
+
+// Serif font comes from next/font (--font-playfair), with a safe fallback
+const SERIF = 'font-[family-name:var(--font-playfair),Georgia,serif]';
+
+const TRUST_BADGES = [
+  { icon: ShieldCheck, label: 'Higienis & Dry Cleaned' },
+  { icon: Sparkles, label: 'Kualitas Desainer' },
+  { icon: Clock, label: 'Pengiriman Kilat' },
+];
 
 export function HeroSection() {
   return (
-    <section className="w-full bg-[#FAF7F2] py-8 sm:py-12 border-b border-[#E6E1DA]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          
-          {/* Left Text Content */}
-          <div className="lg:col-span-7 flex flex-col gap-5">
-            <span className="text-xs font-bold tracking-[0.25em] text-[#C48B54] uppercase">
-              ELEGANCE. CURATED. ACCESSIBLE.
-            </span>
-            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1C1C1C] leading-[1.15]">
-              Tampil Menawan di Setiap Momen Istimewa.
-            </h1>
-            <p className="text-xs sm:text-sm text-[#6B655C] leading-relaxed max-w-xl">
-              Beli koleksi pakaian desainer atau sewa gaun & jas premium untuk pernikahan, pesta, dan momen karir Anda dengan kualitas higienis berstandar tinggi.
-            </p>
+    <section className="w-full pb-10 pt-4 sm:pb-14 sm:pt-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Hero card */}
+        <div className="rounded-[28px] border border-[#EAE1D7] bg-gradient-to-br from-[#F8F3EC] to-[#F1E9DF] p-6 shadow-[0_1px_2px_rgba(60,40,20,0.04)] sm:p-10 lg:p-12">
+          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-14">
+            {/* Left: text content */}
+            <div className="flex flex-col">
+              <span className="mb-5 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#C4563A]">
+                Elegance. Curated. Accessible.
+              </span>
 
-            {/* Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link href="/catalog">
-                <button className="bg-[#161616] hover:bg-[#C48B54] text-white font-bold text-xs sm:text-sm px-6 py-3.5 rounded-xl transition-all flex items-center gap-2 shadow-sm cursor-pointer">
-                  <span>Jelajahi Koleksi</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </Link>
-              <Link href="/catalog" className="text-xs sm:text-sm font-bold text-[#1C1C1C] hover:text-[#C48B54] transition-colors py-3.5 px-4 underline decoration-[#C48B54]/40 underline-offset-4">
-                Cara Kerja Rental
-              </Link>
+              <h1
+                className={`${SERIF} mb-5 text-[2.5rem] font-bold leading-[1.08] tracking-tight text-[#1A1714] sm:text-5xl lg:text-[3.5rem]`}
+              >
+                Tampil Menawan di
+                <br className="hidden lg:block" /> Setiap Momen
+                <br className="hidden lg:block" /> Istimewa.
+              </h1>
+
+              <p className="mb-8 max-w-md text-sm leading-relaxed text-[#5F584F] sm:text-base">
+                Beli koleksi pakaian desainer atau sewa gaun &amp; jas premium
+                untuk pernikahan, pesta, dan momen karir Anda dengan kualitas
+                higienis berstandar tinggi.
+              </p>
+
+              {/* Actions: styled Links, no <button> nested inside <Link> */}
+              <div className="flex flex-wrap items-center gap-5">
+                <Link
+                  href="/catalog"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#161616] px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#2E2A26]"
+                >
+                  Jelajahi Koleksi
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/catalog"
+                  className="text-sm font-semibold text-[#1A1714] underline decoration-[#1A1714]/40 underline-offset-4 transition-colors hover:text-[#C4563A] hover:decoration-[#C4563A]"
+                >
+                  Cara Kerja Rental
+                </Link>
+              </div>
+
+              {/* Trust badges */}
+              <ul className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-[#E3D9CD] pt-6 text-xs font-medium text-[#4A443D]">
+                {TRUST_BADGES.map(({ icon: Icon, label }) => (
+                  <li key={label} className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    <span>{label}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* Badges */}
-            <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-[#E6E1DA] text-xs font-semibold text-[#1C1C1C]">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#C48B54]" />
-                <span>Higienis & Dry Cleaned</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#C48B54]" />
-                <span>Kualitas Desainer</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-[#C48B54]" />
-                <span>Pengiriman Kilat</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Image Showcase */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-[#E6E1DA] bg-[#F3EDE6] flex items-center justify-center">
+            {/* Right: image showcase */}
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-[#E9DFD3] shadow-[0_20px_40px_-12px_rgba(40,25,10,0.35)] ring-1 ring-black/5 lg:aspect-[10/7]">
               <Image
-                src="/placeholder-product.svg"
-                alt="Vieguard Collection"
+                src={HERO_IMAGE_SRC}
+                alt="Vieguard Spring/Summer collection showroom"
                 fill
-                className="object-cover"
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
               />
-              {/* Overlay Glass Banner */}
-              <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-white/60 flex items-center justify-between shadow-lg">
-                <div>
-                  <span className="text-[9px] font-bold tracking-widest text-[#C48B54] uppercase block">
-                    SPRING/SUMMER &apos;25
+
+              {/* Soft gradient so the glass card stays readable on any photo */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/25 to-transparent" />
+
+              {/* Floating glass card */}
+              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 rounded-xl border border-white/60 bg-white/80 px-4 py-3 shadow-lg backdrop-blur-md">
+                <div className="min-w-0">
+                  <span className="block text-[10px] font-semibold uppercase tracking-widest text-[#C4563A]">
+                    Spring/Summer &apos;25
                   </span>
-                  <h3 className="font-serif text-xs sm:text-sm font-bold text-[#1C1C1C]">
+                  <h3
+                    className={`${SERIF} truncate text-sm font-bold text-[#1A1714]`}
+                  >
                     The Celestial Silk Gala Collection
                   </h3>
                 </div>
-                <Link href="/catalog">
-                  <button className="bg-[#161616] hover:bg-[#C48B54] text-white text-xs font-bold py-2 px-3.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer shadow-sm">
-                    Lihat Detail
-                  </button>
+                <Link
+                  href="/catalog"
+                  className="shrink-0 rounded-md bg-[#161616] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2E2A26]"
+                >
+                  Lihat Detail
                 </Link>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>
   );
 }
-

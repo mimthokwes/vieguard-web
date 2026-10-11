@@ -4,62 +4,66 @@ import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { formatImageUrl } from '@/lib/image';
 
-export function CategoriesSection() {
-  const categories = [
-    { name: 'Koleksi Terbaru', href: '/catalog?category=terbaru' },
-    { name: 'Kebaya Modern', href: '/catalog?category=kebaya' },
-    { name: 'Traditional Batik', href: '/catalog?category=batik' },
-    { name: 'Kostum Pawai', href: '/catalog?category=pawai' },
-    { name: 'Beskap & Jas Adat', href: '/catalog?category=jas' },
-    { name: 'Baju Kurung & Kaftan', href: '/catalog?category=muslim' },
-    { name: 'Aksesoris', href: '/catalog?category=aksesoris' },
-    { name: 'Best Seller', href: '/catalog?sort=populer' },
-  ];
+interface Category {
+  name: string;
+  href: string;
+  // Optional local image from /public, e.g. '/images/categories/kebaya.jpg'
+  image?: string;
+}
 
+const CATEGORIES: Category[] = [
+  { name: 'Koleksi Terbaru', href: '/catalog?category=terbaru' },
+  { name: 'Kebaya Modern', href: '/catalog?category=kebaya' },
+  { name: 'Traditional Batik', href: '/catalog?category=batik' },
+  { name: 'Kostum Pawai', href: '/catalog?category=pawai' },
+  { name: 'Beskap & Jas Adat', href: '/catalog?category=jas' },
+  { name: 'Baju Kurung & Kaftan', href: '/catalog?category=muslim' },
+  { name: 'Aksesoris', href: '/catalog?category=aksesoris' },
+  { name: 'Best Seller', href: '/catalog?sort=populer' },
+];
+
+export function CategoriesSection() {
   return (
-    <section className="w-full py-10 bg-white border-b border-[#E6E1DA]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+    <section className="w-full py-8 sm:py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C]">
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <h2 className="text-lg font-bold text-[#1A1714] sm:text-xl">
             Kategori Pilihan
           </h2>
           <Link
             href="/catalog"
-            className="text-xs font-bold text-[#1C1C1C] hover:text-[#C48B54] flex items-center gap-1 transition-colors"
+            className="flex items-center gap-1 text-xs font-medium text-[#6F675D] transition-colors hover:text-[#1A1714]"
           >
             <span>Lihat semua kategori</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
-        {/* Category Grid (8 Circular Avatars matching Figma) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 text-center">
-          {categories.map((cat) => (
+        {/* Mobile: horizontal scroll. Desktop: 8 equal columns */}
+        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-8 lg:gap-2 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
+          {CATEGORIES.map((cat) => (
             <Link
               key={cat.name}
               href={cat.href}
-              className="group flex flex-col items-center gap-3 p-2 rounded-2xl hover:bg-[#FAF7F2] transition-all duration-300"
+              className="group flex w-24 shrink-0 flex-col items-center gap-3 text-center lg:w-auto"
             >
-              <div className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-full overflow-hidden border-2 border-[#E6E1DA] group-hover:border-[#C48B54] group-hover:scale-105 transition-all shadow-sm bg-[#FAF7F2] flex items-center justify-center">
+              <div className="relative h-20 w-20 overflow-hidden rounded-full border-[3px] border-[#EADFD0] bg-[#F3ECE2] shadow-[0_2px_8px_-2px_rgba(60,40,20,0.15)] transition-all duration-300 group-hover:scale-105 group-hover:border-[#C4563A]/60 sm:h-[88px] sm:w-[88px]">
                 <Image
-                  src={formatImageUrl(null)}
+                  src={cat.image ?? formatImageUrl(null)}
                   alt={cat.name}
                   fill
-                  className="object-cover"
                   sizes="88px"
+                  className="object-cover"
                 />
               </div>
-              <span className="text-xs font-bold text-[#1C1C1C] group-hover:text-[#C48B54] transition-colors leading-tight line-clamp-2 max-w-[100px]">
+              <span className="text-[13px] font-medium leading-snug text-[#1A1714] transition-colors group-hover:text-[#C4563A]">
                 {cat.name}
               </span>
             </Link>
           ))}
         </div>
-
       </div>
     </section>
   );
 }
-

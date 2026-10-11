@@ -9,127 +9,156 @@ interface ProductCardProps {
   product: Product;
   showBuyPrice?: boolean;
   variant?: 'compact' | 'full';
+  showBadge?: boolean;
 }
 
-export function ProductCard({ product, showBuyPrice = true, variant = 'full' }: ProductCardProps) {
-  const rawImage = product.images?.find((img) => img.isPrimary)?.imageUrl || product.images?.[0]?.imageUrl;
+const formatRupiah = (value: number) =>
+  new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(value);
+
+export function ProductCard({
+  product,
+  showBuyPrice = true,
+  variant = 'full',
+  showBadge = true,
+}: ProductCardProps) {
+  const rawImage =
+    product.images?.find((img) => img.isPrimary)?.imageUrl ||
+    product.images?.[0]?.imageUrl;
   const primaryImage = formatImageUrl(rawImage);
 
-  const badgeText = product.badgeTag || (product.basePriceBuy ? 'SEWA / BELI' : 'SEWA');
-  const categoryName = product.category?.name || product.subCategoryTag || 'GAUN & COUTURE';
-  
-  const formattedRentPrice = new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(product.basePriceRent3d || 350000);
+  const rent = Number(product.basePriceRent3d) || 0;
+  const buy = Number(product.basePriceBuy) || 0;
+  const rating = Number(product.rating) || 0;
+  const likes = Number(product.likesCount) || 0;
 
-  const formattedBuyPrice = new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(product.basePriceBuy || 1450000);
+  const badgeText = product.badgeTag || (buy > 0 ? 'SEWA / BELI' : 'SEWA');
+  // Rental badges are dark, "buy / special" badges use the accent color
+  const badgeClass = badgeText.toUpperCase().startsWith('SEWA')
+    ? 'bg-[#161616]/85'
+    : 'bg-[#C4563A]';
 
-  const rating = product.rating || 4.9;
-  const likesCount = product.likesCount || 128;
+  const categoryName = product.category?.name || product.subCategoryTag;
+
+  // One primary price, like the design: rent first, otherwise buy price
+  const primaryPrice =
+    rent > 0
+      ? { label: 'Sewa 3 Hari', value: rent }
+      : buy > 0
+        ? { label: 'Harga Beli', value: buy }
+        : null;
+
+  const detailHref = `/catalog/${product.id}`;
 
   return (
-    <div className="group bg-card rounded-[20px] p-3.5 sm:p-4 border border-[#E6E1DA] hover:border-[#C48B54] hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full relative">
-      <div>
-        {/* Image Container */}
-        <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#FAF7F2] mb-3.5">
+    <div className="group relative flex h-full flex-col rounded-xl border border-[#E8E1D6] bg-white p-3 transition-shadow duration-300 hover:shadow-[0_12px_28px_-16px_rgba(40,25,10,0.35)]">
+      {/* Image */}
+      <div className="relative">
+        <Link
+          href={detailHref}
+          className="relative block aspect-[4/5] overflow-hidden rounded-lg bg-[#F3ECE2]"
+        >
           <Image
             src={primaryImage}
             alt={product.name}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
+        </Link>
 
-          {/* Badge */}
-          <div className="absolute top-3 left-3 bg-[#161616]/90 backdrop-blur-md text-white text-[10px] font-bold uppercase px-2.5 py-1 rounded-md tracking-wider">
-            {badgeText}
-          </div>
-
-          {/* Wishlist Capsule Button with Likes Count (matching Figma) */}
-          <button
-            type="button"
-            aria-label="Simpan ke favorit"
-            className="absolute top-3 right-3 bg-white/90 backdrop-blur-md hover:bg-white text-[#1C1C1C] hover:text-red-500 px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+        {showBadge && (
+          <span
+            className={`pointer-events-none absolute left-2.5 top-2.5 rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm ${badgeClass}`}
           >
-            <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
-            <span className="text-[11px]">{likesCount}</span>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex flex-col gap-1 px-1">
-          <span className="text-[10px] font-bold tracking-widest text-[#C48B54] uppercase">
-            {categoryName}
+            {badgeText}
           </span>
-          <Link href={`/catalog/${product.id}`} className="group-hover:text-[#C48B54] transition-colors">
-            <h3 className="font-serif font-bold text-base text-[#1C1C1C] line-clamp-1 leading-snug">
-              {product.name}
-            </h3>
-          </Link>
+        )}
 
-          {/* Truncated Description snippet if available */}
-          {product.description && (
-            <p className="text-[11px] text-[#6B655C] line-clamp-2 mt-0.5 leading-relaxed">
-              {product.description}
-            </p>
-          )}
-
-          {/* Rating */}
-          <div className="flex items-center gap-1.5 text-xs text-[#6B655C] my-1">
-            <div className="flex items-center text-amber-500 font-bold">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 mr-0.5 inline" />
-              <span>{rating}</span>
-            </div>
-            <span className="text-[11px] text-[#8C857B]">({likesCount} orang menyukai model ini)</span>
-          </div>
-        </div>
+        {/* Wishlist: sibling of the image Link, so no interactive element is nested */}
+        <button
+          type="button"
+          aria-label="Simpan ke favorit"
+          className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#1A1714] shadow-sm backdrop-blur-sm transition-colors hover:bg-white hover:text-[#C4563A]"
+        >
+          <Heart className="h-4 w-4" strokeWidth={1.75} />
+        </button>
       </div>
 
-      {/* Pricing & Actions */}
-      <div className="mt-3 pt-3 border-t border-[#F3EDE6] flex flex-col gap-2.5 px-1">
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div>
-            <span className="text-[9px] uppercase text-[#8C857B] block font-bold tracking-wider">
-              SEWA 3 HARI
+      {/* Info */}
+      <div className="mt-3 flex flex-1 flex-col gap-1 px-0.5">
+        {categoryName && (
+          <span className="text-[10px] font-medium uppercase tracking-wide text-[#8C857B]">
+            {categoryName}
+          </span>
+        )}
+
+        <Link href={detailHref}>
+          <h3 className="line-clamp-1 text-sm font-semibold text-[#1A1714] transition-colors group-hover:text-[#C4563A]">
+            {product.name}
+          </h3>
+        </Link>
+
+        {rating > 0 && (
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="flex items-center gap-1 font-semibold text-[#E08A1E]">
+              <Star className="h-3 w-3 fill-current" />
+              {rating.toFixed(1)}
             </span>
-            <span className="font-bold text-sm text-[#1C1C1C]">
-              {formattedRentPrice}
+            {likes > 0 && (
+              <span className="text-[11px] text-[#A39B90]">({likes} suka)</span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Price + action */}
+      <div className="mt-3 border-t border-[#F1ECE4] pt-3">
+        <div className="flex items-end justify-between gap-2 px-0.5">
+          <div className="min-w-0">
+            <span className="block text-[11px] text-[#8C857B]">
+              {primaryPrice ? primaryPrice.label : 'Harga'}
+            </span>
+            <span className="block truncate text-[15px] font-bold text-[#1A1714]">
+              {primaryPrice ? formatRupiah(primaryPrice.value) : 'Hubungi kami'}
             </span>
           </div>
-          {showBuyPrice && product.basePriceBuy > 0 && (
-            <div className="text-right">
-              <span className="text-[9px] uppercase text-[#8C857B] block font-bold tracking-wider">
-                HARGA BELI
-              </span>
-              <span className="text-xs text-[#6B655C] font-semibold">
-                {formattedBuyPrice}
-              </span>
-            </div>
+
+          {variant === 'compact' ? (
+            <Link
+              href={detailHref}
+              aria-label={`Lihat detail ${product.name}`}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#E8E1D6] bg-white text-[#1A1714] transition-colors hover:border-[#161616] hover:bg-[#161616] hover:text-white"
+            >
+              <Plus className="h-4 w-4" />
+            </Link>
+          ) : (
+            showBuyPrice &&
+            rent > 0 &&
+            buy > 0 && (
+              <div className="text-right">
+                <span className="block text-[11px] text-[#8C857B]">Harga Beli</span>
+                <span className="block text-xs font-semibold text-[#5F584F]">
+                  {formatRupiah(buy)}
+                </span>
+              </div>
+            )
           )}
         </div>
 
-        {variant === 'full' ? (
-          <Link href={`/catalog/${product.id}`} className="mt-1">
-            <button className="w-full bg-[#161616] hover:bg-[#C48B54] text-white text-xs font-bold py-2.5 px-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Pesan / Sewa Sekarang</span>
-            </button>
-          </Link>
-        ) : (
-          <Link href={`/catalog/${product.id}`} className="self-end mt-1">
-            <div className="w-8 h-8 rounded-lg bg-[#FAF7F2] border border-[#E6E1DA] hover:bg-[#161616] hover:text-white text-[#1C1C1C] flex items-center justify-center transition-colors">
-              <Plus className="w-4 h-4" />
-            </div>
+        {variant === 'full' && (
+          <Link
+            href={detailHref}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[#161616] px-3 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#2E2A26]"
+          >
+            <ShoppingBag className="h-3.5 w-3.5" />
+            Pesan / Sewa Sekarang
           </Link>
         )}
       </div>
     </div>
   );
 }
-

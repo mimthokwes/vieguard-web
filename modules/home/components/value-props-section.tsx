@@ -1,49 +1,37 @@
 import React from 'react';
-import { Zap, RefreshCw, Sparkles, MessageCircle } from 'lucide-react';
+import { Zap, RefreshCw, Sparkles, MessageCircle, type LucideIcon } from 'lucide-react';
+
+interface ValueProp {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+}
+
+const VALUE_PROPS: ValueProp[] = [
+  { icon: Zap, title: 'Pengiriman Kilat', desc: 'Tiba H-1 sebelum acara' },
+  { icon: RefreshCw, title: 'Jaminan Pas Ukuran', desc: 'Tukar ukuran gratis' },
+  { icon: Sparkles, title: 'Steril & Siap Pakai', desc: 'Standard eco-laundry' },
+  { icon: MessageCircle, title: 'Konsultasi Gaya 24/7', desc: 'Stylist siap membantu' },
+];
 
 export function ValuePropsSection() {
-  const props = [
-    {
-      icon: <Zap className="w-5 h-5 text-[#C48B54]" />,
-      title: 'Pengiriman Kilat',
-      desc: 'Tiba H-1 sebelum acara',
-    },
-    {
-      icon: <RefreshCw className="w-5 h-5 text-[#C48B54]" />,
-      title: 'Jaminan Pas Ukuran',
-      desc: 'Tukar ukuran gratis',
-    },
-    {
-      icon: <Sparkles className="w-5 h-5 text-[#C48B54]" />,
-      title: 'Steril & Siap Pakai',
-      desc: 'Standard eco-laundry',
-    },
-    {
-      icon: <MessageCircle className="w-5 h-5 text-[#C48B54]" />,
-      title: 'Konsultasi Gaya 24/7',
-      desc: 'Stylist siap membantu',
-    },
-  ];
-
   return (
-    <section className="w-full py-8 bg-[#FAF7F2] border-b border-[#E6E1DA]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {props.map((item) => (
-            <div
-              key={item.title}
-              className="bg-white border border-[#E6E1DA] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:border-[#C48B54] transition-colors"
-            >
-              <div className="w-10 h-10 rounded-xl bg-[#FAF2EA] flex items-center justify-center flex-shrink-0">
-                {item.icon}
+    <section className="w-full py-4 sm:py-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* One shared card, items are separated by spacing only (no individual borders) */}
+        <ul className="grid grid-cols-1 gap-x-6 gap-y-5 rounded-2xl border border-[#E8E1D6] bg-white px-5 py-5 sm:grid-cols-2 sm:px-8 sm:py-6 lg:grid-cols-4">
+          {VALUE_PROPS.map(({ icon: Icon, title, desc }) => (
+            <li key={title} className="flex items-center gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FBEDE6] text-[#C4563A]">
+                <Icon className="h-5 w-5" strokeWidth={1.75} />
+              </span>
+              <div className="min-w-0">
+                <h4 className="text-[13px] font-semibold text-[#1A1714]">{title}</h4>
+                <p className="mt-0.5 text-xs text-[#8C857B]">{desc}</p>
               </div>
-              <div className="flex flex-col">
-                <h4 className="text-xs font-bold text-[#1C1C1C]">{item.title}</h4>
-                <p className="text-[11px] text-[#6B655C]">{item.desc}</p>
-              </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );

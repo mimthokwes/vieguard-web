@@ -7,7 +7,8 @@ import { getSessionUser } from '@/lib/session';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-serif',
+  variable: '--font-playfair',
+  weight: ['600', '700', '800'],
   display: 'swap',
 });
 
@@ -31,7 +32,7 @@ export default async function RootLayout({
 
   return (
     <html lang="id" className={`${playfair.variable} ${jakarta.variable}`}>
-      <body className="font-sans bg-[#FAF7F2] text-[#1C1C1C] min-h-screen flex flex-col antialiased">
+      <body className="font-sans bg-[#FAF7F2] text-[#1C1C1C] min-h-screen flex flex-col antialiased items-center">
         <Navbar user={user} cartCount={2} />
         <div className="flex-1">{children}</div>
         <Footer />
