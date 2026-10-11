@@ -1,165 +1,104 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens — mirrors the VIEGUARD mobile app theme
+ * (vieguard_app/lib/core/theme/app_theme.dart) so web and mobile share
+ * one maroon & gold palette. Use these utilities (bg-primary, text-ink,
+ * border-line, ...) instead of raw hex values.
+ */
 @theme {
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-cinzel), 'Cinzel', Georgia, serif;
 
-  --color-main: #FAF7F2;
-  --color-card: #FFFFFF;
-  --color-dark: #161616;
-  --color-dark-card: #222222;
-  --color-subtle: #F3EDE6;
-  --color-accent-soft: #F9F2EB;
-  --color-hover: #F0EAE1;
+  --color-primary: #7A0015;
+  --color-primary-dark: #5A000F;
+  --color-primary-deep: #4A000B;
+  --color-primary-light: #A3182E;
+  --color-on-primary: #FFFFFF;
 
-  --color-primary: #1C1C1C;
-  --color-secondary: #6B655C;
-  --color-muted: #938C82;
-  --color-gold: #C48B54;
-  --color-gold-dark: #A26E3A;
-  --color-gold-light: #FAF2EA;
+  --color-gold: #D9A33A;
+  --color-gold-light: #F2C766;
+  --color-gold-dark: #B07A1C;
+  --color-on-gold: #4A2A00;
 
-  --color-border-subtle: #E6E1DA;
-  --color-border-gold: #DDB892;
-}
+  --color-canvas: #FBF6EE;
+  --color-surface: #FFFFFF;
+  --color-beige: #EBDCC6;
+  --color-beige-soft: #FAF3E8;
 
-:root {
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --color-ink: #2B1A16;
+  --color-ink-soft: #5C4740;
+  --color-muted: #8C7468;
+  --color-line: #EFE4D5;
+  --color-line-strong: #E3D3BD;
 
-  --bg-main: #FAF7F2;
-  --bg-card: #FFFFFF;
-  --bg-dark: #161616;
-  --bg-dark-card: #222222;
-  --bg-subtle: #F3EDE6;
-  --bg-accent-soft: #F9F2EB;
-  --bg-hover: #F0EAE1;
+  --color-success: #1E8A4C;
+  --color-success-bg: #DDF3E4;
+  --color-warning: #9A6700;
+  --color-warning-bg: #FDF0C8;
+  --color-info: #3553B5;
+  --color-info-bg: #E6ECFF;
+  --color-danger: #C62828;
+  --color-danger-bg: #FDE4E4;
 
-  --text-primary: #1C1C1C;
-  --text-secondary: #6B655C;
-  --text-muted: #938C82;
-  --text-gold: #B8860B;
-  --text-gold-dark: #A26E3A;
-
-  --accent-gold: #C48B54;
-  --accent-gold-dark: #A26E3A;
-  --accent-gold-light: #FAF2EA;
-  --accent-dark: #161616;
-
-  --border-color: #E6E1DA;
-  --border-dark: #2C2C2C;
-  --border-gold: #DDB892;
-
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-  --radius-full: 9999px;
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04);
-  --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.08);
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  --shadow-card: 0 4px 12px rgba(43, 26, 22, 0.06);
+  --shadow-soft: 0 2px 6px rgba(43, 26, 22, 0.05);
+  --shadow-button: 0 2px 4px rgba(122, 0, 21, 0.2);
+  --shadow-gold: 0 2px 4px rgba(176, 122, 28, 0.25);
 }
 
 html,
 body {
-  background-color: var(--bg-main);
-  color: var(--text-primary);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
 }
 
-h1,
-h2,
-h3,
-h4,
-.font-serif {
-  font-family: var(--font-serif);
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
 }
 
-/* Custom Utilities */
-.bg-main {
-  background-color: var(--bg-main);
+::selection {
+  background-color: var(--color-beige);
+  color: var(--color-primary);
 }
 
-.bg-card {
-  background-color: var(--bg-card);
-}
-
-.bg-subtle {
-  background-color: var(--bg-subtle);
-}
-
-.bg-dark {
-  background-color: var(--bg-dark);
-}
-
-.bg-gold-light {
-  background-color: var(--accent-gold-light);
-}
-
-.text-primary {
-  color: var(--text-primary);
-}
-
-.text-secondary {
-  color: var(--text-secondary);
-}
-
-.text-muted {
-  color: var(--text-muted);
-}
-
-.text-gold {
-  color: var(--accent-gold);
-}
-
-.border-subtle {
-  border-color: var(--border-color);
-}
-
-.border-gold {
-  border-color: var(--border-gold);
-}
-
-/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-main);
+  background: var(--color-canvas);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D5CFC7;
+  background: var(--color-line-strong);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #B5AFA7;
+  background: var(--color-muted);
 }
 
-/* Badge styling */
-.badge-gold {
-  background-color: var(--accent-gold-light);
-  color: var(--accent-gold-dark);
-  border: 1px solid var(--border-gold);
+.scrollbar-none {
+  scrollbar-width: none;
 }
 
-/* Form Controls Reset */
-input,
-select,
-textarea,
-button {
-  font-family: inherit;
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.bg-maroon-gradient {
+  background-image: linear-gradient(135deg, #8E0A20 0%, #6A0012 50%, #4A000B 100%);
+}
+
+.bg-gold-gradient {
+  background-image: linear-gradient(135deg, #F2C766 0%, #D9A33A 50%, #B07A1C 100%);
 }

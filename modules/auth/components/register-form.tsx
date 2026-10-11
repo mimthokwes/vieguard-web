@@ -1,80 +1,74 @@
 "use client";
 
-import React, { useActionState, useState } from 'react';
-import { User as UserIcon, Mail, Phone, MapPin, Lock, Eye, EyeOff } from 'lucide-react';
+import React, { useActionState } from 'react';
 import { registerAction, FormState } from '../actions';
-import { Input } from '@/components/ui/input';
+import { Checkbox, Input } from '@/components/ui/input';
 import { SubmitButton } from '@/components/ui/submit-button';
 import { ErrorMessage } from '@/components/ui/error-message';
+import { PasswordInput } from './password-input';
 
 const initialState: FormState = {};
 
 export function RegisterForm() {
   const [state, formAction] = useActionState(registerAction, initialState);
-  const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
-      {state.error && <ErrorMessage message={state.error} />}
+    <form action={formAction} className="flex flex-col gap-3.5">
+      <ErrorMessage message={state.error} />
 
       <Input
-        label="Nama Lengkap"
+        label="Nama Lengkap / Perwakilan Resmi Sekolah"
         name="name"
-        type="text"
-        placeholder="mis. Dian Sastrowardoyo"
+        autoComplete="name"
+        placeholder="Nama Pelanggan"
+        defaultValue={state.values?.name}
+        error={state.fieldErrors?.name}
         required
-        leftIcon={<UserIcon className="w-4 h-4" />}
       />
-
       <Input
         label="Alamat Email"
         name="email"
         type="email"
-        placeholder="klien.utama@vieguard.id"
+        autoComplete="email"
+        placeholder="nama@sekolah.sch.id"
+        defaultValue={state.values?.email}
+        error={state.fieldErrors?.email}
         required
-        leftIcon={<Mail className="w-4 h-4" />}
       />
-
       <Input
-        label="Nomor Handphone / WhatsApp"
+        label="Nomor WhatsApp / Telepon"
         name="phone"
         type="tel"
-        placeholder="0812-3456-7890"
-        leftIcon={<Phone className="w-4 h-4" />}
-      />
-
-      <Input
-        label="Alamat Lengkap"
-        name="address"
-        type="text"
-        placeholder="Alamat pengiriman / domisili lengkap..."
-        leftIcon={<MapPin className="w-4 h-4" />}
-      />
-
-      <Input
-        label="Kata Sandi"
-        name="password"
-        type={showPassword ? 'text' : 'password'}
-        placeholder="••••••••••••"
+        autoComplete="tel"
+        placeholder="+62 812-xxxx-xxxx"
+        defaultValue={state.values?.phone}
+        error={state.fieldErrors?.phone}
         required
-        leftIcon={<Lock className="w-4 h-4" />}
-        rightIcon={
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="text-[#8C857B] hover:text-[#1C1C1C]"
-          >
-            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
+      />
+      <PasswordInput
+        label="Buat Kata Sandi"
+        name="password"
+        autoComplete="new-password"
+        placeholder="Minimal 6 karakter"
+        minLength={6}
+        error={state.fieldErrors?.password}
+      />
+
+      <Checkbox
+        name="terms"
+        required
+        className="pt-1"
+        label={
+          <>
+            Saya menyetujui <span className="font-bold text-ink underline">Syarat & Ketentuan</span> dan{' '}
+            <span className="font-bold text-ink underline">Kebijakan Penyewaan</span>
+            <span className="text-primary"> *</span>
+          </>
         }
       />
+      {state.fieldErrors?.terms && <p className="-mt-2 text-xs text-danger">{state.fieldErrors.terms}</p>}
 
-      <SubmitButton
-        label="Daftarkan Akun Klien →"
-        loadingLabel="Mendaftarkan Akun..."
-        variant="primary"
-        className="py-3.5 text-sm rounded-xl font-bold tracking-wide mt-2"
-      />
+      <SubmitButton label="Buat Akun Baru" loadingLabel="Mendaftarkan..." className="mt-1" />
     </form>
   );
 }

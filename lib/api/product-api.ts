@@ -1,69 +1,50 @@
 import "server-only";
-import { apiClient, ApiError } from '../api-client';
-import { Product, ProductFilterQuery } from '@/types/product';
 import { notFound } from 'next/navigation';
+import { apiClient, ApiError } from '../api-client';
+import { Product, ProductFilterQuery, RentalAvailability } from '@/types/product';
+import { Accessory } from '@/types/order';
 
-export async function getProducts(
-  query?: ProductFilterQuery,
-  options?: RequestInit
-): Promise<Product[]> {
+export async function getProducts(query?: ProductFilterQuery, options?: RequestInit): Promise<Product[]> {
   try {
     const params = new URLSearchParams();
     if (query?.categoryId) params.set('categoryId', query.categoryId);
     if (query?.search) params.set('search', query.search);
     if (query?.minPrice) params.set('minPrice', query.minPrice);
     if (query?.maxPrice) params.set('maxPrice', query.maxPrice);
-
-    const queryString = params.toString() ? `?${params.toString()}` : '';
-    const products = await apiClient<Product[]>(`/products${queryString}`, {
-      next: { revalidate: 60 },
-      ...options,
-    });
-    return products || [];
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return (await apiClient<Product[]>(`/products${qs}`, { next: { revalidate: 60 }, ...options })) || [];
   } catch (error) {
-    console.error('[getProducts Error]:', error);
+    console.error('[getProducts Error]:', (error as Error).message);
     return [];
   }
 }
 
-export async function getProductById(
-  id: string,
-  options?: RequestInit
-): Promise<Product> {
+export async function getProductById(id: string, options?: RequestInit): Promise<Product> {
   try {
-    const product = await apiClient<Product>(`/products/${id}`, {
-      next: { revalidate: 60 },
-      ...options,
-    });
-    if (!product) {
-      notFound();
-    }
+    const product = await apiClient<Product>(`/products/${id}`, { next: { revalidate: 60 }, ...options });
+    if (!product) notFound();
     return product;
   } catch (error) {
-    if (error instanceof ApiError && error.status === 404) {
-      notFound();
-    }
+    if (error instanceof ApiError && (error.status === 404 || error.status === 400)) notFound();
     throw error;
   }
 }
 
 export async function checkProductAvailability(
   productId: string,
-  variantId?: string | null,
-  pickupDate?: string,
-  returnDate?: string
-): Promise<{ available: boolean; remainingStock: number; message?: string }> {
-  try {
-    const params = new URLSearchParams();
-    if (variantId) params.set('variantId', variantId);
-    if (pickupDate) params.set('pickupDate', pickupDate);
-    if (returnDate) params.set('returnDate', returnDate);
+  pickupDate: string,
+  returnDate: string,
+  variantId?: string | null
+): Promise<RentalAvailability> {
+  const params = new URLSearchParams({ pickupDate, returnDate });
+  if (variantId) params.set('variantId', variantId);
+  return apiClient<RentalAvailability>(`/products/${productId}/availability?${params.toString()}`, { cache: 'no-store' });
+}
 
-    const data = await apiClient<{ available: boolean; remainingStock: number; message?: string }>(
-      `/products/${productId}/availability?${params.toString()}`
-    );
-    return data;
-  } catch (error) {
-    return { available: true, remainingStock: 5 };
+export async function getAccessories(): Promise<Accessory[]> {
+  try {
+    return (await apiClient<Accessory[]>('/accessories', { next: { revalidate: 300 } })) || [];
+  } catch {
+    return [];
   }
 }

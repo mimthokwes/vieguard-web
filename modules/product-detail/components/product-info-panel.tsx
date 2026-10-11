@@ -1,297 +1,329 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { BadgeCheck, CalendarDays, CalendarRange, Clock, Headset, Loader2, Minus, MessagesSquare, Plus, ShieldCheck, ShoppingBag, Smartphone, Truck } from 'lucide-react';
 import { Product } from '@/types/product';
-import { MessageSquare, ShieldCheck, RefreshCw, Truck } from 'lucide-react';
+import { Button, buttonClasses } from '@/components/ui/button';
+import { ErrorMessage } from '@/components/ui/error-message';
+import { formatRupiah, toNumber } from '@/lib/format';
+import { JENJANG_OPTIONS } from '@/modules/order/data';
+import { checkAvailabilityAction, submitBookingAction } from '../actions';
 
-interface ProductInfoPanelProps {
-  product: Product;
+type Mode = 'sewa' | 'beli';
+
+function addDays(iso: string, n: number) {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
 }
 
-export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
-  const [transactionType, setTransactionType] = useState<'RENT' | 'BUY'>('RENT');
-  const [selectedSize, setSelectedSize] = useState('S');
-  const [rentDuration, setRentDuration] = useState<3 | 5 | 7>(3);
-  const [quantity, setQuantity] = useState(1);
-  const [hasProtection, setHasProtection] = useState(true);
-  const [startDate, setStartDate] = useState('24 Okt 2025 - 27 Okt 2025');
-  const [shippingMethod, setShippingMethod] = useState('Kurir Kilat VIEGUARD (Mobil Gantungan Suhu Khusus Jabodetabek) — Rp 45.000');
+const today = () => new Date().toISOString().slice(0, 10);
 
-  const baseRentPrice = rentDuration === 3 ? (product.basePriceRent3d || 350000) : rentDuration === 5 ? (product.basePriceRent5d || 550000) : (product.basePriceRent7d || 720000);
-  const buyPrice = product.basePriceBuy || 1450000;
-  const deposit = product.depositAmount || 150000;
-  const shippingFee = 45000;
-  const protectionFee = hasProtection ? 25000 : 0;
+interface BookingPanelProps {
+  product: Product;
+  modes: Mode[];
+  initialDate?: string;
+  isLoggedIn: boolean;
+  loginHref: string;
+}
 
-  const itemSubtotal = (transactionType === 'RENT' ? baseRentPrice : buyPrice) * quantity;
-  const totalPayment = itemSubtotal + (transactionType === 'RENT' ? (deposit + shippingFee + protectionFee) : shippingFee);
+/** Date + quantity booking card with live cost breakdown (Figma screen 13). */
+export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHref }: BookingPanelProps) {
+  const router = useRouter();
+  const [mode, setMode] = useState<Mode>(modes[0]!);
+  const start = initialDate && initialDate >= today() ? initialDate : addDays(today(), 3);
+  const [pickup, setPickup] = useState(start);
+  const [ret, setRet] = useState(addDays(start, 3));
+  const [jenjang, setJenjang] = useState('');
+  const hasVariants = product.variants.length > 0;
+  const [quantities, setQuantities] = useState<Record<string, number>>(() => (hasVariants ? ({} as Record<string, number>) : { '': 1 }));
+  const [availabilityResult, setAvailabilityResult] = useState<{ key: string; stock?: number; error?: string } | null>(null);
+  const [error, setError] = useState('');
+  const [pending, startTransition] = useTransition();
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+  const days = Math.max(0, Math.round((new Date(ret).getTime() - new Date(pickup).getTime()) / 86400000));
+  const totalQty = Object.values(quantities).reduce((s, q) => s + (q || 0), 0);
+
+  const priceFor = (variantId: string) => {
+    const v = product.variants.find((x) => x.id === variantId);
+    return mode === 'sewa'
+      ? toNumber(v?.priceRentOverride) || toNumber(product.basePriceRent)
+      : toNumber(v?.priceBuyOverride) || toNumber(product.basePriceBuy);
+  };
+  const subtotal = useMemo(
+    () => Object.entries(quantities).reduce((s, [id, q]) => s + priceFor(id) * (q || 0) * (mode === 'sewa' ? days : 1), 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [quantities, mode, days]
+  );
+  const basePrice = mode === 'sewa' ? toNumber(product.basePriceRent) : toNumber(product.basePriceBuy);
+
+  const availabilityKey = `${pickup}|${ret}`;
+  const availability =
+    availabilityResult?.key === availabilityKey
+      ? { loading: false, stock: availabilityResult.stock, error: availabilityResult.error }
+      : { loading: mode === 'sewa' && days >= 1, stock: undefined, error: undefined };
+
+  useEffect(() => {
+    if (mode !== 'sewa' || days < 1) return;
+    let cancelled = false;
+    checkAvailabilityAction(product.id, pickup, ret).then((r) => {
+      if (!cancelled) setAvailabilityResult({ key: `${pickup}|${ret}`, stock: r.availableStock, error: r.error });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id, pickup, ret, mode, days]);
+
+  const stockLimit = (variantId: string) => {
+    const v = product.variants.find((x) => x.id === variantId);
+    if (!v) return 999;
+    return mode === 'sewa' ? Math.max(0, v.stockRent - (v.stockInService ?? 0)) : Math.max(0, v.stockBuy);
+  };
+
+  const setQty = (id: string, q: number) => setQuantities((prev) => ({ ...prev, [id]: Math.max(0, Math.min(q, stockLimit(id))) }));
+
+  const submit = () => {
+    setError('');
+    if (!isLoggedIn) {
+      router.push(loginHref);
+      return;
+    }
+    if (totalQty === 0) {
+      setError('Isi jumlah unit yang dibutuhkan.');
+      return;
+    }
+    if (mode === 'sewa' && availability.stock !== undefined && totalQty > availability.stock) {
+      setError(`Stok tersedia pada tanggal tersebut hanya ${availability.stock} unit.`);
+      return;
+    }
+    startTransition(async () => {
+      const result = await submitBookingAction({
+        productId: product.id,
+        mode,
+        pickupDate: mode === 'sewa' ? pickup : undefined,
+        returnDate: mode === 'sewa' ? ret : undefined,
+        quantities,
+        jenjang: jenjang || undefined,
+      });
+      if (result?.needsLogin) router.push(loginHref);
+      else if (result?.error) setError(result.error);
+    });
+  };
 
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E6E1DA] shadow-lg flex flex-col gap-6">
-      
-      {/* Top Header */}
-      <div>
-        <div className="flex items-center justify-between text-xs mb-1">
-          <span className="font-extrabold tracking-widest text-[#C48B54] uppercase text-[11px]">
-            KOLEKSI COUTURE GALA & RED CARPET
+    <div className="flex flex-col gap-4">
+      <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
+        <div className="flex items-center gap-3 border-b border-line pb-4">
+          <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-on-primary">
+            {mode === 'sewa' ? <CalendarDays className="size-5" aria-hidden="true" /> : <ShoppingBag className="size-5" aria-hidden="true" />}
           </span>
-          <span className="bg-[#FAF2EA] text-[#C48B54] border border-[#DDB892] px-2.5 py-0.5 rounded-full font-bold text-[11px]">
-            Ready Stock
-          </span>
-        </div>
-        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C]">
-          {product.name}
-        </h1>
-        <p className="text-xs text-[#6B655C] mt-1.5 leading-relaxed">
-          Designer Handcrafted • Draping Asimetris • Koleksi Khusus Resepsi & Gala Dinner
-        </p>
-      </div>
-
-      {/* Transaction Type Toggle */}
-      <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#FAF7F2] border border-[#E6E1DA] rounded-2xl">
-        <button
-          type="button"
-          onClick={() => setTransactionType('RENT')}
-          className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            transactionType === 'RENT'
-              ? 'bg-[#161616] text-white shadow-sm'
-              : 'text-[#6B655C] hover:text-[#1C1C1C]'
-          }`}
-        >
-          Sewa Gaun (Rental)
-        </button>
-        <button
-          type="button"
-          onClick={() => setTransactionType('BUY')}
-          className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            transactionType === 'BUY'
-              ? 'bg-[#161616] text-white shadow-sm'
-              : 'text-[#6B655C] hover:text-[#1C1C1C]'
-          }`}
-        >
-          Beli Busana (Purchase)
-        </button>
-      </div>
-
-      {/* Size Picker */}
-      <div>
-        <div className="flex items-center justify-between text-xs font-extrabold text-[#1C1C1C] mb-2 tracking-wider">
-          <span>PILIHAN UKURAN</span>
-          <button type="button" className="text-[#C48B54] hover:underline font-bold">
-            Cek Size Chart
-          </button>
-        </div>
-        <div className="grid grid-cols-5 gap-2">
-          {['S', 'M', 'L', 'XL', 'Custom'].map((sz) => (
-            <button
-              key={sz}
-              type="button"
-              onClick={() => setSelectedSize(sz)}
-              className={`py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                selectedSize === sz
-                  ? 'border-[#161616] bg-[#161616] text-white shadow-sm'
-                  : 'border-[#E6E1DA] bg-white text-[#1C1C1C] hover:border-[#C48B54]'
-              }`}
-            >
-              {sz}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Duration & Date Picker (If Rental) */}
-      {transactionType === 'RENT' && (
-        <>
           <div>
-            <span className="text-xs font-extrabold text-[#1C1C1C] tracking-wider uppercase block mb-2">
-              DURASI SEWA GAUN
-            </span>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { days: 3, price: product.basePriceRent3d || 350000 },
-                { days: 5, price: product.basePriceRent5d || 550000 },
-                { days: 7, price: product.basePriceRent7d || 720000 },
-              ].map((item) => (
-                <button
-                  key={item.days}
-                  type="button"
-                  onClick={() => setRentDuration(item.days as 3 | 5 | 7)}
-                  className={`p-3 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
-                    rentDuration === item.days
-                      ? 'border-[#C48B54] bg-[#FAF2EA] ring-1 ring-[#C48B54]'
-                      : 'border-[#E6E1DA] bg-white hover:border-[#C48B54]'
-                  }`}
-                >
-                  <span className="text-xs font-extrabold text-[#1C1C1C]">
-                    {item.days} Hari
-                  </span>
-                  <span className="text-xs font-bold text-[#C48B54]">
-                    {formatCurrency(item.price)}
-                  </span>
-                </button>
-              ))}
-            </div>
+            <h2 className="text-lg font-bold text-ink">{mode === 'sewa' ? 'Pemesanan Tanggal & Armada Sewa' : 'Pembelian Produk'}</h2>
+            <p className="text-xs text-ink-soft">{mode === 'sewa' ? 'Konfigurasi jadwal dan kuota seragam' : 'Pilih ukuran dan jumlah unit'}</p>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-2">
-              <label className="text-[10px] font-extrabold text-[#8C857B] uppercase block mb-1 tracking-wider">
-                TANGGAL PENGGUNAAN / ACARA
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-white border border-[#E6E1DA] rounded-xl px-3 py-2.5 text-xs font-bold text-[#1C1C1C] focus:outline-none focus:border-[#C48B54]"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-[10px] font-extrabold text-[#8C857B] uppercase block mb-1 tracking-wider">
-                KUANTITAS
-              </label>
-              <div className="flex items-center justify-between border border-[#E6E1DA] rounded-xl px-3 py-2 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="text-base font-bold text-[#1C1C1C] px-2 hover:text-[#C48B54] cursor-pointer"
-                >
-                  -
-                </button>
-                <span className="text-xs font-bold text-[#1C1C1C]">{quantity}</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="text-base font-bold text-[#1C1C1C] px-2 hover:text-[#C48B54] cursor-pointer"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Insurance Option */}
-          <div className="flex items-start gap-3 bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#E6E1DA]">
-            <input
-              type="checkbox"
-              id="protection"
-              checked={hasProtection}
-              onChange={(e) => setHasProtection(e.target.checked)}
-              className="mt-0.5 w-4 h-4 accent-[#161616] rounded cursor-pointer"
-            />
-            <label htmlFor="protection" className="text-xs text-[#1C1C1C] cursor-pointer">
-              <div className="flex items-center justify-between font-bold">
-                <span>Proteksi Sutra & Noda Ringan</span>
-                <span className="text-[#C48B54]">+Rp 25.000</span>
-              </div>
-              <p className="text-[11px] text-[#6B655C] mt-0.5 leading-snug">
-                Bebas biaya denda untuk tumpahan wine ringan, serabut kain tertarik, atau noda makeup.
-              </p>
-            </label>
-          </div>
-
-          {/* Delivery Method Selector (matching Figma) */}
-          <div>
-            <label className="text-[10px] font-extrabold text-[#8C857B] uppercase block mb-1 tracking-wider">
-              METODE PENGIRIMAN & PENGAMBILAN
-            </label>
-            <select
-              value={shippingMethod}
-              onChange={(e) => setShippingMethod(e.target.value)}
-              className="w-full bg-white border border-[#E6E1DA] rounded-xl px-3 py-2.5 text-xs font-semibold text-[#1C1C1C] focus:outline-none focus:border-[#C48B54]"
-            >
-              <option value="Kurir Kilat VIEGUARD (Mobil Gantungan Suhu Khusus Jabodetabek) — Rp 45.000">
-                Kurir Kilat VIEGUARD (Mobil Gantungan Suhu Khusus Jabodetabek) — Rp 45.000
-              </option>
-              <option value="Self Pickup di Butik Atelier VIEGUARD — Gratis">
-                Self Pickup di Butik Atelier VIEGUARD — Gratis
-              </option>
-            </select>
-          </div>
-        </>
-      )}
-
-      {/* Cost Breakdown Box matching Figma */}
-      <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-[#E6E1DA] flex flex-col gap-2.5 text-xs text-[#1C1C1C]">
-        <h4 className="font-extrabold tracking-widest uppercase text-[10px] text-[#8C857B]">
-          RINCIAN PERHITUNGAN BIAYA
-        </h4>
-        <div className="flex justify-between">
-          <span className="text-[#6B655C]">Subtotal Biaya {transactionType === 'RENT' ? `Sewa (${rentDuration} Hari x ${quantity})` : `Beli (x ${quantity})`}</span>
-          <span className="font-bold">{formatCurrency(itemSubtotal)}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-[#6B655C]">Biaya Logistik Gaun</span>
-          <span className="font-bold">{formatCurrency(shippingFee)}</span>
-        </div>
-        {transactionType === 'RENT' && (
+
+        {modes.length > 1 && (
+          <div className="mt-4 grid grid-cols-2 gap-1 rounded-lg bg-beige-soft p-1" role="tablist">
+            {modes.map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="tab"
+                aria-selected={mode === m}
+                onClick={() => setMode(m)}
+                className={`rounded py-2 text-sm font-semibold ${mode === m ? 'bg-surface text-primary shadow-soft' : 'text-ink-soft'}`}
+              >
+                {m === 'sewa' ? 'Sewa' : 'Beli'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mode === 'sewa' && (
           <>
-            <div className="flex justify-between">
-              <span className="text-[#6B655C]">Asuransi & Proteksi Serat</span>
-              <span className="font-bold">{formatCurrency(protectionFee)}</span>
+            <div className="grid grid-cols-2 gap-3 pt-5">
+              <DateField label="Tanggal Mulai Sewa" value={pickup} min={today()} onChange={(v) => {
+                setPickup(v);
+                if (ret <= v) setRet(addDays(v, 1));
+              }} />
+              <DateField label="Tanggal Pengembalian" value={ret} min={addDays(pickup, 1)} onChange={setRet} />
             </div>
-            <div className="flex justify-between">
-              <span className="text-[#6B655C]">Sterilisasi & Dry Cleaning</span>
-              <span className="font-extrabold text-green-700 uppercase">GRATIS (Atelier)</span>
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-beige-soft px-4 py-3">
+              <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+                <Clock className="size-4 text-primary" aria-hidden="true" /> Durasi Sewa Terhitung:
+              </span>
+              <span className="text-xl font-extrabold text-primary">{days} Hari</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-[#6B655C]">Deposit Pengembalian ⓘ</span>
-              <span className="font-bold">{formatCurrency(deposit)}</span>
-            </div>
+            <p className="pt-2 text-xs font-semibold" aria-live="polite">
+              {availability.loading ? (
+                <span className="flex items-center gap-1.5 text-ink-soft"><Loader2 className="size-3 animate-spin" /> Mengecek ketersediaan...</span>
+              ) : availability.error ? (
+                <span className="text-warning">Ketersediaan belum bisa dicek: {availability.error}</span>
+              ) : availability.stock !== undefined ? (
+                <span className={availability.stock > 0 ? 'text-success' : 'text-danger'}>
+                  {availability.stock > 0 ? `Tersedia ${availability.stock} unit pada tanggal ini` : 'Tidak tersedia pada tanggal ini'}
+                </span>
+              ) : null}
+            </p>
           </>
         )}
-        <div className="pt-3 border-t border-[#E6E1DA] flex justify-between items-baseline font-bold text-sm">
-          <span className="font-extrabold">TOTAL PEMBAYARAN</span>
-          <span className="text-base font-extrabold text-[#1C1C1C]">{formatCurrency(totalPayment)}</span>
+
+        <div className="pt-4">
+          <p className="pb-2 text-sm font-semibold text-ink">{hasVariants ? 'Jumlah per Ukuran' : 'Jumlah Unit Dibutuhkan'}</p>
+          <ul className="flex flex-col gap-2">
+            {(hasVariants ? product.variants : [{ id: '', size: 'Standar' }]).map((v) => {
+              const limit = stockLimit(v.id);
+              const q = quantities[v.id] ?? 0;
+              return (
+                <li key={v.id || 'std'} className="flex items-center justify-between gap-3 rounded-xl bg-canvas px-3 py-2">
+                  <span className="text-sm">
+                    <b className="text-ink">{v.size}</b>
+                    {hasVariants && <span className="pl-2 text-xs text-muted">stok {limit}</span>}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <StepperButton label={`Kurangi ${v.size}`} onClick={() => setQty(v.id, q - 1)} disabled={q <= 0}>
+                      <Minus className="size-3.5" />
+                    </StepperButton>
+                    <input
+                      type="number"
+                      min={0}
+                      max={limit}
+                      value={q}
+                      aria-label={`Jumlah ukuran ${v.size}`}
+                      onChange={(e) => setQty(v.id, Number(e.target.value) || 0)}
+                      className="h-9 w-14 rounded-lg border border-line bg-surface text-center text-sm font-bold text-ink focus:border-primary focus:outline-none"
+                    />
+                    <StepperButton label={`Tambah ${v.size}`} onClick={() => setQty(v.id, q + 1)} disabled={q >= limit}>
+                      <Plus className="size-3.5" />
+                    </StepperButton>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
-        {transactionType === 'RENT' && (
-          <p className="text-[10px] text-[#8C857B] italic mt-1 leading-snug">
-            *Deposit {formatCurrency(deposit)} akan ditransfer kembali otomatis ke rekening Anda dalam waktu 1x24 jam setelah gaun diterima kembali oleh kurir & dicek tim kurasi.
+
+        <label className="block pt-4">
+          <span className="pb-1.5 text-sm font-semibold text-ink">Jenjang Institusi</span>
+          <select
+            value={jenjang}
+            onChange={(e) => setJenjang(e.target.value)}
+            className="mt-1.5 h-11 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink focus:border-primary focus:outline-none"
+          >
+            <option value="">Pilih jenjang (opsional)</option>
+            {JENJANG_OPTIONS.map((j) => (
+              <option key={j.value} value={j.value}>
+                {j.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="mt-5 rounded-xl bg-beige-soft p-4 text-sm">
+          <p className="pb-3 text-xs font-bold uppercase tracking-wide text-ink">Rincian Kalkulasi Biaya</p>
+          <CostRow label={mode === 'sewa' ? 'Biaya Satuan Sewa:' : 'Harga Satuan:'} value={basePrice > 0 ? `${formatRupiah(basePrice)}${mode === 'sewa' ? ' / unit / hari' : ''}` : '-'} />
+          <CostRow label={mode === 'sewa' ? `Subtotal (${days} Hari × ${totalQty} Unit):` : `Subtotal (${totalQty} Unit):`} value={formatRupiah(subtotal)} />
+          {mode === 'sewa' && (
+            <div className="flex justify-between gap-3 py-1">
+              <span className="text-ink-soft">
+                Jaminan Keamanan:
+                <span className="block text-xs font-semibold text-primary">Opsi Bebas Deposit via SPK</span>
+              </span>
+              <span className="text-right font-semibold text-ink">Ditentukan admin</span>
+            </div>
+          )}
+          <CostRow label={mode === 'sewa' ? 'Ongkos Kirim Antar-Jemput:' : 'Ongkos Kirim:'} value={<span className="font-normal text-ink-soft">Dihitung saat konfirmasi</span>} />
+          <div className="mt-2 flex items-end justify-between border-t border-line pt-3">
+            <span>
+              <b className="text-base text-ink">Total Estimasi:</b>
+              <span className="block text-xs text-ink-soft">Belum termasuk ongkir</span>
+            </span>
+            <span className="text-2xl font-extrabold text-primary">{formatRupiah(subtotal)}</span>
+          </div>
+        </div>
+
+        {mode === 'sewa' && (
+          <p className="mt-4 flex gap-2 rounded-xl bg-warning-bg p-4 text-[13px] font-semibold leading-5 text-gold-dark">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            Kebijakan Sekolah / Dinas: Institusi resmi dapat menggunakan Surat Rekomendasi Resmi / SPK Kepala Sekolah bertanda tangan basah sebagai pengganti deposit uang tunai.
           </p>
         )}
-      </div>
 
-      {/* Action Buttons */}
-      <div className="flex flex-col gap-3">
+        <ErrorMessage message={error} className="mt-4" />
+
+        <Button size="lg" fullWidth className="mt-5 !h-12" onClick={submit} disabled={pending || (mode === 'sewa' && days < 1)}>
+          {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Smartphone className="size-4" aria-hidden="true" />}
+          {!isLoggedIn ? 'Masuk untuk Melanjutkan' : mode === 'sewa' ? 'Lanjutkan Booking & Reservasi Tanggal' : 'Pesan Sekarang'}
+        </Button>
         <Link
-          href={`/cart?action=add&id=${product.id}&type=${transactionType}&size=${selectedSize}&duration=${rentDuration}`}
-          className="w-full"
+          href={`/chat?topic=${encodeURIComponent(`Ketersediaan ${product.name}`)}`}
+          className={buttonClasses({ variant: 'soft', size: 'lg', fullWidth: true, className: 'mt-2 border-0' })}
         >
-          <button className="w-full bg-[#161616] hover:bg-[#C48B54] text-white font-bold text-xs sm:text-sm py-3.5 px-6 rounded-2xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2">
-            <span>Lanjutkan Pembayaran & Booking Tanggal →</span>
-          </button>
+          <MessagesSquare className="size-4" aria-hidden="true" /> Konsultasi Ketersediaan via Chat
         </Link>
+        <p className="pt-3 text-center text-xs text-ink-soft">
+          {mode === 'sewa' ? 'Pesanan otomatis dibatalkan bila belum dikonfirmasi admin dalam 1 jam.' : 'Admin akan mengonfirmasi ketersediaan dan ongkos kirim.'}
+        </p>
+      </section>
 
-        <Link href={`/chat?product=${product.name}`} className="w-full">
-          <button className="w-full bg-white border border-[#E6E1DA] hover:border-[#161616] text-[#1C1C1C] font-semibold text-xs py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-            <MessageSquare className="w-4 h-4 text-[#C48B54]" />
-            <span>Konsultasi Fitting dengan Stylist (Chat)</span>
-          </button>
-        </Link>
+      <div className="grid grid-cols-3 divide-x divide-line rounded-2xl bg-surface py-4 shadow-card ring-1 ring-line">
+        <Feature icon={<BadgeCheck className="size-5" />} label="Kualitas Terjamin" />
+        <Feature icon={<Truck className="size-5" />} label="Antar Tepat Waktu" />
+        <Feature icon={<Headset className="size-5" />} label="Pendamping Fitting" />
       </div>
-
-      {/* Trust Badges */}
-      <div className="grid grid-cols-3 gap-2 pt-4 border-t border-[#F3EDE6] text-[11px] text-center text-[#6B655C]">
-        <div className="flex flex-col items-center gap-1">
-          <ShieldCheck className="w-4 h-4 text-[#C48B54]" />
-          <span className="font-bold">100% Higienis Siap Pakai</span>
-        </div>
-        <div className="flex flex-col items-center gap-1">
-          <RefreshCw className="w-4 h-4 text-[#C48B54]" />
-          <span className="font-bold">Bebas Tukar Ukuran H-2</span>
-        </div>
-        <div className="flex flex-col items-center gap-1">
-          <Truck className="w-4 h-4 text-[#C48B54]" />
-          <span className="font-bold">Garansi Kurir Tepat Waktu</span>
-        </div>
-      </div>
-
     </div>
   );
 }
 
+function DateField({ label, value, min, onChange }: { label: string; value: string; min: string; onChange: (v: string) => void }) {
+  return (
+    <label className="block">
+      <span className="text-sm font-semibold text-ink">{label}</span>
+      <span className="relative mt-1.5 block">
+        <CalendarRange className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden="true" />
+        <input
+          type="date"
+          value={value}
+          min={min}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-11 w-full rounded-lg bg-canvas pl-9 pr-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </span>
+    </label>
+  );
+}
+
+function StepperButton({ children, label, onClick, disabled }: { children: React.ReactNode; label: string; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      className="flex size-9 items-center justify-center rounded-lg bg-surface text-primary ring-1 ring-line transition-colors hover:bg-beige-soft disabled:opacity-40"
+    >
+      {children}
+    </button>
+  );
+}
+
+function CostRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex justify-between gap-3 py-1">
+      <span className="text-ink-soft">{label}</span>
+      <span className="text-right font-semibold text-ink">{value}</span>
+    </div>
+  );
+}
+
+function Feature({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1.5 px-2 text-center">
+      <span className="text-primary">{icon}</span>
+      <span className="text-xs font-semibold text-ink">{label}</span>
+    </div>
+  );
+}

@@ -1,4 +1,5 @@
-import "server-only";
+import 'server-only';
+import { redirect } from 'next/navigation';
 
 export class ApiError extends Error {
   status: number;
@@ -12,58 +13,72 @@ export class ApiError extends Error {
   }
 }
 
-const getBaseUrl = (): string => {
+/** Route handler that clears the session cookies and sends the user to /login. */
+export const SESSION_EXPIRED_PATH = '/session-expired';
+
+const NETWORK_ERROR_MESSAGE = 'Server backend tidak dapat dihubungi. Pastikan backend VIEGUARD sedang berjalan.';
+
+export function getApiBaseUrl(): string {
   return process.env.API_URL || 'http://localhost:5000/api/v0/website';
-};
+}
+
+function buildUrl(endpoint: string) {
+  return endpoint.startsWith('http') ? endpoint : `${getApiBaseUrl()}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+}
 
 interface FetchOptions extends RequestInit {
   token?: string;
 }
 
-export async function apiClient<T>(
-  endpoint: string,
-  options: FetchOptions = {}
-): Promise<T> {
-  const baseUrl = getBaseUrl();
-  const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
-
-  if (options.token) {
-    headers['Authorization'] = `Bearer ${options.token}`;
+/** Express wraps payloads as `{ success, message, data }`; unwrap to `data` when present. */
+function unwrap<T>(body: unknown): T {
+  if (body && typeof body === 'object' && 'data' in body && 'success' in body) {
+    return (body as { data: T }).data;
   }
+  return body as T;
+}
 
+async function send(url: string, init: RequestInit): Promise<Response> {
   try {
-    const res = await fetch(url, {
-      ...options,
-      headers,
-    });
-
-    const data = await res.json().catch(() => null);
-
-    if (!res.ok) {
-      const errorMessage = data?.message || data?.error || `HTTP error ${res.status}`;
-      throw new ApiError(errorMessage, res.status, data?.errors);
-    }
-
-    // Backend Express returns { success: true, message: string, data: T }
-    if (data && typeof data === 'object' && 'data' in data && data.success !== undefined) {
-      return data.data as T;
-    }
-
-    return data as T;
+    return await fetch(url, init);
   } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    // Network failure / server offline
-    console.error(`[apiClient Error] Fetch to ${url} failed:`, error);
-    throw new ApiError(
-      (error as Error).message || 'Gagal terhubung ke server backend Express.',
-      500
-    );
+    console.error(`[apiClient] ${init.method ?? 'GET'} ${url} failed:`, (error as Error).message);
+    throw new ApiError(NETWORK_ERROR_MESSAGE, 503);
   }
+}
+
+/**
+ * Base request helper for every call to the Express API (server only).
+ * - always checks `res.ok` and turns Express `{ message, errors }` into an ApiError
+ * - a 401 on an authenticated request ends the session and redirects to /login
+ */
+export async function apiClient<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+  const { token, headers, ...init } = options;
+  const res = await send(buildUrl(endpoint), {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(headers as Record<string, string>),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  const body = await res.json().catch(() => null);
+
+  // redirect() throws a control-flow error, so it must stay outside any try/catch.
+  if (res.status === 401 && token) redirect(SESSION_EXPIRED_PATH);
+
+  if (!res.ok) {
+    throw new ApiError(body?.message || body?.error || `HTTP error ${res.status}`, res.status, body?.errors);
+  }
+  return unwrap<T>(body);
+}
+
+/** Multipart upload (FormData); lets fetch set the multipart boundary header. */
+export async function apiUpload<T>(endpoint: string, formData: FormData, token: string): Promise<T> {
+  const res = await send(buildUrl(endpoint), { method: 'POST', body: formData, headers: { Authorization: `Bearer ${token}` } });
+  const body = await res.json().catch(() => null);
+  if (res.status === 401) redirect(SESSION_EXPIRED_PATH);
+  if (!res.ok) throw new ApiError(body?.message || `HTTP error ${res.status}`, res.status, body?.errors);
+  return unwrap<T>(body);
 }

@@ -1,45 +1,65 @@
 import React from 'react';
+import Link from 'next/link';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'gold';
-  size?: 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'primary' | 'dark' | 'gold' | 'soft' | 'outline' | 'ghost' | 'danger';
+export type ButtonSize = 'sm' | 'md' | 'lg';
+
+interface ButtonStyleOptions {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   fullWidth?: boolean;
+  className?: string;
+}
+
+const variantStyles: Record<ButtonVariant, string> = {
+  primary: 'bg-primary text-on-primary shadow-button hover:bg-primary-light focus-visible:ring-primary',
+  dark: 'bg-primary-dark text-on-primary shadow-button hover:bg-primary focus-visible:ring-primary-dark',
+  gold: 'bg-gold text-on-gold shadow-gold hover:bg-gold-light focus-visible:ring-gold',
+  soft: 'bg-beige-soft text-primary border border-line hover:bg-beige focus-visible:ring-primary',
+  outline: 'bg-surface text-primary border border-line-strong hover:bg-beige-soft focus-visible:ring-primary',
+  ghost: 'bg-transparent text-ink-soft hover:bg-beige-soft hover:text-primary focus-visible:ring-primary',
+  danger: 'bg-danger text-white hover:bg-danger/90 focus-visible:ring-danger',
+};
+
+const sizeStyles: Record<ButtonSize, string> = {
+  sm: 'h-8 px-3 text-xs rounded-lg gap-1.5',
+  md: 'h-10 px-5 text-sm rounded-[10px] gap-2',
+  lg: 'h-11 px-6 text-sm rounded-[10px] gap-2',
+};
+
+/** Shared class builder so links and buttons render identically. */
+export function buttonClasses({ variant = 'primary', size = 'md', fullWidth = false, className = '' }: ButtonStyleOptions = {}) {
+  return [
+    'inline-flex items-center justify-center font-bold whitespace-nowrap transition-colors duration-200 cursor-pointer',
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
+    variantStyles[variant],
+    sizeStyles[size],
+    fullWidth ? 'w-full' : '',
+    className,
+  ].join(' ');
+}
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, ButtonStyleOptions {
   children: React.ReactNode;
 }
 
-export function Button({
-  variant = 'primary',
-  size = 'md',
-  fullWidth = false,
-  className = '',
-  children,
-  ...props
-}: ButtonProps) {
-  const baseStyles =
-    'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
-
-  const variantStyles = {
-    primary: 'bg-[#1C1C1C] text-white hover:bg-[#333333] focus:ring-[#1C1C1C] shadow-sm',
-    secondary: 'bg-[#F3EDE6] text-[#1C1C1C] hover:bg-[#E6DFD6] focus:ring-[#C48B54]',
-    outline: 'border border-[#E6E1DA] bg-transparent text-[#1C1C1C] hover:bg-[#FAF7F2] focus:ring-[#1C1C1C]',
-    ghost: 'bg-transparent text-[#1C1C1C] hover:bg-[#F3EDE6] focus:ring-[#1C1C1C]',
-    gold: 'bg-[#C48B54] text-white hover:bg-[#A26E3A] focus:ring-[#C48B54] shadow-sm',
-  };
-
-  const sizeStyles = {
-    sm: 'text-xs px-3 py-1.5 rounded-md',
-    md: 'text-sm px-5 py-2.5 rounded-lg',
-    lg: 'text-base px-6 py-3.5 rounded-xl',
-  };
-
-  const widthStyle = fullWidth ? 'w-full' : '';
-
+export function Button({ variant, size, fullWidth, className, children, type = 'button', ...props }: ButtonProps) {
   return (
-    <button
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyle} ${className}`}
-      {...props}
-    >
+    <button type={type} className={buttonClasses({ variant, size, fullWidth, className })} {...props}>
       {children}
     </button>
+  );
+}
+
+interface ButtonLinkProps extends ButtonStyleOptions {
+  href: string;
+  children: React.ReactNode;
+}
+
+export function ButtonLink({ href, variant, size, fullWidth, className, children }: ButtonLinkProps) {
+  return (
+    <Link href={href} className={buttonClasses({ variant, size, fullWidth, className })}>
+      {children}
+    </Link>
   );
 }

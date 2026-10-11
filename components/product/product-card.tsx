@@ -1,164 +1,84 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { ArrowRight, Archive, Shirt } from 'lucide-react';
 import { Product } from '@/types/product';
-import { formatImageUrl } from '@/lib/image';
-import { Heart, Plus, ShoppingBag, Star } from 'lucide-react';
+import { buttonClasses } from '@/components/ui/button';
+import { formatRupiah, toNumber } from '@/lib/format';
+import { primaryImage } from '@/lib/image';
 
-interface ProductCardProps {
-  product: Product;
-  showBuyPrice?: boolean;
-  variant?: 'compact' | 'full';
-  showBadge?: boolean;
+export type CatalogMode = 'all' | 'sewa';
+
+export function rentStock(product: Product) {
+  return product.variants.reduce((s, v) => s + Math.max(0, v.stockRent - (v.stockInService ?? 0)), 0);
 }
 
-const formatRupiah = (value: number) =>
-  new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(value);
+export function buyStock(product: Product) {
+  return product.variants.reduce((s, v) => s + Math.max(0, v.stockBuy), 0);
+}
 
-export function ProductCard({
-  product,
-  showBuyPrice = true,
-  variant = 'full',
-  showBadge = true,
-}: ProductCardProps) {
-  const rawImage =
-    product.images?.find((img) => img.isPrimary)?.imageUrl ||
-    product.images?.[0]?.imageUrl;
-  const primaryImage = formatImageUrl(rawImage);
+export function canRent(product: Product) {
+  return toNumber(product.basePriceRent) > 0;
+}
 
-  const rent = Number(product.basePriceRent3d) || 0;
-  const buy = Number(product.basePriceBuy) || 0;
-  const rating = Number(product.rating) || 0;
-  const likes = Number(product.likesCount) || 0;
+export function canBuy(product: Product) {
+  return toNumber(product.basePriceBuy) > 0;
+}
 
-  const badgeText = product.badgeTag || (buy > 0 ? 'SEWA / BELI' : 'SEWA');
-  // Rental badges are dark, "buy / special" badges use the accent color
-  const badgeClass = badgeText.toUpperCase().startsWith('SEWA')
-    ? 'bg-[#161616]/85'
-    : 'bg-[#C4563A]';
-
-  const categoryName = product.category?.name || product.subCategoryTag;
-
-  // One primary price, like the design: rent first, otherwise buy price
-  const primaryPrice =
-    rent > 0
-      ? { label: 'Sewa 3 Hari', value: rent }
-      : buy > 0
-        ? { label: 'Harga Beli', value: buy }
-        : null;
-
-  const detailHref = `/catalog/${product.id}`;
+export function ProductCard({ product, mode, detailHref }: { product: Product; mode: CatalogMode; detailHref: string }) {
+  const image = primaryImage(product.images);
+  const rentable = canRent(product);
+  const showRent = mode === 'sewa' || rentable;
+  const price = showRent ? product.basePriceRent : product.basePriceBuy;
+  const stock = showRent ? rentStock(product) : buyStock(product);
 
   return (
-    <div className="group relative flex h-full flex-col rounded-xl border border-[#E8E1D6] bg-white p-3 transition-shadow duration-300 hover:shadow-[0_12px_28px_-16px_rgba(40,25,10,0.35)]">
-      {/* Image */}
-      <div className="relative">
-        <Link
-          href={detailHref}
-          className="relative block aspect-[4/5] overflow-hidden rounded-lg bg-[#F3ECE2]"
-        >
-          <Image
-            src={primaryImage}
-            alt={product.name}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        </Link>
-
-        {showBadge && (
-          <span
-            className={`pointer-events-none absolute left-2.5 top-2.5 rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm ${badgeClass}`}
-          >
-            {badgeText}
-          </span>
-        )}
-
-        {/* Wishlist: sibling of the image Link, so no interactive element is nested */}
-        <button
-          type="button"
-          aria-label="Simpan ke favorit"
-          className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#1A1714] shadow-sm backdrop-blur-sm transition-colors hover:bg-white hover:text-[#C4563A]"
-        >
-          <Heart className="h-4 w-4" strokeWidth={1.75} />
-        </button>
-      </div>
-
-      {/* Info */}
-      <div className="mt-3 flex flex-1 flex-col gap-1 px-0.5">
-        {categoryName && (
-          <span className="text-[10px] font-medium uppercase tracking-wide text-[#8C857B]">
-            {categoryName}
-          </span>
-        )}
-
-        <Link href={detailHref}>
-          <h3 className="line-clamp-1 text-sm font-semibold text-[#1A1714] transition-colors group-hover:text-[#C4563A]">
-            {product.name}
-          </h3>
-        </Link>
-
-        {rating > 0 && (
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="flex items-center gap-1 font-semibold text-[#E08A1E]">
-              <Star className="h-3 w-3 fill-current" />
-              {rating.toFixed(1)}
+    <article className="flex flex-col rounded-2xl bg-surface p-5 shadow-card ring-1 ring-line">
+      <div className="relative flex h-48 items-center justify-center overflow-hidden rounded-xl bg-canvas ring-1 ring-line">
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={image} alt={product.name} className="size-full object-cover" loading="lazy" />
+        ) : (
+          <div className="flex flex-col items-center gap-3 text-ink-soft">
+            <span className="flex size-12 items-center justify-center rounded-full bg-surface text-primary shadow-soft">
+              <Shirt className="size-5" aria-hidden="true" />
             </span>
-            {likes > 0 && (
-              <span className="text-[11px] text-[#A39B90]">({likes} suka)</span>
-            )}
+            Gambar Produk
           </div>
         )}
       </div>
 
-      {/* Price + action */}
-      <div className="mt-3 border-t border-[#F1ECE4] pt-3">
-        <div className="flex items-end justify-between gap-2 px-0.5">
-          <div className="min-w-0">
-            <span className="block text-[11px] text-[#8C857B]">
-              {primaryPrice ? primaryPrice.label : 'Harga'}
-            </span>
-            <span className="block truncate text-[15px] font-bold text-[#1A1714]">
-              {primaryPrice ? formatRupiah(primaryPrice.value) : 'Hubungi kami'}
-            </span>
-          </div>
+      <div className="flex items-center justify-between gap-2 pt-5">
+        <span className="rounded-md border border-beige bg-beige-soft px-2.5 py-0.5 text-[11px] font-bold uppercase text-primary">
+          {product.category?.name ?? 'Armada'}
+        </span>
+        {product.sku && <span className="font-mono text-xs tracking-wider text-muted">KODE: {product.sku}</span>}
+      </div>
+      <h3 className="pt-4 text-[15px] font-bold text-ink">{product.name}</h3>
 
-          {variant === 'compact' ? (
-            <Link
-              href={detailHref}
-              aria-label={`Lihat detail ${product.name}`}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#E8E1D6] bg-white text-[#1A1714] transition-colors hover:border-[#161616] hover:bg-[#161616] hover:text-white"
-            >
-              <Plus className="h-4 w-4" />
-            </Link>
-          ) : (
-            showBuyPrice &&
-            rent > 0 &&
-            buy > 0 && (
-              <div className="text-right">
-                <span className="block text-[11px] text-[#8C857B]">Harga Beli</span>
-                <span className="block text-xs font-semibold text-[#5F584F]">
-                  {formatRupiah(buy)}
-                </span>
-              </div>
-            )
-          )}
+      {product.description && (
+        <div className="mt-4 rounded-xl bg-canvas p-3.5 ring-1 ring-line">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+            <Archive className="size-4 text-gold-dark" aria-hidden="true" /> Komponen Termasuk:
+          </p>
+          <p className="line-clamp-2 pt-1 text-sm leading-6 text-ink-soft">{product.description}</p>
         </div>
+      )}
 
-        {variant === 'full' && (
-          <Link
-            href={detailHref}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[#161616] px-3 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#2E2A26]"
-          >
-            <ShoppingBag className="h-3.5 w-3.5" />
-            Pesan / Sewa Sekarang
-          </Link>
-        )}
+      <div className="mt-auto">
+        <div className="mt-4 border-t border-line pt-4">
+          <p className="text-ink-soft">
+            <span className="text-xl font-extrabold text-primary">{toNumber(price) > 0 ? formatRupiah(price) : 'Hubungi Admin'}</span>{' '}
+            {toNumber(price) > 0 && <span className="text-sm">{showRent ? '/ unit / hari' : '/ unit'}</span>}
+          </p>
+          <p className={`flex items-center gap-1.5 pt-1 text-sm font-semibold ${stock > 0 ? 'text-success' : 'text-danger'}`}>
+            <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
+            {stock > 0 ? `Tersedia: ${stock} unit` : 'Stok sedang kosong'}
+          </p>
+        </div>
+        <Link href={detailHref} className={buttonClasses({ fullWidth: true, className: 'mt-4 !h-11' })}>
+          {showRent ? 'Cek Tanggal & Sewa' : 'Lihat Detail & Beli'} <ArrowRight className="size-4" aria-hidden="true" />
+        </Link>
       </div>
-    </div>
+    </article>
   );
 }
