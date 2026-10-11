@@ -1,22 +1,26 @@
 import React from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { SearchX } from 'lucide-react';
+import { ButtonLink } from '@/components/ui/button';
 
 export default function NotFound() {
   return (
-    <div className="min-h-[75vh] flex flex-col items-center justify-center text-center p-6 bg-[#FAF7F2]">
-      <div className="bg-white rounded-3xl p-8 sm:p-12 border border-[#E6E1DA] shadow-xl max-w-lg w-full flex flex-col items-center gap-4">
-        <span className="font-serif text-5xl font-extrabold text-[#C48B54]">404</span>
-        <h1 className="font-serif text-2xl font-bold text-[#1C1C1C]">
-          Halaman Tidak Ditemukan
-        </h1>
-        <p className="text-xs text-[#6B655C] max-w-sm">
-          Busana atau halaman yang Anda cari mungkin telah dipindahkan, tidak lagi tersedia, atau alamat URL yang Anda masukkan salah.
+    <main className="flex min-h-[70vh] items-center justify-center px-4 py-12">
+      <div className="flex w-full max-w-lg flex-col items-center gap-4 rounded-2xl bg-surface p-8 text-center shadow-card ring-1 ring-line sm:p-12">
+        <span className="flex size-16 items-center justify-center rounded-full bg-beige-soft text-primary">
+          <SearchX className="size-7" aria-hidden="true" />
+        </span>
+        <p className="font-display text-5xl font-bold text-primary">404</p>
+        <h1 className="text-2xl font-extrabold text-ink">Halaman Tidak Ditemukan</h1>
+        <p className="max-w-sm text-sm text-ink-soft">
+          Halaman, produk, atau pesanan yang Anda cari mungkin telah dipindahkan, tidak lagi tersedia, atau alamatnya salah.
         </p>
-        <Link href="/catalog" className="mt-2">
-          <Button variant="primary">Jelajahi Katalog Busana</Button>
-        </Link>
+        <div className="flex flex-wrap justify-center gap-2 pt-2">
+          <ButtonLink href="/catalog">Jelajahi Katalog</ButtonLink>
+          <ButtonLink href="/orders" variant="soft">
+            Pesanan Saya
+          </ButtonLink>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

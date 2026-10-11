@@ -1,62 +1,44 @@
+/** Product types mirroring vieguard-back prisma/schema.prisma (Decimal → string, BigInt → string). */
+
 export interface ProductCategory {
-  id: string | bigint;
+  id: string;
   name: string;
-  slug: string;
   description?: string | null;
-  image?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface ProductVariant {
-  id: string | bigint;
-  productId: string | bigint;
-  name: string; // e.g. "Size S", "Size M", "Color Red"
-  size?: string | null;
-  color?: string | null;
-  stock: number;
-  priceBuyDelta?: number;
-  priceRent3dDelta?: number;
-  priceRent5dDelta?: number;
-  priceRent7dDelta?: number;
-  isAvailable: boolean;
+  id: string;
+  productId: string;
+  size: string;
+  stockBuy: number;
+  stockRent: number;
+  priceBuyOverride?: string | null;
+  priceRentOverride?: string | null;
+  stockInService?: number;
 }
 
 export interface ProductImage {
-  id: string | bigint;
-  productId: string | bigint;
+  id: string;
+  productId: string;
   imageUrl: string;
-  isPrimary?: boolean;
-  displayOrder?: number;
+  isPrimary: boolean;
 }
 
 export interface Product {
-  id: string | bigint;
-  categoryId: string | bigint;
+  id: string;
+  categoryId: string;
   category?: ProductCategory;
   name: string;
-  slug?: string;
-  description: string;
-  fabricComposition?: string | null;
-  innerLining?: string | null;
-  corsetryConstruct?: string | null;
-  trainLength?: string | null;
-  basePriceBuy: number;
-  basePriceRent3d: number;
-  basePriceRent5d: number;
-  basePriceRent7d: number;
-  depositAmount: number;
-  hygieneStandard?: string | null;
-  likesCount?: number;
-  rating?: number;
-  reviewCount?: number;
-  badgeTag?: string | null; // e.g. "SEWA / BELI", "BEST SELLER", "KOLEKSI EKSKLUSIF"
-  subCategoryTag?: string | null; // e.g. "GAUN & COUTURE", "PRIA FORMAL"
+  description?: string | null;
+  basePriceBuy?: string | null;
+  basePriceRent?: string | null;
+  isCustomAvailable: boolean;
   isVisible: boolean;
+  sku?: string | null;
+  conditionGrade?: string | null;
   images: ProductImage[];
   variants: ProductVariant[];
   createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface ProductFilterQuery {
@@ -64,7 +46,11 @@ export interface ProductFilterQuery {
   search?: string;
   minPrice?: string;
   maxPrice?: string;
-  size?: string;
-  sortBy?: string;
-  transactionType?: string;
+}
+
+export interface RentalAvailability {
+  available?: boolean;
+  availableStock: number;
+  totalStock?: number;
+  message?: string;
 }

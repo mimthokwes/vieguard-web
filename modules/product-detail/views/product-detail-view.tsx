@@ -1,72 +1,83 @@
 import React from 'react';
-import Link from 'next/link';
+import { Gift } from 'lucide-react';
 import { Product } from '@/types/product';
+import { Breadcrumb } from '@/components/layout/breadcrumb';
+import { PageContainer } from '@/components/layout/page-header';
+import { canBuy, canRent, rentStock, buyStock } from '@/components/product/product-card';
+import { formatRupiah } from '@/lib/format';
 import { ProductGallery } from '../components/product-gallery';
-import { ProductInfoPanel } from '../components/product-info-panel';
-import { ProductAccordions } from '../components/product-accordions';
-import { ProductCard } from '@/components/product/product-card';
+import { ProductTabs } from '../components/product-accordions';
+import { BookingPanel } from '../components/product-info-panel';
 
 interface ProductDetailViewProps {
   product: Product;
-  relatedProducts?: Product[];
+  mode: 'sewa' | 'all';
+  initialDate?: string;
+  isLoggedIn: boolean;
+  currentPath: string;
 }
 
-export function ProductDetailView({ product, relatedProducts = [] }: ProductDetailViewProps) {
-  const categoryName = product.category?.name || product.subCategoryTag || 'Katalog Gaun & Couture';
+export function ProductDetailView({ product, mode, initialDate, isLoggedIn, currentPath }: ProductDetailViewProps) {
+  const rentable = canRent(product);
+  const buyable = canBuy(product);
+  const modes: ('sewa' | 'beli')[] = mode === 'sewa' ? ['sewa'] : [...(rentable ? ['sewa' as const] : []), ...(buyable ? ['beli' as const] : [])];
+  const primaryMode = modes[0];
+  const stock = primaryMode === 'beli' ? buyStock(product) : rentStock(product);
+  const price = primaryMode === 'beli' ? product.basePriceBuy : product.basePriceRent;
 
   return (
-    <div className="w-full min-h-screen bg-[#FAF7F2] py-6 sm:py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-xs text-[#8C857B] mb-6 overflow-x-auto whitespace-nowrap">
-          <Link href="/" className="hover:text-[#1C1C1C] transition-colors">
-            Beranda
-          </Link>
-          <span>/</span>
-          <Link href="/catalog" className="hover:text-[#1C1C1C] transition-colors">
-            {categoryName}
-          </Link>
-          <span>/</span>
-          <span className="font-bold text-[#1C1C1C]">{product.name}</span>
-        </nav>
+    <PageContainer>
+      <Breadcrumb
+        items={[
+          mode === 'sewa' ? { label: 'Katalog Sewa', href: '/rental' } : { label: 'Katalog', href: '/catalog' },
+          { label: mode === 'sewa' ? 'Detail Armada & Booking' : product.name },
+        ]}
+      />
 
-        {/* Main 2-Column Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left Column (Gallery + Accordions) */}
-          <div className="lg:col-span-7 flex flex-col">
-            <ProductGallery images={product.images || []} title={product.name} />
-            <ProductAccordions product={product} />
-          </div>
+      <div className="grid grid-cols-1 gap-6 pt-8 lg:grid-cols-[1fr_492px]">
+        <div className="flex flex-col gap-8">
+          <ProductGallery product={product} availabilityLabel={stock > 0 ? (primaryMode === 'beli' ? 'Tersedia untuk Dibeli' : 'Tersedia untuk Disewa') : 'Stok Sedang Kosong'} />
 
-          {/* Right Column (Interactive Booking Panel) */}
-          <div className="lg:col-span-5 sticky top-24">
-            <ProductInfoPanel product={product} />
-          </div>
+          <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
+            <p className="flex flex-wrap items-center gap-2 text-xs text-ink-soft">
+              {product.category && <span className="rounded bg-beige-soft px-2 py-0.5 font-semibold text-primary">Kategori: {product.category.name}</span>}
+              <span>• Siap Pakai {stock} Unit</span>
+            </p>
+            <h1 className="pt-3 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">{product.name}</h1>
+            {primaryMode && (
+              <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-canvas px-4 py-4">
+                <p className="text-ink-soft">
+                  <span className="text-4xl font-extrabold text-primary">{formatRupiah(price)}</span>{' '}
+                  <span className="text-sm">{primaryMode === 'sewa' ? '/ unit / hari' : '/ unit'}</span>
+                </p>
+                {rentable && buyable && mode === 'all' && (
+                  <span className="flex items-center gap-1.5 rounded-full bg-warning-bg px-3 py-1 text-[13px] font-semibold text-gold-dark">
+                    <Gift className="size-3.5" aria-hidden="true" /> Bisa disewa atau dibeli
+                  </span>
+                )}
+              </div>
+            )}
+          </section>
 
+          <ProductTabs product={product} />
         </div>
 
-        {/* Related Products Section */}
-        {relatedProducts.length > 0 && (
-          <div className="mt-16 pt-10 border-t border-[#E6E1DA]">
-            <div className="mb-6">
-              <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C] uppercase tracking-wider">
-                MUNGKIN DISUKAI
-              </h3>
-              <p className="text-xs text-[#6B655C]">
-                model yang mungkin anda sukai
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.slice(0, 4).map((rel) => (
-                <ProductCard key={String(rel.id)} product={rel} />
-              ))}
-            </div>
-          </div>
-        )}
-
+        <aside className="lg:sticky lg:top-28 lg:h-fit">
+          {modes.length > 0 ? (
+            <BookingPanel
+              product={product}
+              modes={modes}
+              initialDate={initialDate}
+              isLoggedIn={isLoggedIn}
+              loginHref={`/login?next=${encodeURIComponent(currentPath)}`}
+            />
+          ) : (
+            <p className="rounded-2xl bg-surface p-6 text-sm text-ink-soft shadow-card ring-1 ring-line">
+              Produk ini belum memiliki harga. Hubungi admin melalui Obrolan untuk penawaran.
+            </p>
+          )}
+        </aside>
       </div>
-    </div>
+    </PageContainer>
   );
 }
