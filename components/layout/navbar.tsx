@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -9,21 +9,12 @@ import { logoutAction } from '@/app/actions';
 import { ButtonLink } from '@/components/ui/button';
 import { initials } from '@/lib/format';
 import { Logo } from './logo';
+import { NAV_LINKS } from '@/components/layout/nav-links';
 
 interface NavbarProps {
   user?: User | null;
   unreadCount?: number;
 }
-
-export const NAV_LINKS = [
-  { label: 'Beranda', href: '/' },
-  { label: 'Katalog', href: '/catalog' },
-  { label: 'Portofolio', href: '/portfolio' },
-  { label: 'Pesan Seragam', href: '/order' },
-  { label: 'Penyewaan', href: '/rental' },
-  { label: 'Pesanan & Sewa Saya', href: '/orders' },
-  { label: 'Obrolan', href: '/chat' },
-];
 
 function isActive(pathname: string, href: string) {
   const path = href.split('?')[0];
@@ -39,27 +30,9 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
   const activeHref = NAV_LINKS.find((l) => isActive(pathname, l.href))?.href;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-line bg-surface shadow-soft">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-1 z-50 w-full flex flex-col">
+      <div className="mx-auto flex h-10 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
-
-        <nav className="hidden xl:flex items-center gap-0.5" aria-label="Navigasi utama">
-          {NAV_LINKS.map((link) => {
-            const active = link.href === activeHref;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={active ? 'page' : undefined}
-                className={`whitespace-nowrap rounded-lg px-3 py-2 text-[13px] transition-colors ${
-                  active ? 'bg-beige-soft font-bold text-primary' : 'font-medium text-ink-soft hover:bg-beige-soft hover:text-primary'
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
 
         <div className="flex items-center gap-2.5">
           <Link
@@ -79,28 +52,43 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                 onBlur={() => setTimeout(() => setMenuOpen(false), 150)}
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
-                className="flex items-center gap-2 rounded-xl py-1 pl-1 pr-2 transition-colors hover:bg-beige-soft"
+                className="flex items-center gap-2 rounded-xl py-1 pl-1 pr-1 transition-colors hover:bg-beige-soft"
               >
                 <span className="flex size-9 items-center justify-center rounded-full border border-gold-light bg-maroon-gradient text-xs font-extrabold text-gold-light">
                   {initials(user.name)}
                 </span>
-                <span className="hidden max-w-[120px] truncate text-sm font-semibold text-ink lg:inline">{user.name}</span>
-                <ChevronDown className="hidden size-4 text-muted lg:block" />
+                <span className="hidden max-w-[120px] truncate text-sm font-semibold text-ink xl:inline">{user.name}</span>
+                {/* <ChevronDown className="hidden size-4 text-muted lg:block" /> */}
               </button>
               {menuOpen && (
-                <div role="menu" className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-card">
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-card"
+                >
                   <div className="border-b border-line px-4 py-3">
                     <p className="truncate text-sm font-bold text-ink">{user.name}</p>
                     <p className="truncate text-xs text-muted">{user.email}</p>
                   </div>
-                  <Link role="menuitem" href="/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-beige-soft hover:text-primary">
+                  <Link
+                    role="menuitem"
+                    href="/profile"
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-beige-soft hover:text-primary"
+                  >
                     <UserIcon className="size-4" /> Profil & Ukuran Tersimpan
                   </Link>
-                  <Link role="menuitem" href="/orders" className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-beige-soft hover:text-primary">
+                  <Link
+                    role="menuitem"
+                    href="/orders"
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-beige-soft hover:text-primary"
+                  >
                     <Package className="size-4" /> Pesanan & Sewa Saya
                   </Link>
                   <form action={logoutAction} className="border-t border-line">
-                    <button role="menuitem" type="submit" className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-danger hover:bg-danger-bg">
+                    <button
+                      role="menuitem"
+                      type="submit"
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-danger hover:bg-danger-bg"
+                    >
                       <LogOut className="size-4" /> Keluar
                     </button>
                   </form>
@@ -125,7 +113,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="flex size-10 items-center justify-center rounded-lg text-ink xl:hidden hover:bg-beige-soft"
+            className="flex size-10 items-center justify-center rounded-lg text-ink min-[400px]:hidden hover:bg-beige-soft"
             aria-label={mobileOpen ? 'Tutup menu' : 'Buka menu'}
             aria-expanded={mobileOpen}
           >
@@ -134,8 +122,31 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
         </div>
       </div>
 
+      <div className="hidden min-[400px]:block ">
+        <nav
+          className="mx-auto flex max-w-7xl items-center justify-around gap-1 overflow-x-auto px-4 sm:px-6 [scrollbar-width:none]"
+          aria-label="Navigasi utama"
+        >
+          {NAV_LINKS.map((link) => {
+            const active = link.href === activeHref;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={active ? 'page' : undefined}
+                className={`whitespace-nowrap rounded-lg px-3 text-[13px] transition-colors ${
+                  active ? 'bg-beige-soft font-bold text-primary' : 'font-medium text-ink-soft hover:bg-beige-soft hover:text-primary'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
       {mobileOpen && (
-        <nav className="border-t border-line bg-surface px-4 py-3 xl:hidden" aria-label="Navigasi utama (seluler)">
+        <nav className="border-t border-line bg-surface px-4 py-3 min-[400px]:hidden" aria-label="Navigasi utama (seluler)">
           <ul className="flex flex-col gap-1">
             {NAV_LINKS.map((link) => {
               const active = link.href === activeHref;
