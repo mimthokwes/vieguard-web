@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, ChevronDown, LogOut, Menu, Package, User as UserIcon, X } from 'lucide-react';
+import { Bell, LogOut, Menu, MessageCircle, Package, Search, ShoppingCart, User as UserIcon, X } from 'lucide-react';
 import { User } from '@/types/user';
 import { logoutAction } from '@/app/actions';
 import { ButtonLink } from '@/components/ui/button';
@@ -13,7 +13,9 @@ import { NAV_LINKS } from '@/components/layout/nav-links';
 
 interface NavbarProps {
   user?: User | null;
-  unreadCount?: number;
+  unreadCount?: number; // notifikasi
+  cartCount?: number; // jumlah item keranjang pesanan
+  chatUnreadCount?: number; // chat belum dibaca
 }
 
 function isActive(pathname: string, href: string) {
@@ -22,79 +24,129 @@ function isActive(pathname: string, href: string) {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
+function IconLink({ href, label, count = 0, children }: { href: string; label: string; count?: number; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      aria-label={count > 0 ? `${label}, ${count}` : label}
+      className="flex flex-col items-center gap-0.5 rounded-lg px-2 py-1 text-ink-soft transition-colors hover:bg-beige-soft hover:text-primary"
+    >
+      <span className="relative">
+        {children}
+        {count > 0 && (
+          <span className="absolute -right-2 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-4 text-white">
+            {count > 99 ? '99+' : count}
+          </span>
+        )}
+      </span>
+      <span className="text-[10px] font-medium leading-none">{label}</span>
+    </Link>
+  );
+}
+
+export function Navbar({ user, unreadCount = 0, cartCount = 0, chatUnreadCount = 0 }: NavbarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const activeHref = NAV_LINKS.find((l) => isActive(pathname, l.href))?.href;
 
   return (
-    <header className="sticky top-1 z-50 w-full flex flex-col">
+    <header className="top-1 z-50 w-full flex flex-col mt-2">
       <div className="mx-auto flex h-10 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
 
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/notifications"
-            aria-label={unreadCount > 0 ? `Notifikasi, ${unreadCount} belum dibaca` : 'Notifikasi'}
-            className="relative flex size-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-beige-soft hover:text-primary"
-          >
-            <Bell className="size-5" />
-            {unreadCount > 0 && <span className="absolute right-2.5 top-2 size-2 rounded-full border border-surface bg-danger" />}
-          </Link>
+        {/* Search input */}
+        <div className="flex flex-1 max-w-md mx-4">
+          <div className="relative w-full">
+            <input
+              type="search"
+              id="navbar-search"
+              placeholder="Cari kostume..."
+              className="w-full rounded-md border border-line bg-surface pl-2 pr-4 py-1.5 text-sm text-ink placeholder:text-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+              aria-label="Cari produk"
+            />
+            <button className='absolute right-0 rounded-md top-1/2 bg-black h-full w-8 -translate-y-1/2 cursor-pointer flex items-center justify-center'>
+              <Search
+                className="size-4"
+                color='#ffffff'
+              />
+            </button>
+          </div>
+        </div>
 
+        <div className="flex items-center gap-1.5">
           {user ? (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen((v) => !v)}
-                onBlur={() => setTimeout(() => setMenuOpen(false), 150)}
-                aria-expanded={menuOpen}
-                aria-haspopup="menu"
-                className="flex items-center gap-2 rounded-xl py-1 pl-1 pr-1 transition-colors hover:bg-beige-soft"
-              >
-                <span className="flex size-9 items-center justify-center rounded-full border border-gold-light bg-maroon-gradient text-xs font-extrabold text-gold-light">
-                  {initials(user.name)}
-                </span>
-                <span className="hidden max-w-[120px] truncate text-sm font-semibold text-ink xl:inline">{user.name}</span>
-                {/* <ChevronDown className="hidden size-4 text-muted lg:block" /> */}
-              </button>
-              {menuOpen && (
-                <div
-                  role="menu"
-                  className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-card"
+            <>
+              <IconLink href="/orders" label="Keranjang" count={cartCount}>
+                <ShoppingCart className="size-5" />
+              </IconLink>
+
+              <IconLink href="/chat" label="Chat" count={chatUnreadCount}>
+                <MessageCircle className="size-5" />
+              </IconLink>
+
+              {/* Hover card akun */}
+              <div className="group relative">
+                <button
+                  type="button"
+                  aria-haspopup="menu"
+                  className="relative flex flex-col items-center gap-0.5 rounded-lg px-2 py-1 transition-colors hover:bg-beige-soft"
                 >
-                  <div className="border-b border-line px-4 py-3">
-                    <p className="truncate text-sm font-bold text-ink">{user.name}</p>
-                    <p className="truncate text-xs text-muted">{user.email}</p>
-                  </div>
-                  <Link
-                    role="menuitem"
-                    href="/profile"
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-beige-soft hover:text-primary"
-                  >
-                    <UserIcon className="size-4" /> Profil & Ukuran Tersimpan
-                  </Link>
-                  <Link
-                    role="menuitem"
-                    href="/orders"
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-beige-soft hover:text-primary"
-                  >
-                    <Package className="size-4" /> Pesanan & Sewa Saya
-                  </Link>
-                  <form action={logoutAction} className="border-t border-line">
-                    <button
+                  <span className="flex size-5 items-center justify-center rounded-full border border-gold-light bg-maroon-gradient text-[9px] font-extrabold text-gold-light">
+                    {initials(user.name)}
+                  </span>
+                  <span className="text-[10px] font-medium leading-none text-ink-soft">Akun</span>
+                  {unreadCount > 0 && <span className="absolute right-1.5 top-0.5 size-2.5 rounded-full border border-surface bg-danger" />}
+                </button>
+
+                {/* pt-2 (bukan mt-2) supaya tidak ada celah yang memutus hover */}
+                <div className="invisible absolute right-0 top-full pt-2 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                  <div role="menu" className="w-60 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-card">
+                    <div className="border-b border-line px-4 py-3">
+                      <p className="truncate text-sm font-bold text-ink">{user.name}</p>
+                      <p className="truncate text-xs text-muted">{user.email}</p>
+                    </div>
+                    <Link
                       role="menuitem"
-                      type="submit"
-                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-danger hover:bg-danger-bg"
+                      href="/profile"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-beige-soft hover:text-primary"
                     >
-                      <LogOut className="size-4" /> Keluar
-                    </button>
-                  </form>
+                      <UserIcon className="size-4" /> Profil & Ukuran Tersimpan
+                    </Link>
+
+                    <Link
+                      role="menuitem"
+                      href="/notifications"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-beige-soft hover:text-primary"
+                    >
+                      <Bell className="size-4" /> Notifikasi
+                      {unreadCount > 0 && (
+                        <span className="ml-auto rounded-full bg-danger px-1.5 text-[10px] font-bold leading-4 text-white">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+
+                    <Link
+                      role="menuitem"
+                      href="/orders"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-beige-soft hover:text-primary"
+                    >
+                      <Package className="size-4" /> Pesanan & Sewa Saya
+                    </Link>
+                    <form action={logoutAction} className="border-t border-line">
+                      <button
+                        role="menuitem"
+                        type="submit"
+                        className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-danger hover:bg-danger-bg"
+                      >
+                        <LogOut className="size-4" /> Keluar
+                      </button>
+                    </form>
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            </>
           ) : (
             <>
               <span className="hidden sm:block">
@@ -122,9 +174,9 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
         </div>
       </div>
 
-      <div className="hidden min-[400px]:block ">
+      <div className="hidden min-[400px]:block">
         <nav
-          className="mx-auto flex max-w-7xl items-center justify-around gap-1 overflow-x-auto px-4 sm:px-6 [scrollbar-width:none]"
+          className="mx-auto py-2  flex max-w-7xl items-center justify-around gap-1 overflow-x-auto px-4 sm:px-6 [scrollbar-width:none]"
           aria-label="Navigasi utama"
         >
           {NAV_LINKS.map((link) => {
@@ -134,9 +186,8 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                 key={link.href}
                 href={link.href}
                 aria-current={active ? 'page' : undefined}
-                className={`whitespace-nowrap rounded-lg px-3 text-[13px] transition-colors ${
-                  active ? 'bg-beige-soft font-bold text-primary' : 'font-medium text-ink-soft hover:bg-beige-soft hover:text-primary'
-                }`}
+                className={`whitespace-nowrap rounded-lg px-3 text-[13px] transition-colors ${active ? 'bg-beige-soft font-bold text-primary' : 'font-medium text-ink-soft hover:bg-beige-soft hover:text-primary'
+                  }`}
               >
                 {link.label}
               </Link>
@@ -155,9 +206,8 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                   <Link
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`block rounded-lg px-4 py-2.5 text-sm ${
-                      active ? 'bg-primary font-bold text-on-primary' : 'text-ink-soft hover:bg-beige-soft hover:text-primary'
-                    }`}
+                    className={`block rounded-lg px-4 py-2.5 text-sm ${active ? 'bg-primary font-bold text-on-primary' : 'text-ink-soft hover:bg-beige-soft hover:text-primary'
+                      }`}
                   >
                     {link.label}
                   </Link>

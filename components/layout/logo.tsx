@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { Shield } from 'lucide-react';
+import Image from 'next/image';
+import logo from '@/public/vieguard-logo.png';
 
 interface LogoProps {
   inverted?: boolean;
@@ -12,17 +13,13 @@ export function Logo({ inverted = false, subtitle }: LogoProps) {
   return (
     <Link href="/" className="flex items-center gap-2.5 shrink-0 group" aria-label="VIEGUARD — Beranda">
       <span
-        className={`flex size-8 items-center justify-center rounded-lg border ${
-          inverted ? 'border-gold/40 bg-white/10 text-gold-light' : 'border-beige bg-beige-soft text-primary'
-        }`}
+        className={'flex size-10 items-center justify-center rounded-lg '}
       >
-        <Shield className="size-4" strokeWidth={2.2} />
+        <Image src={logo} alt="VIEGUARD" />
       </span>
       <span className="flex flex-col leading-none">
         <span
-          className={`font-display text-lg font-bold tracking-[0.14em] transition-colors ${
-            inverted ? 'text-white' : 'text-primary group-hover:text-primary-light'
-          }`}
+          className={`font-display text-lg font-bold tracking-[0.14em] transition-colors text-primary group-hover:text-primary-light`}
         >
           VIEGUARD
         </span>
