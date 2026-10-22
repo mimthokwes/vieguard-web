@@ -22,7 +22,7 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: 'VIEGUARD | Penjahitan Seragam Drum Band & Penyewaan Perlengkapan',
-  description: 'Penjahitan seragam profesional untuk TK, SD, SMP, SMA, marching band, serta penyewaan perlengkapan acara.',
+  description: 'Penjahitan dan penyewaan perlengkapan acara terbaik.',
 };
 
 export default async function RootLayout({
