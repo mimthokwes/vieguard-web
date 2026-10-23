@@ -8,7 +8,7 @@ import { ConsultationBanner } from '../components/consultation-banner';
 
 export function HomeView({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8 lg:gap-10 lg:px-8">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-2 py-4 sm:px-2 sm:py-2 lg:gap-10 lg:px-4">
       <HeroBanner isLoggedIn={isLoggedIn} />
       <CategoryGrid />
       <PromoCards isLoggedIn={isLoggedIn} />
