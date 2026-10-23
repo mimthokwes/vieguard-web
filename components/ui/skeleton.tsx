@@ -3,21 +3,28 @@ import React from 'react';
 export function Skeleton({ className = '' }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse bg-beige-soft rounded-lg ${className}`}
+      className={`animate-pulse rounded-lg bg-beige-soft ${className}`}
     />
   );
 }
 
+/** Skeleton sesuai layout global ProductCard: foto → nama → harga → tombol */
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl p-4 border border-line flex flex-col gap-3">
-      <Skeleton className="w-full aspect-[3/4] rounded-xl" />
-      <Skeleton className="w-20 h-4" />
-      <Skeleton className="w-3/4 h-5" />
-      <Skeleton className="w-1/2 h-4" />
-      <div className="flex justify-between items-center mt-2 pt-2 border-t border-beige-soft">
-        <Skeleton className="w-24 h-6" />
-        <Skeleton className="w-8 h-8 rounded-full" />
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-line-strong bg-white shadow-sm">
+      {/* Foto */}
+      <Skeleton className="aspect-[4/3] w-full rounded-none" />
+      <div className="flex flex-col gap-2 p-4">
+        {/* Nama */}
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
+        {/* Harga */}
+        <div className="mt-2 border-t border-line pt-3">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="mt-1 h-3 w-20" />
+        </div>
+        {/* Tombol */}
+        <Skeleton className="mt-2 h-8 w-full rounded-xl" />
       </div>
     </div>
   );

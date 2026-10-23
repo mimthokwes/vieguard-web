@@ -1,6 +1,7 @@
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Archive, Shirt } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 import { Product } from '@/types/product';
 import { buttonClasses } from '@/components/ui/button';
 import { formatRupiah, toNumber } from '@/lib/format';
@@ -24,60 +25,89 @@ export function canBuy(product: Product) {
   return toNumber(product.basePriceBuy) > 0;
 }
 
-export function ProductCard({ product, mode, detailHref }: { product: Product; mode: CatalogMode; detailHref: string }) {
-  const image = primaryImage(product.images);
-  const rentable = canRent(product);
-  const showRent = mode === 'sewa' || rentable;
-  const price = showRent ? product.basePriceRent : product.basePriceBuy;
-  const stock = showRent ? rentStock(product) : buyStock(product);
+interface ProductCardProps {
+  product: Product;
+  /** Opsional — jika tidak diberikan, default ke /catalog/:id */
+  detailHref?: string;
+  /** Opsional — menentukan apakah menampilkan harga sewa atau beli */
+  mode?: CatalogMode;
+}
+
+/**
+ * Global product card — digunakan di semua halaman (beranda, katalog, dll).
+ * Layout: foto → kategori + nama → harga → tombol Pesan.
+ */
+export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardProps) {
+  const { id, name, category, basePriceBuy, basePriceRent, images, description } = product;
+  const imageUrl = primaryImage(images);
+  const href = detailHref ?? `/catalog/${id}`;
+
+  const showRent = mode === 'sewa' || (mode === 'all' && canRent(product) && !canBuy(product));
+  const price = showRent ? basePriceRent : basePriceBuy;
+  const priceLabel = toNumber(price) > 0 ? formatRupiah(price) : null;
+  const priceSuffix = showRent ? '/ hari' : '';
 
   return (
-    <article className="flex flex-col rounded-2xl bg-surface p-5 shadow-card ring-1 ring-line">
-      <div className="relative flex h-48 items-center justify-center overflow-hidden rounded-xl bg-canvas ring-1 ring-line">
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt={product.name} className="size-full object-cover" loading="lazy" />
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line-strong bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+      {/* ─── Foto Produk ─── */}
+      <Link href={href} className="relative block aspect-[4/3] w-full overflow-hidden bg-beige-soft" tabIndex={-1} aria-hidden="true">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
         ) : (
-          <div className="flex flex-col items-center gap-3 text-ink-soft">
-            <span className="flex size-12 items-center justify-center rounded-full bg-surface text-primary shadow-soft">
-              <Shirt className="size-5" aria-hidden="true" />
-            </span>
-            Gambar Produk
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-primary/30">
+            <ShoppingBag className="size-12" strokeWidth={1.25} aria-hidden="true" />
+            <span className="text-xs font-medium">Foto belum tersedia</span>
           </div>
         )}
-      </div>
+      </Link>
 
-      <div className="flex items-center justify-between gap-2 pt-5">
-        <span className="rounded-md border border-beige bg-beige-soft px-2.5 py-0.5 text-[11px] font-bold uppercase text-primary">
-          {product.category?.name ?? 'Armada'}
-        </span>
-        {product.sku && <span className="font-mono text-xs tracking-wider text-muted">KODE: {product.sku}</span>}
-      </div>
-      <h3 className="pt-4 text-[15px] font-bold text-ink">{product.name}</h3>
-
-      {product.description && (
-        <div className="mt-4 rounded-xl bg-canvas p-3.5 ring-1 ring-line">
-          <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-            <Archive className="size-4 text-gold-dark" aria-hidden="true" /> Komponen Termasuk:
-          </p>
-          <p className="line-clamp-2 pt-1 text-sm leading-6 text-ink-soft">{product.description}</p>
-        </div>
-      )}
-
-      <div className="mt-auto">
-        <div className="mt-4 border-t border-line pt-4">
-          <p className="text-ink-soft">
-            <span className="text-xl font-extrabold text-primary">{toNumber(price) > 0 ? formatRupiah(price) : 'Hubungi Admin'}</span>{' '}
-            {toNumber(price) > 0 && <span className="text-sm">{showRent ? '/ unit / hari' : '/ unit'}</span>}
-          </p>
-          <p className={`flex items-center gap-1.5 pt-1 text-sm font-semibold ${stock > 0 ? 'text-success' : 'text-danger'}`}>
-            <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
-            {stock > 0 ? `Tersedia: ${stock} unit` : 'Stok sedang kosong'}
-          </p>
-        </div>
-        <Link href={detailHref} className={buttonClasses({ fullWidth: true, className: 'mt-4 !h-11' })}>
-          {showRent ? 'Cek Tanggal & Sewa' : 'Lihat Detail & Beli'} <ArrowRight className="size-4" aria-hidden="true" />
+      {/* ─── Info Produk ─── */}
+      <div className="flex flex-1 flex-col gap-0 p-4">
+        {/* Nama */}
+        <Link href={href}>
+          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-ink transition-colors group-hover:text-primary">
+            {name}
+          </h3>
         </Link>
+
+        {/* Deskripsi singkat (opsional) */}
+        {description && (
+          <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted">{description}</p>
+        )}
+
+        {/* Spacer */}
+        <div className="mt-auto" />
+
+        {/* ─── Harga & Tombol Pesan (sejajar di bawah) ─── */}
+        <div className="mt-3 flex items-center justify-between gap-2">
+          {/* Harga */}
+          <div>
+            {priceLabel ? (
+              <p className="text-sm font-extrabold text-primary">
+                {priceLabel}
+                {priceSuffix && (
+                  <span className="ml-0.5 text-[10px] font-medium text-ink-soft">{priceSuffix}</span>
+                )}
+              </p>
+            ) : (
+              <p className="text-xs font-semibold italic text-muted">Hubungi kami</p>
+            )}
+          </div>
+
+          {/* Tombol Pesan */}
+          <Link
+            href={href}
+            className={buttonClasses({ size: 'sm', className: '!rounded-xl shrink-0' })}
+          >
+            Pesan
+          </Link>
+        </div>
       </div>
     </article>
   );
