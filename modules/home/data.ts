@@ -1,9 +1,6 @@
-import {
-  Award, Baby, CalendarClock, Crown, Flag, GraduationCap, Headset, Music, Package, Ruler, School,
-  ShieldCheck, Shirt, Truck, type LucideIcon,
-} from 'lucide-react';
+import { CalendarClock, Headset, Package, Ruler, ShieldCheck, Truck, type LucideIcon } from 'lucide-react';
 
-export type HomeCategory = { label: string; href: string; icon: LucideIcon };
+export type HomeCategory = { label: string; href: string; image: string };
 export type HomeFeature = { label: string; icon: LucideIcon };
 export type HomeTrustItem = { title: string; description: string; icon: LucideIcon };
 
@@ -14,14 +11,14 @@ export const HERO_FEATURES: HomeFeature[] = [
 ];
 
 export const CATEGORIES: HomeCategory[] = [
-  { label: 'Seragam TK', href: '/catalog?kategori=tk', icon: Baby },
-  { label: 'Seragam SD', href: '/catalog?kategori=sd', icon: School },
-  { label: 'Seragam SMP', href: '/catalog?kategori=smp', icon: Shirt },
-  { label: 'Seragam SMA', href: '/catalog?kategori=sma', icon: GraduationCap },
-  { label: 'Marching band', href: '/catalog?kategori=marching-band', icon: Music },
-  { label: 'Color guard', href: '/catalog?kategori=color-guard', icon: Flag },
-  { label: 'Jas wisuda', href: '/catalog?kategori=wisuda', icon: Award },
-  { label: 'Sewa perlengkapan', href: '/catalog?tipe=sewa', icon: Crown },
+  { label: 'Kostum sekolah', href: '/catalog?kategori=sekolah', image: '/categories/kostum-sekolah.webp' },
+  { label: 'Marching band', href: '/catalog?kategori=marching-band', image: '/categories/marching-band.webp' },
+  { label: 'Color guard', href: '/catalog?kategori=color-guard', image: '/categories/color-guard.webp' },
+  { label: 'Aksesoris', href: '/catalog?kategori=aksesoris', image: '/categories/aksesoris.webp' },
+  { label: 'Kostum karnaval', href: '/catalog?kategori=karnaval', image: '/categories/kostum-karnaval.webp' },
+  { label: 'Baju adat', href: '/catalog?kategori=baju-adat', image: '/categories/baju-adat.webp' },
+  { label: 'Kostum tari', href: '/catalog?kategori=tari', image: '/categories/kostum-tari.webp' },
+  { label: 'Paduan suara', href: '/catalog?kategori=paduan-suara', image: '/categories/paduan-suara.webp' },
 ];
 
 export const TRUST_ITEMS: HomeTrustItem[] = [

@@ -36,7 +36,7 @@ export default async function RootLayout({
 
   return (
     <html lang="id" className={`${cinzel.variable} ${jakarta.variable}`}>
-      <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink antialiased justify-center items-center">
+      <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink antialiased ">
         <Navbar user={user} unreadCount={unreadCount} />
         <div className="flex-1">{children}</div>
         <Footer store={store} />

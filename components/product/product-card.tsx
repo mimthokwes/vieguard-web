@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingBag } from 'lucide-react';
+import { Shirt } from 'lucide-react';
 import { Product } from '@/types/product';
 import { buttonClasses } from '@/components/ui/button';
 import { formatRupiah, toNumber } from '@/lib/format';
@@ -46,11 +46,12 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
   const price = showRent ? basePriceRent : basePriceBuy;
   const priceLabel = toNumber(price) > 0 ? formatRupiah(price) : null;
   const priceSuffix = showRent ? '/ hari' : '';
+  // console.log(name, images, imageUrl);
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-line-strong bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
       {/* ─── Foto Produk ─── */}
-      <Link href={href} className="relative block aspect-[4/3] w-full overflow-hidden bg-beige-soft" tabIndex={-1} aria-hidden="true">
+      <Link href={href} className="relative block aspect-4/3 w-full overflow-hidden bg-beige-soft" tabIndex={-1} aria-hidden="true">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -58,10 +59,11 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
+            unoptimized
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-2 text-primary/30">
-            <ShoppingBag className="size-12" strokeWidth={1.25} aria-hidden="true" />
+            <Shirt className="size-12" strokeWidth={1.25} aria-hidden="true" />
             <span className="text-xs font-medium">Foto belum tersedia</span>
           </div>
         )}
@@ -103,7 +105,7 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
           {/* Tombol Pesan */}
           <Link
             href={href}
-            className={buttonClasses({ size: 'sm', className: '!rounded-xl shrink-0' })}
+            className={buttonClasses({ size: 'sm', className: 'rounded-xl! shrink-0' })}
           >
             Pesan
           </Link>

@@ -5,6 +5,7 @@ import { SectionHeading } from './section-heading';
 
 export async function FeaturedPortfolio() {
   const products = await getHomeTrendingProducts();
+  // console.log("data product is :",products);
 
   return (
     <section aria-label="Trending produk" className="flex flex-col gap-5">

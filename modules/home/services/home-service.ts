@@ -13,7 +13,6 @@ import { Product } from '@/types/product';
  */
 export async function getHomeCatalogHighlights(): Promise<Product[]> {
   const products = await getProducts(undefined, { next: { revalidate: 300 } });
-  // Ambil maksimal 10 produk pertama untuk section highlight
   return products.slice(0, 10);
 }
 

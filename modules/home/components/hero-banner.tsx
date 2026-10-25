@@ -10,7 +10,7 @@ export function HeroBanner({ isLoggedIn = false }: Props) {
   return (
     <section
       aria-labelledby="hero-title"
-      className="relative isolate flex min-h-[420px] items-center overflow-hidden rounded-2xl border border-beige sm:min-h-[460px] lg:min-h-[500px]"
+      className="relative isolate flex min-h-105 items-center overflow-hidden rounded-2xl border border-beige sm:min-h-115 lg:min-h-125"
     >
       {/* Gambar sebagai latar penuh */}
       <Image
@@ -26,7 +26,7 @@ export function HeroBanner({ isLoggedIn = false }: Props) {
       {/* Lapisan gelap agar teks tetap terbaca: rata di mobile, gradasi kiri-ke-kanan di layar lebar */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-black/55 md:bg-transparent md:bg-gradient-to-r md:from-black/75 md:via-black/45 md:to-transparent"
+        className="absolute inset-0 -z-10 bg-black/55 md:bg-transparent md:bg-linear-to-r md:from-black/75 md:via-black/45 md:to-transparent"
       />
 
       <div className="flex w-full max-w-2xl flex-col items-start gap-4 px-6 py-10 sm:px-10 sm:py-14">

@@ -39,7 +39,7 @@ function IconLink({ href, label, count = 0, children }: { href: string; label: s
           </span>
         )}
       </span>
-      <span className="text-[10px] font-medium leading-none">{label}</span>
+      <span className="text-[12px] font-medium leading-none">{label}</span>
     </Link>
   );
 }
@@ -65,7 +65,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0, chatUnreadCount =
               className="w-full rounded-md border border-line bg-surface pl-2 pr-4 py-1.5 text-sm text-ink placeholder:text-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               aria-label="Cari produk"
             />
-            <button className="absolute right-0 rounded-md top-1/2 bg-black h-full w-8 -translate-y-1/2 cursor-pointer flex items-center justify-center">
+            <button className="absolute right-0 rounded-r-md top-1/2 bg-black h-full w-12 -translate-y-1/2 cursor-pointer flex items-center justify-center">
               <Search className="size-4" color="#ffffff" />
             </button>
           </div>
@@ -81,10 +81,10 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0, chatUnreadCount =
                   aria-haspopup="menu"
                   className="relative flex flex-col items-center gap-0.5 rounded-lg px-2 py-1 transition-colors hover:bg-beige-soft"
                 >
-                  <span className="flex size-5 items-center justify-center rounded-full border border-gold-light bg-maroon-gradient text-[9px] font-extrabold text-gold-light">
+                  <span className="flex size-7 items-center justify-center rounded-full border border-gold-light bg-maroon-gradient text-[10px] font-extrabold text-gold-light">
                     {initials(user.name)}
                   </span>
-                  <span className="text-[10px] font-medium leading-none text-ink-soft">Akun</span>
+                  <span className="text-[12px] font-medium leading-none text-ink-soft">Akun</span>
                   {unreadCount > 0 && <span className="absolute right-1.5 top-0.5 size-2.5 rounded-full border border-surface bg-danger" />}
                 </button>
 
@@ -128,12 +128,20 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0, chatUnreadCount =
                 </div>
               </div>
 
-              <IconLink href="/chat" label="Chat" count={chatUnreadCount}>
-                <MessageCircle className="size-5" />
+              <IconLink 
+                href="/chat" 
+                label="Obrolan" 
+                count={chatUnreadCount}
+              >
+                <MessageCircle className="size-6" />
               </IconLink>
 
-              <IconLink href="/orders" label="Keranjang" count={cartCount}>
-                <ShoppingCart className="size-5" />
+              <IconLink 
+                href="/orders" 
+                label="Pesan" 
+                count={cartCount}
+              >
+                <ShoppingCart className="size-6" />
               </IconLink>
             </>
           ) : (
@@ -165,7 +173,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0, chatUnreadCount =
 
       <div className="hidden min-[400px]:block">
         <nav
-          className="mx-auto py-2  flex max-w-7xl items-center justify-around gap-1 overflow-x-auto px-4 sm:px-6 [scrollbar-width:none]"
+          className="mx-auto py-2  flex max-w-7xl items-center justify-around gap-1 overflow-x-auto px-4 sm:px-6 scrollbar-none"
           aria-label="Navigasi utama"
         >
           {NAV_LINKS.map((link) => {
@@ -175,7 +183,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0, chatUnreadCount =
                 key={link.href}
                 href={link.href}
                 aria-current={active ? 'page' : undefined}
-                className={`whitespace-nowrap rounded-lg px-3 text-[13px] transition-colors ${
+                className={`whitespace-nowrap rounded-lg px-3 text-[16px] transition-colors ${
                   active ? 'bg-beige-soft font-bold text-primary' : 'font-medium text-ink-soft hover:bg-beige-soft hover:text-primary'
                 }`}
               >

@@ -1,45 +1,39 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-/*
- * Design tokens — mirrors the VIEGUARD mobile app theme
- * (vieguard_app/lib/core/theme/app_theme.dart) so web and mobile share
- * one maroon & gold palette. Use these utilities (bg-primary, text-ink,
- * border-line, ...) instead of raw hex values.
- */
 @theme {
   --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-display: var(--font-cinzel), 'Cinzel', Georgia, serif;
 
-  --color-primary: #000000;
-  --color-primary-dark: #000000;
-  --color-primary-deep: #000000;
+  --color-primary: #9b1c2e;
+  --color-primary-dark: #7f1524;
+  --color-primary-deep: #4a1019;
   --color-primary-light: #000000;
-  --color-on-primary: #FFFFFF;
+  --color-on-primary: #ffffff;
 
-  --color-gold: #D9A33A;
-  --color-gold-light: #F2C766;
-  --color-gold-dark: #B07A1C;
-  --color-on-gold: #4A2A00;
+  --color-gold: #c9a24a;
+  --color-gold-light: #f2c766;
+  --color-gold-dark: #b07a1c;
+  --color-on-gold: #4a2a00;
 
-  --color-canvas: #ffffff;
-  --color-surface: #FFFFFF;
-  --color-beige: #EBDCC6;
-  --color-beige-soft: #FAF3E8;
+  --color-canvas: #fff8f5;
+  --color-surface: #ffffff;
+  --color-beige: #ebdcc6;
+  --color-beige-soft: #faf3e8;
 
-  --color-ink: #2B1A16;
-  --color-ink-soft: #5C4740;
-  --color-muted: #8C7468;
-  --color-line: #EFE4D5;
-  --color-line-strong: #E3D3BD;
+  --color-ink: #2b1a16;
+  --color-ink-soft: #5c4740;
+  --color-muted: #8c7468;
+  --color-line: #efe4d5;
+  --color-line-strong: #e3d3bd;
 
-  --color-success: #1E8A4C;
-  --color-success-bg: #DDF3E4;
-  --color-warning: #9A6700;
-  --color-warning-bg: #FDF0C8;
-  --color-info: #3553B5;
-  --color-info-bg: #E6ECFF;
-  --color-danger: #C62828;
-  --color-danger-bg: #FDE4E4;
+  --color-success: #1e8a4c;
+  --color-success-bg: #ddf3e4;
+  --color-warning: #9a6700;
+  --color-warning-bg: #fdf0c8;
+  --color-info: #3553b5;
+  --color-info-bg: #e6ecff;
+  --color-danger: #c62828;
+  --color-danger-bg: #fde4e4;
 
   --shadow-card: 0 4px 12px rgba(43, 26, 22, 0.06);
   --shadow-soft: 0 2px 6px rgba(43, 26, 22, 0.05);
@@ -55,6 +49,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  min-width: 100vw;
 }
 
 input,
@@ -102,5 +97,5 @@ button {
 }
 
 .bg-gold-gradient {
-  background-image: linear-gradient(135deg, #F2C766 0%, #D9A33A 50%, #B07A1C 100%);
+  background-image: linear-gradient(135deg, #f2c766 0%, #d9a33a 50%, #b07a1c 100%);
 }
