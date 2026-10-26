@@ -1,9 +1,11 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/session';
+
 import { getConversationMessages, getMyConversation } from '@/lib/api/chat-api';
 import { getMyOrders } from '@/lib/api/order-api';
 import { getStoreProfile } from '@/lib/api/store-api';
+
 import { orderTitle } from '@/lib/order-status';
 import { ChatView } from '@/modules/chat/views/chat-view';
 import { ChatMessage, Conversation } from '@/types/chat';

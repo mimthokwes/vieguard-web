@@ -56,3 +56,8 @@ export async function sendChatMessage(conversationId: string, messageText: strin
     socket.disconnect();
   }
 }
+
+/** Token untuk handshake Socket.IO dari browser. */
+export async function getChatSocketToken() {
+  return requireToken();
+}

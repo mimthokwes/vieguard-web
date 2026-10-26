@@ -1,6 +1,6 @@
 "use server";
 
-import { getConversationMessages, getMyConversation, sendChatMessage } from '@/lib/api/chat-api';
+import { getConversationMessages, getMyConversation, sendChatMessage, getChatSocketToken } from '@/lib/api/chat-api';
 import { ChatMessage } from '@/types/chat';
 
 // The conversation id always comes from the session's own conversation, never from the client,
@@ -22,6 +22,14 @@ export async function sendMessageAction(text: string): Promise<{ message?: ChatM
   try {
     const conversation = await getMyConversation();
     return { message: await sendChatMessage(conversation.id, messageText) };
+  } catch (error) {
+    return { error: (error as Error).message };
+  }
+}
+
+export async function getSocketTokenAction(): Promise<{ token?: string; error?: string }> {
+  try {
+    return { token: await getChatSocketToken() };
   } catch (error) {
     return { error: (error as Error).message };
   }
