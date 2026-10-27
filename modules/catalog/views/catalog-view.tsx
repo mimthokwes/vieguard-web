@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import { ChevronDown, CircleCheck, Download, MessageSquare, PackageSearch, ShieldCheck } from 'lucide-react';
+import { ChevronDown, Download, MessageSquare, PackageSearch } from 'lucide-react';
 import { Product, ProductCategory } from '@/types/product';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { CtaBanner } from '@/components/ui/cta-banner';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -69,8 +68,7 @@ export function CatalogView({ products, categories, mode, initialQuery = '', ini
   return (
     <main>
       <div className="mx-auto max-w-7xl px-4 pb-6 pt-8 sm:px-6 lg:px-8">
-        <Breadcrumb items={[{ label: isRental ? 'Penyewaan Armada' : 'Katalog Produk' }]} />
-        <div className="flex flex-col gap-6 pt-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-ink">
               {isRental ? 'Katalog Penyewaan Armada Seragam, Topi Shako & Instrumen Marching Band' : 'Katalog Seragam & Perlengkapan Drum Band'}
@@ -80,13 +78,6 @@ export function CatalogView({ products, categories, mode, initialQuery = '', ini
                 ? 'Solusi cepat untuk festival, karnaval hari besar nasional, dan seragam darurat. Bersih, steril, dan inspeksi fungsi terjamin.'
                 : 'Set seragam siap pakai, bendera color guard, topi shako, sepatu parade — tersedia untuk dibeli maupun disewa.'}
             </p>
-          </div>
-          <div className="flex max-w-sm flex-wrap gap-2">
-            {totalStock > 0 && <Chip>{totalStock}+ Unit Siap Pakai</Chip>}
-            {sizeRange && <Chip>{sizeRange}</Chip>}
-            <span className="flex items-center gap-1.5 rounded-lg border border-gold-light bg-warning-bg px-3 py-2 text-[15px] text-gold-dark">
-              <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" /> Pengiriman Kilat H-2
-            </span>
           </div>
         </div>
       </div>
@@ -115,11 +106,6 @@ export function CatalogView({ products, categories, mode, initialQuery = '', ini
           <p className="flex items-center gap-2 font-semibold text-primary">
             <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
             Menampilkan {visible.length} dari {filtered.length} {isRental ? 'Unit Armada Tersedia' : 'Produk'}
-          </p>
-          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-ink-soft">
-            <span className="flex items-center gap-1.5"><CircleCheck className="size-3.5" aria-hidden="true" /> Standar Kebersihan: Sterilisasi Uap 100°C & Siap Pakai</span>
-            <span className="hidden h-4 w-px bg-line-strong sm:block" aria-hidden="true" />
-            <span className="flex items-center gap-1.5"><ShieldCheck className="size-3.5" aria-hidden="true" /> Kebijakan Deposit Fleksibel: SPK Resmi Sekolah Diterima</span>
           </p>
         </div>
       </div>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { ArrowRight, Check, Factory, Info, PencilRuler, SlidersHorizontal } from 'lucide-react';
 import { PageContainer } from '@/components/layout/page-header';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { ButtonLink } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CUSTOM_MIN_QUANTITY, STANDARD_PACKAGE } from '../data';
@@ -34,7 +33,6 @@ export function PackageSelectView() {
   return (
     <PageContainer>
       <div className="mx-auto max-w-[964px]">
-        <Breadcrumb items={[{ label: 'Pilih Paket Pemesanan' }]} />
 
         <header className="pb-12 pt-8">
           <Badge pill icon={<Factory className="size-3.5" aria-hidden="true" />}>

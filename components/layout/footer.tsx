@@ -24,12 +24,12 @@ export function Footer({ store }: { store?: StoreProfile | null }) {
   const phone = store?.whatsappNumber || store?.phone;
 
   return (
-    <footer className="mt-16 w-full bg-maroon-gradient text-white">
+    <footer className="mt-4 w-full bg-maroon-gradient text-white">
       <div className="mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 pb-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           <div className="flex flex-col gap-4">
             <Logo inverted />
-            <p className="text-sm leading-[23px] text-white/75">
+            <p className="text-sm leading-5.75 text-white/75">
               {store?.description ||
                 'Solusi pengadaan dan penjahitan seragam profesional serta layanan penyewaan busana berkualitas tinggi dengan standar pengerjaan terpercaya.'}
             </p>

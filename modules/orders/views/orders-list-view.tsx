@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from 'react';
 import { BadgeCheck, CalendarCheck, CalendarDays, CircleHelp, ClipboardList, Headset, Printer, Scissors, Search } from 'lucide-react';
 import { Order } from '@/types/order';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { PageContainer } from '@/components/layout/page-header';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -65,7 +64,6 @@ export function OrdersListView({ orders, userName, error }: { orders: Order[]; u
 
   return (
     <PageContainer>
-      <Breadcrumb items={[{ label: 'Pesanan dan Sewa Saya' }]} />
 
       <section className="relative mt-6 overflow-hidden rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
         <div className="pointer-events-none absolute -right-20 -top-20 size-72 rounded-full bg-gold-light/20 blur-3xl" aria-hidden="true" />

@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { Order } from '@/types/order';
 import { StoreProfile } from '@/types/store';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { PageContainer } from '@/components/layout/page-header';
 import { buttonClasses } from '@/components/ui/button';
 import { CopyButton, PrintButton } from '@/components/ui/copy-button';
@@ -58,7 +57,6 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
 
   return (
     <PageContainer>
-      <Breadcrumb items={[{ label: 'Pesanan dan Sewa Saya', href: '/orders' }, { label: 'Ruang Penawaran & Negosiasi' }]} />
 
       {justCreated && (
         <p role="status" className="mt-6 flex items-center gap-2 rounded-xl border border-success/25 bg-success-bg px-4 py-3 text-sm font-semibold text-success">

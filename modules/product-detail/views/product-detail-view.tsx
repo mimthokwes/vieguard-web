@@ -1,7 +1,6 @@
 import React from 'react';
 import { Gift } from 'lucide-react';
 import { Product } from '@/types/product';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { PageContainer } from '@/components/layout/page-header';
 import { canBuy, canRent, rentStock, buyStock } from '@/components/product/product-card';
 import { formatRupiah } from '@/lib/format';
@@ -27,12 +26,6 @@ export function ProductDetailView({ product, mode, initialDate, isLoggedIn, curr
 
   return (
     <PageContainer>
-      <Breadcrumb
-        items={[
-          mode === 'sewa' ? { label: 'Katalog Sewa', href: '/rental' } : { label: 'Katalog', href: '/catalog' },
-          { label: mode === 'sewa' ? 'Detail Armada & Booking' : product.name },
-        ]}
-      />
 
       <div className="grid grid-cols-1 gap-6 pt-8 lg:grid-cols-[1fr_492px]">
         <div className="flex flex-col gap-8">

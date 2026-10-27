@@ -133,7 +133,17 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0, chatUnreadCount =
     <>
       <header
         ref={headerRef}
-        onFocus={() => setFocusInside(true)}
+        onFocus={(e) => {
+          const target = e.target as HTMLElement;
+          let visible = false;
+          try {
+            // true untuk fokus keyboard & input teks, false untuk fokus hasil klik pada tombol/link
+            visible = target.matches(':focus-visible');
+          } catch {
+            visible = target.tagName === 'INPUT';
+          }
+          if (visible) setFocusInside(true);
+        }}
         onBlur={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusInside(false);
         }}
@@ -177,7 +187,9 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0, chatUnreadCount =
                       {initials(user.name)}
                     </span>
                     <span className="text-[12px] font-medium leading-none text-ink-soft">Akun</span>
-                    {unreadCount > 0 && <span className="absolute right-1.5 top-0.5 size-2.5 rounded-full border border-surface bg-danger" />}
+                    {unreadCount > 0 && (
+                      <span className="absolute right-1.5 top-0.5 size-2.5 rounded-full border border-surface bg-danger" />
+                    )}
                   </button>
 
                   {/* pt-2 (bukan mt-2) supaya tidak ada celah yang memutus hover */}

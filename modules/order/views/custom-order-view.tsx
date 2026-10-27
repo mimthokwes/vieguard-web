@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Award, Download, Headset, Link2, Lock, MessageSquare, Palette, PencilRuler, Ruler, Send, ShieldCheck, TrendingUp, UploadCloud } from 'lucide-react';
 import { PageContainer } from '@/components/layout/page-header';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { buttonClasses } from '@/components/ui/button';
 import { Input, Select, Textarea } from '@/components/ui/input';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -34,7 +33,6 @@ export function CustomOrderView({ accessories }: CustomOrderViewProps) {
 
   return (
     <PageContainer>
-      <Breadcrumb items={[{ label: 'Pilih Paket', href: '/order' }, { label: 'Formulir Paket Kustom Adibusana' }]} />
 
       <header className="flex flex-col gap-6 py-8 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">

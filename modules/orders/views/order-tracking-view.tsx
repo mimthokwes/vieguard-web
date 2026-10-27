@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { Order, OrderStatusHistory } from '@/types/order';
 import { StoreProfile } from '@/types/store';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { PageContainer } from '@/components/layout/page-header';
 import { buttonClasses } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -75,7 +74,6 @@ export function OrderTrackingView({
 
   return (
     <PageContainer>
-      <Breadcrumb items={[{ label: 'Pesanan dan Sewa Saya', href: '/orders' }, { label: isRental ? 'Detail Penyewaan' : 'Lacak Status Produksi' }]} />
 
       {justCreated && (
         <p role="status" className="mt-6 flex items-center gap-2 rounded-xl border border-success/25 bg-success-bg px-4 py-3 text-sm font-semibold text-success">

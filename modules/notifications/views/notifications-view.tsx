@@ -21,7 +21,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import { AppNotification } from '@/types/notification';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { PageContainer } from '@/components/layout/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -98,7 +97,6 @@ export function NotificationsView({ notifications }: { notifications: AppNotific
 
   return (
     <PageContainer>
-      <Breadcrumb items={[{ label: 'Pusat Notifikasi' }]} />
 
       <header className="flex flex-col gap-6 py-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">

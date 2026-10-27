@@ -35,7 +35,7 @@ export default async function RootLayout({
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <html lang="id" className={`${cinzel.variable} ${jakarta.variable}`}>
+    <html lang="id" className={`${cinzel.variable} ${jakarta.variable} `} >
       <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink antialiased">
         <div className="sticky top-1 z-50 flex items-center justify-center w-full">
           <Navbar user={user} unreadCount={unreadCount} />

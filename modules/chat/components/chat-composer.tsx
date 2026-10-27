@@ -62,18 +62,11 @@ export function ChatComposer({ initialText = '', error, sending, disabled, order
         <button
           type="submit"
           disabled={sending || !text.trim() || disabled}
-          className="flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-on-primary shadow-button transition-colors hover:bg-primary-light disabled:opacity-50"
+          className="flex h-11 items-center gap-2 rounded-xl bg-primary px-5 mb-2 text-sm font-bold text-on-primary shadow-button transition-colors hover:bg-primary-light disabled:opacity-50"
         >
           {sending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Send className="size-4" aria-hidden="true" />} Kirim
         </button>
       </div>
-
-      <p className="flex flex-wrap justify-between gap-2 pt-2 text-xs text-ink-soft">
-        <span>Enter untuk kirim · Shift+Enter untuk baris baru</span>
-        <span className="flex items-center gap-1">
-          <Store className="size-3" aria-hidden="true" /> Untuk berkas desain, sertakan tautan Google Drive
-        </span>
-      </p>
     </form>
   );
 }

@@ -20,7 +20,7 @@ export function ChatMessageList({ messages, userName, adminName }: ChatMessageLi
   }, [messages.length]);
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto bg-canvas/60 px-4 py-6 sm:px-6" aria-live="polite">
+    <div ref={scrollRef} className="flex-1 overflow-y-auto bg-canvas/60 px-4 py-6 sm:px-6 " aria-live="polite" >
       {messages.length === 0 ? (
         <ChatEmptyState />
       ) : (

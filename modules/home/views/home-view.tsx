@@ -2,7 +2,7 @@ import { HeroBanner } from '../components/hero-banner';
 import { CategoryGrid } from '../components/category-grid';
 import { PromoCards } from '../components/promo-cards';
 import { FeaturedPortfolio } from '../components/featured-portfolio';
-import { TrustStrip } from '../components/trust-strip';
+import { FeatureHighlights } from '../components/feature-highlights';
 import { CatalogHighlights } from '../components/catalog-highlights';
 import { ConsultationBanner } from '../components/consultation-banner';
 
@@ -13,7 +13,7 @@ export async function HomeView({ isLoggedIn = false }: { isLoggedIn?: boolean })
       <CategoryGrid />
       <PromoCards isLoggedIn={isLoggedIn} />
       <FeaturedPortfolio />
-      <TrustStrip />
+      <FeatureHighlights />
       <CatalogHighlights />
       <ConsultationBanner />
     </main>

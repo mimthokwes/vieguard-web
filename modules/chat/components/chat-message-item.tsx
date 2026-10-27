@@ -29,7 +29,7 @@ export function ChatMessageItem({ message: m, userName, adminName }: ChatMessage
           <b className={mine ? 'text-primary' : 'text-ink'}>{mine ? 'Anda' : adminName}</b> · {timeOf(m.createdAt)} WIB
         </p>
         <div
-          className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-[15px] leading-6 shadow-soft ${
+          className={`whitespace-pre-wrap wrap-break-word rounded-2xl px-4 py-3 text-[15px] leading-6 shadow-soft ${
             mine ? 'rounded-tr-sm bg-primary text-on-primary' : 'rounded-tl-sm bg-surface text-ink ring-1 ring-line'
           }`}
         >

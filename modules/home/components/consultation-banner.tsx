@@ -1,9 +1,6 @@
 import { ButtonLink } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 
-// TODO: ganti dengan nomor WhatsApp asli (format internasional tanpa +).
-const WHATSAPP_URL = 'https://wa.me/6281234567890?text=Halo%20VIEGUARD%2C%20saya%20ingin%20konsultasi%20seragam';
-
 export function ConsultationBanner() {
   return (
     <section
@@ -16,9 +13,9 @@ export function ConsultationBanner() {
           Ceritakan kebutuhan sekolah atau tim Anda, kami bantu dari pengukuran sampai pengiriman.
         </p>
       </div>
-      <ButtonLink href={WHATSAPP_URL} variant="dark">
+      <ButtonLink href='/chat' variant="dark">
         <MessageCircle className="size-4" aria-hidden="true" />
-        Konsultasi lewat WhatsApp
+        Konsultasi lewat Chat
       </ButtonLink>
     </section>
   );

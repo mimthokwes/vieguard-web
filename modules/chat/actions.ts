@@ -27,6 +27,7 @@ export async function sendMessageAction(text: string): Promise<{ message?: ChatM
   }
 }
 
+
 export async function getSocketTokenAction(): Promise<{ token?: string; error?: string }> {
   try {
     return { token: await getChatSocketToken() };

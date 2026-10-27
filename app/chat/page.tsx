@@ -43,7 +43,6 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
 
   return (
     <ChatView
-      conversation={conversation}
       initialMessages={messages}
       userName={user.name}
       topic={(topic ?? product)?.slice(0, 120)}

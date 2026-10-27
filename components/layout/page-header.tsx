@@ -1,8 +1,6 @@
 import React from 'react';
-import { Breadcrumb, Crumb } from './breadcrumb';
 
 interface PageHeaderProps {
-  crumbs: Crumb[];
   eyebrow?: string;
   title: string;
   description?: React.ReactNode;
@@ -10,10 +8,9 @@ interface PageHeaderProps {
 }
 
 /** Breadcrumb + eyebrow + title block used at the top of most inner pages. */
-export function PageHeader({ crumbs, eyebrow, title, description, aside }: PageHeaderProps) {
+export function PageHeader({  eyebrow, title, description, aside }: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-6 pb-8">
-      <Breadcrumb items={crumbs} />
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           {eyebrow && <p className="pb-2 text-xs font-bold uppercase tracking-wider text-gold-dark">{eyebrow}</p>}

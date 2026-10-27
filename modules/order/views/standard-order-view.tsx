@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useState, useTransition } from 'react';
 import { ArrowLeft, ArrowRight, BadgeCheck, CircleCheck, Sheet } from 'lucide-react';
 import { PageContainer } from '@/components/layout/page-header';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { User } from '@/types/user';
 import { submitStandardOrder } from '../actions';
@@ -136,7 +135,6 @@ export function StandardOrderView({ user, initialStep, storePhone }: { user: Use
 
   return (
     <PageContainer>
-      <Breadcrumb items={[{ label: 'Pilih Paket', href: '/order' }, { label: `Formulir Standar - Langkah ${step}` }]} />
       <div className="pt-6">
         <Stepper steps={STEPS} current={step} />
       </div>

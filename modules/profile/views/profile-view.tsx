@@ -24,7 +24,6 @@ import {
   Users,
 } from 'lucide-react';
 import { User } from '@/types/user';
-import { Breadcrumb } from '@/components/layout/breadcrumb';
 import { PageContainer } from '@/components/layout/page-header';
 import { Input, Textarea } from '@/components/ui/input';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -72,7 +71,6 @@ export function ProfileView({ user }: { user: User }) {
   return (
     <PageContainer>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Breadcrumb items={[{ label: 'Pengaturan Akun & Profil' }]} />
         <span className="flex items-center gap-2 rounded-full bg-beige-soft px-3 py-1 text-xs font-semibold text-ink-soft">
           <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" /> ID Pelanggan: <b className="text-ink">#{String(user.id)}</b>
         </span>
