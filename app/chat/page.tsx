@@ -2,9 +2,9 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/session';
 
-import { getConversationMessages, getMyConversation } from '@/lib/api/chat-api';
-import { getMyOrders } from '@/lib/api/order-api';
-import { getStoreProfile } from '@/lib/api/store-api';
+import { getConversationMessages, getMyConversation } from '@/modules/chat/services/chat-service';
+import { getMyOrders } from '@/modules/orders/services/orders-service';
+import { getStoreProfile } from '@/modules/home/services/store-service';
 
 import { orderTitle } from '@/lib/order-status';
 import { ChatView } from '@/modules/chat/views/chat-view';

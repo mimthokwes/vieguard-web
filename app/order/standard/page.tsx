@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/session';
-import { getStoreProfile } from '@/lib/api/store-api';
+import { getStoreProfile } from '@/modules/home/services/store-service';
 import { StandardOrderView } from '@/modules/order/views/standard-order-view';
 
 export const dynamic = 'force-dynamic';

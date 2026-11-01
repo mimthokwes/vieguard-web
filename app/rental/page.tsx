@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import { CatalogView } from '@/modules/catalog/views/catalog-view';
-import { getProducts } from '@/lib/api/product-api';
-import { getCategories } from '@/lib/api/category-api';
+import { getProducts, getCategories } from '@/modules/catalog/services/catalog-service';
 
 export const dynamic = 'force-dynamic';
 

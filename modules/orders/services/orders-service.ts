@@ -1,0 +1,48 @@
+import { notFound } from 'next/navigation';
+import { apiClient, apiUpload, ApiError } from '@/lib/api-client';
+import { getSessionToken } from '@/lib/session';
+import { Order, OrderStatusHistory } from '@/types/order';
+
+/**
+ * Service to manage customer order history, detail tracking, and payments.
+ */
+export async function getMyOrders(): Promise<{ orders: Order[]; error?: string }> {
+  const token = await getSessionToken();
+  if (!token) return { orders: [] };
+
+  try {
+    const orders = await apiClient<Order[]>('/orders', { token });
+    return { orders: orders || [] };
+  } catch (error) {
+    return { orders: [], error: (error as Error).message };
+  }
+}
+
+export async function getOrderDetail(id: string): Promise<Order> {
+  const token = await getSessionToken();
+  if (!token) throw new ApiError('Silakan masuk terlebih dahulu.', 401);
+
+  try {
+    return await apiClient<Order>(`/orders/${id}`, { token });
+  } catch (error) {
+    if (error instanceof ApiError && (error.status === 404 || error.status === 400)) {
+      notFound();
+    }
+    throw error;
+  }
+}
+
+export async function getOrderStatusHistory(id: string): Promise<OrderStatusHistory[]> {
+  const token = await getSessionToken();
+  if (!token) return [];
+
+  try {
+    return (await apiClient<OrderStatusHistory[]>(`/orders/${id}/status-history`, { token })) || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function uploadPaymentProof(formData: FormData, token: string): Promise<unknown> {
+  return apiUpload('/payments/proof', formData, token);
+}

@@ -1,9 +1,7 @@
 "use server";
 
 import { revalidatePath } from 'next/cache';
-import { apiClient } from '@/lib/api-client';
-import { getSessionToken, getSessionUser, updateSessionUser } from '@/lib/session';
-import { User } from '@/types/user';
+import { updateProfile } from './services/profile-service';
 
 export interface ProfileActionState {
   error?: string;
@@ -13,11 +11,7 @@ export interface ProfileActionState {
 
 /** Only name, phone and address are sent — never pass arbitrary form fields to PUT /users/me. */
 async function putProfile(patch: { name?: string; phone?: string; address?: string }) {
-  const token = await getSessionToken();
-  if (!token) throw new Error('Sesi berakhir. Silakan masuk kembali.');
-  const updated = await apiClient<User>('/users/me', { method: 'PUT', body: JSON.stringify(patch), token });
-  const current = await getSessionUser();
-  await updateSessionUser({ ...(current ?? {}), ...updated } as User);
+  await updateProfile(patch);
   revalidatePath('/', 'layout');
 }
 

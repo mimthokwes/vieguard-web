@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/session';
-import { getNotifications } from '@/lib/api/notification-api';
+import { getNotifications } from '@/modules/notifications/services/notification-service';
 import { NotificationsView } from '@/modules/notifications/views/notifications-view';
 
 export const dynamic = 'force-dynamic';

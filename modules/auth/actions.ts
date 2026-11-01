@@ -1,6 +1,6 @@
 "use server";
 
-import { loginUser, registerUser } from './lib/auth-api';
+import { loginUser, registerUser } from './services/auth-service';
 import { createSession } from '@/lib/session';
 import { ApiError } from '@/lib/api-client';
 import { revalidatePath } from 'next/cache';

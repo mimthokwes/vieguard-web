@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/session';
-import { getOrderDetail, getOrderStatusHistory } from '@/lib/api/order-api';
-import { getStoreProfile } from '@/lib/api/store-api';
+import { getOrderDetail, getOrderStatusHistory } from '@/modules/orders/services/orders-service';
+import { getStoreProfile } from '@/modules/home/services/store-service';
 import { isAwaitingQuote } from '@/lib/order-status';
 import { QuoteStatusView } from '@/modules/orders/views/quote-status-view';
 import { OrderTrackingView } from '@/modules/orders/views/order-tracking-view';

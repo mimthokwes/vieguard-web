@@ -48,7 +48,6 @@ export function PortfolioView() {
   return (
     <PageContainer>
       <PageHeader
-        crumbs={[{ label: 'Portofolio Galeri' }]}
         eyebrow="Karya & Rekam Jejak Produksi"
         title="Galeri Portofolio & Hasil Produksi Seragam Drum Band"
         description="Dokumentasi karya jahit nyata seragam korps drumband, marching band sekolah, dan almamater di seluruh Indonesia dengan jaminan presisi jahitan garmen kelas profesional."

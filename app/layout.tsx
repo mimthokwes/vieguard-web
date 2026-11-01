@@ -4,8 +4,9 @@ import './globals.css';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { getSessionUser } from '@/lib/session';
-import { getStoreProfile } from '@/lib/api/store-api';
-import { getNotifications } from '@/lib/api/notification-api';
+import { getStoreProfile } from '@/modules/home/services/store-service';
+import { getNotifications } from '@/modules/notifications/services/notification-service';
+import { QueryProvider } from '@/components/providers/query-provider';
 
 const cinzel = Cinzel({
   subsets: ['latin'],
@@ -37,11 +38,13 @@ export default async function RootLayout({
   return (
     <html lang="id" className={`${cinzel.variable} ${jakarta.variable} `} >
       <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink antialiased">
-        <div className="sticky top-1 z-50 flex items-center justify-center w-full">
-          <Navbar user={user} unreadCount={unreadCount} />
-        </div>
-        <div className="flex-1">{children}</div>
-        <Footer store={store} />
+        <QueryProvider>
+          <div className="sticky top-1 z-50 flex items-center justify-center w-full">
+            <Navbar user={user} unreadCount={unreadCount} />
+          </div>
+          <div className="flex-1">{children}</div>
+          <Footer store={store} />
+        </QueryProvider>
       </body>
     </html>
   );

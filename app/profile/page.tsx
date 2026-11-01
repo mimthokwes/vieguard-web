@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { getSessionToken, getSessionUser } from '@/lib/session';
-import { apiClient } from '@/lib/api-client';
+import { getSessionUser } from '@/lib/session';
+import { getProfile } from '@/modules/profile/services/profile-service';
 import { User } from '@/types/user';
 import { ProfileView } from '@/modules/profile/views/profile-view';
 
@@ -18,13 +18,11 @@ export default async function ProfilePage() {
 
   // Prefer the live profile; fall back to the session copy if the API is unreachable.
   let user: User = sessionUser;
-  const token = await getSessionToken();
-  if (token) {
-    try {
-      user = { ...sessionUser, ...(await apiClient<User>('/users/me', { token, cache: 'no-store' })) };
-    } catch {
-      // keep session copy
-    }
+  try {
+    const live = await getProfile();
+    if (live) user = { ...sessionUser, ...live };
+  } catch {
+    // keep session copy
   }
   return <ProfileView user={user} />;
 }

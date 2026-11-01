@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from 'next/cache';
-import { getNotifications, markNotificationRead } from '@/lib/api/notification-api';
+import { getNotifications, markNotificationRead } from './services/notification-service';
 
 export async function markReadAction(id: string): Promise<{ error?: string }> {
   if (!/^\d+$/.test(id)) return { error: 'Notifikasi tidak valid.' };

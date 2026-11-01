@@ -1,6 +1,6 @@
 "use server";
 
-import { getConversationMessages, getMyConversation, sendChatMessage, getChatSocketToken } from '@/lib/api/chat-api';
+import { getConversationMessages, getMyConversation, sendChatMessage, getChatSocketToken } from './services/chat-service';
 import { ChatMessage } from '@/types/chat';
 
 // The conversation id always comes from the session's own conversation, never from the client,

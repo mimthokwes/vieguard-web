@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { createOrder } from '@/lib/api/order-api';
+import { createOrder } from './services/order-service';
 import { getSessionUser } from '@/lib/session';
 import { formatOrderMeta } from '@/lib/order-status';
 import { CUSTOM_MIN_QUANTITY, STANDARD_PACKAGE } from './data';

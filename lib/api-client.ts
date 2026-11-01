@@ -1,4 +1,4 @@
-import 'server-only';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { redirect } from 'next/navigation';
 
 export class ApiError extends Error {
@@ -19,15 +19,13 @@ export const SESSION_EXPIRED_PATH = '/session-expired';
 const NETWORK_ERROR_MESSAGE = 'Server backend tidak dapat dihubungi. Pastikan backend VIEGUARD sedang berjalan.';
 
 export function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    return (
+      process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NEXT_PUBLIC_API_HOST ? `${process.env.NEXT_PUBLIC_API_HOST}/api/v0/website` : 'http://localhost:5000/api/v0/website')
+    );
+  }
   return process.env.API_URL || 'http://localhost:5000/api/v0/website';
-}
-
-function buildUrl(endpoint: string) {
-  return endpoint.startsWith('http') ? endpoint : `${getApiBaseUrl()}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
-}
-
-interface FetchOptions extends RequestInit {
-  token?: string;
 }
 
 /** Express wraps payloads as `{ success, message, data }`; unwrap to `data` when present. */
@@ -38,47 +36,136 @@ function unwrap<T>(body: unknown): T {
   return body as T;
 }
 
-async function send(url: string, init: RequestInit): Promise<Response> {
-  try {
-    return await fetch(url, init);
-  } catch (error) {
-    console.error(`[apiClient] ${init.method ?? 'GET'} ${url} failed:`, (error as Error).message);
-    throw new ApiError(NETWORK_ERROR_MESSAGE, 503);
-  }
+export interface ApiClientOptions extends AxiosRequestConfig {
+  token?: string;
+  body?: unknown;
+  /** Next.js fetch compatibility options */
+  cache?: RequestCache;
+  next?: { revalidate?: number | false; tags?: string[] };
 }
+
+/** Axios instance pre-configured for the backend API */
+export const axiosClient = axios.create();
 
 /**
- * Base request helper for every call to the Express API (server only).
- * - always checks `res.ok` and turns Express `{ message, errors }` into an ApiError
+ * Base request helper for every call to the Express API using Axios.
+ * - unwraps Express `{ success, message, data }` responses
+ * - transforms Axios errors into standardized `ApiError`
  * - a 401 on an authenticated request ends the session and redirects to /login
  */
-export async function apiClient<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-  const { token, headers, ...init } = options;
-  const res = await send(buildUrl(endpoint), {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(headers as Record<string, string>),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
+export async function apiClient<T>(endpoint: string, options: ApiClientOptions = {}): Promise<T> {
+  const { token, headers, body, data: explicitData, ...config } = options;
 
-  const body = await res.json().catch(() => null);
-
-  // redirect() throws a control-flow error, so it must stay outside any try/catch.
-  if (res.status === 401 && token) redirect(SESSION_EXPIRED_PATH);
-
-  if (!res.ok) {
-    throw new ApiError(body?.message || body?.error || `HTTP error ${res.status}`, res.status, body?.errors);
+  let requestData = explicitData !== undefined ? explicitData : body;
+  if (typeof requestData === 'string') {
+    try {
+      requestData = JSON.parse(requestData);
+    } catch {
+      // keep raw string
+    }
   }
-  return unwrap<T>(body);
+
+  const requestHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(headers as Record<string, string>),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const baseURL = getApiBaseUrl();
+  const url = endpoint.startsWith('http') ? endpoint : `${baseURL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+
+  let shouldRedirect = false;
+
+  try {
+    const response = await axiosClient.request<T>({
+      url,
+      method: (options.method as AxiosRequestConfig['method']) || 'GET',
+      data: requestData,
+      headers: requestHeaders,
+      ...config,
+    });
+
+    return unwrap<T>(response.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosErr = error as AxiosError<any>;
+      const status = axiosErr.response?.status ?? 503;
+      const resData = axiosErr.response?.data;
+
+      if (status === 401 && token) {
+        shouldRedirect = true;
+      } else {
+        const message =
+          resData?.message ||
+          resData?.error ||
+          (!axiosErr.response || axiosErr.code === 'ERR_NETWORK'
+            ? NETWORK_ERROR_MESSAGE
+            : axiosErr.message);
+
+        throw new ApiError(message, status, resData?.errors);
+      }
+    } else {
+      throw error;
+    }
+  }
+
+  if (shouldRedirect) {
+    if (typeof window !== 'undefined') {
+      window.location.href = SESSION_EXPIRED_PATH;
+    } else {
+      redirect(SESSION_EXPIRED_PATH);
+    }
+  }
+
+  throw new ApiError('Sesi Anda telah berakhir.', 401);
 }
 
-/** Multipart upload (FormData); lets fetch set the multipart boundary header. */
+/** Multipart upload (FormData) using Axios */
 export async function apiUpload<T>(endpoint: string, formData: FormData, token: string): Promise<T> {
-  const res = await send(buildUrl(endpoint), { method: 'POST', body: formData, headers: { Authorization: `Bearer ${token}` } });
-  const body = await res.json().catch(() => null);
-  if (res.status === 401) redirect(SESSION_EXPIRED_PATH);
-  if (!res.ok) throw new ApiError(body?.message || `HTTP error ${res.status}`, res.status, body?.errors);
-  return unwrap<T>(body);
+  const baseURL = getApiBaseUrl();
+  const url = endpoint.startsWith('http') ? endpoint : `${baseURL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+
+  let shouldRedirect = false;
+
+  try {
+    const response = await axiosClient.post<T>(url, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return unwrap<T>(response.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosErr = error as AxiosError<any>;
+      const status = axiosErr.response?.status ?? 503;
+      const resData = axiosErr.response?.data;
+
+      if (status === 401) {
+        shouldRedirect = true;
+      } else {
+        const message =
+          resData?.message ||
+          resData?.error ||
+          (!axiosErr.response || axiosErr.code === 'ERR_NETWORK'
+            ? NETWORK_ERROR_MESSAGE
+            : axiosErr.message);
+
+        throw new ApiError(message, status, resData?.errors);
+      }
+    } else {
+      throw error;
+    }
+  }
+
+  if (shouldRedirect) {
+    if (typeof window !== 'undefined') {
+      window.location.href = SESSION_EXPIRED_PATH;
+    } else {
+      redirect(SESSION_EXPIRED_PATH);
+    }
+  }
+
+  throw new ApiError('Sesi Anda telah berakhir.', 401);
 }

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { ProductDetailView } from '@/modules/product-detail/views/product-detail-view';
-import { getProductById } from '@/lib/api/product-api';
+import { getProductById } from '@/modules/catalog/services/catalog-service';
 import { getSessionUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';

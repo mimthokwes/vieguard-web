@@ -8,41 +8,21 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatImageUrl } from '@/lib/image';
 
+import { useCart } from '../hooks/use-cart';
+
 export function CartView() {
-  const [items, setItems] = useState([
-    {
-      id: 'cart-1',
-      name: 'Kostum Drumband Gita Bahari',
-      size: 'S',
-      type: 'SEWA (3 Hari)',
-      date: 'Reservasi Backend',
-      price: 200000,
-      deposit: 100000,
-      protection: 25000,
-      quantity: 1,
-      image: formatImageUrl(null),
-    },
-  ]);
-
-  const [orderSubmitted, setOrderSubmitted] = useState(false);
-
-  const updateQuantity = (id: string, delta: number) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-      )
-    );
-  };
-
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const depositTotal = items.reduce((sum, item) => sum + item.deposit * item.quantity, 0);
-  const protectionTotal = items.reduce((sum, item) => sum + item.protection * item.quantity, 0);
-  const shippingFee = items.length > 0 ? 45000 : 0;
-  const grandTotal = subtotal + depositTotal + protectionTotal + shippingFee;
+  const {
+    items,
+    updateQuantity,
+    removeItem,
+    subtotal,
+    depositTotal,
+    protectionTotal,
+    shippingFee,
+    grandTotal,
+    orderSubmitted,
+    setOrderSubmitted,
+  } = useCart();
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from 'next/cache';
-import { apiUpload } from '@/lib/api-client';
+import { uploadPaymentProof } from './services/orders-service';
 import { getSessionToken } from '@/lib/session';
 
 export interface PaymentActionState {
@@ -35,7 +35,7 @@ export async function uploadPaymentProofAction(_prev: PaymentActionState, formDa
   body.set('proofImage', file, file.name);
 
   try {
-    await apiUpload('/payments/proof', body, token);
+    await uploadPaymentProof(body, token);
   } catch (error) {
     return { error: (error as Error).message || 'Gagal mengunggah bukti pembayaran.' };
   }

@@ -1,8 +1,10 @@
-import "server-only";
-import { apiClient } from '../api-client';
+import { apiClient } from '@/lib/api-client';
 import { Order } from '@/types/cart';
-import { getSessionToken } from '../session';
+import { getSessionToken } from '@/lib/session';
 
+/**
+ * Service to manage cart orders and checkout requests.
+ */
 export async function createOrder(orderPayload: Record<string, unknown>): Promise<Order | null> {
   const token = await getSessionToken();
   if (!token) throw new Error('Pengguna belum login.');
@@ -21,10 +23,7 @@ export async function getMyOrders(): Promise<Order[]> {
   if (!token) return [];
 
   try {
-    const orders = await apiClient<Order[]>('/orders', {
-      token,
-      cache: 'no-store',
-    });
+    const orders = await apiClient<Order[]>('/orders', { token });
     return orders || [];
   } catch (error) {
     console.error('[getMyOrders Error]:', error);

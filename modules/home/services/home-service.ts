@@ -1,9 +1,8 @@
 /**
- * Home page service — server-only.
- * Mengambil data untuk halaman beranda langsung dari backend API.
+ * Home page service.
+ * Mengambil data untuk halaman beranda langsung dari backend API menggunakan axios via catalog-service.
  */
-import 'server-only';
-import { getProducts } from '@/lib/api/product-api';
+import { getProducts } from '@/modules/catalog/services/catalog-service';
 import { Product } from '@/types/product';
 
 /**
@@ -12,7 +11,7 @@ import { Product } from '@/types/product';
  * maksimal 10 item.
  */
 export async function getHomeCatalogHighlights(): Promise<Product[]> {
-  const products = await getProducts(undefined, { next: { revalidate: 300 } });
+  const products = await getProducts();
   return products.slice(0, 10);
 }
 
@@ -21,6 +20,6 @@ export async function getHomeCatalogHighlights(): Promise<Product[]> {
  * pada halaman beranda.
  */
 export async function getHomeTrendingProducts(): Promise<Product[]> {
-  const products = await getProducts(undefined, { next: { revalidate: 300 } });
+  const products = await getProducts();
   return products.slice(0, 4);
 }

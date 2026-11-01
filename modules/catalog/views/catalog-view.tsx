@@ -135,21 +135,6 @@ export function CatalogView({ products, categories, mode, initialQuery = '', ini
 
         <div className="flex flex-col gap-8 pt-8">
           <RentalGuarantees />
-          <CtaBanner
-            compact
-            title="Butuh Paket Lengkap untuk Korps Penuh 40-70 Personel?"
-            description="Konsultasikan spesifikasi armada lengkap, kebutuhan durasi sewa, dan pengumpulan data ukuran siswa bersama admin kami."
-            actions={
-              <>
-                <ButtonLink href="/order/standard?step=2" variant="outline" className="border-white/30! bg-white/10! text-white! hover:bg-white/20!">
-                  <Download className="size-4" aria-hidden="true" /> Template Data Ukuran
-                </ButtonLink>
-                <ButtonLink href="/chat?topic=Penawaran%20sewa%20kolektif" variant="gold">
-                  <MessageSquare className="size-4" aria-hidden="true" /> Konsultasi & Penawaran Kolektif
-                </ButtonLink>
-              </>
-            }
-          />
         </div>
       </div>
     </main>

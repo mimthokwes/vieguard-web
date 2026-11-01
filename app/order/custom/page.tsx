@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/session';
-import { getAccessories } from '@/lib/api/product-api';
+import { getAccessories } from '@/modules/order/services/order-service';
 import { CustomOrderView } from '@/modules/order/views/custom-order-view';
 import { DEFAULT_CUSTOM_ACCESSORIES } from '@/modules/order/data';
 

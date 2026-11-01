@@ -2,8 +2,8 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { checkProductAvailability, getProductById } from '@/lib/api/product-api';
-import { createOrder } from '@/lib/api/order-api';
+import { checkProductAvailability, getProductDetail as getProductById } from './services/product-detail-service';
+import { createOrder } from '@/modules/order/services/order-service';
 import { getSessionUser } from '@/lib/session';
 import { toNumber } from '@/lib/format';
 import { Product } from '@/types/product';
