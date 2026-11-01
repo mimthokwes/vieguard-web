@@ -31,7 +31,7 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
   let loadError: string | undefined;
   try {
     conversation = await getMyConversation();
-    messages = await getConversationMessages(conversation.id);
+    messages = await getConversationMessages(String(conversation.id));
   } catch (error) {
     loadError = `Gagal memuat obrolan: ${(error as Error).message}`;
   }
@@ -43,6 +43,7 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
 
   return (
     <ChatView
+      conversationId={conversation?.id}
       initialMessages={messages}
       userName={user.name}
       topic={(topic ?? product)?.slice(0, 120)}

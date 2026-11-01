@@ -7,6 +7,9 @@ export const SOCKET_NAMESPACE = '/ws/website';
 /** Batas tunggu konfirmasi (echo `message:new`) setelah kirim pesan. */
 export const SEND_TIMEOUT_MS = 8000;
 
+/** Polling interval used only while the socket is offline. */
+export const FALLBACK_POLL_MS = 5000;
+
 /** Nama event — harus sama dengan gateway backend. */
 export const CHAT_EVENTS = {
   join: 'conversation:join', // client -> server (conversationId)

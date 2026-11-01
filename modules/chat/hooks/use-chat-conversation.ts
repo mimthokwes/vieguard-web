@@ -1,11 +1,13 @@
 "use client";
 
 import { useQuery } from '@tanstack/react-query';
-import { Conversation, ChatMessage } from '@/types/chat';
-import { getMyConversation, getConversationMessages } from '../services/chat-service';
+import { Conversation } from '@/types/chat';
+import { getMyConversation } from '../services/chat-service';
 
 /**
- * Hook to fetch and cache user chat conversation and history with TanStack Query.
+ * Fetches and caches the customer's conversation (one per customer).
+ * Messages are intentionally NOT cached here: they are real-time data
+ * owned by `useChatMessages` (Socket.IO), so caching them would go stale.
  */
 export function useChatConversation(initialConversation?: Conversation) {
   const conversationQuery = useQuery<Conversation>({
@@ -15,26 +17,11 @@ export function useChatConversation(initialConversation?: Conversation) {
     staleTime: 5 * 60 * 1000,
   });
 
-  const conversationId = conversationQuery.data?.id;
-
-  const messagesQuery = useQuery<ChatMessage[]>({
-    queryKey: ['chat', 'messages', conversationId],
-    queryFn: () => (conversationId ? getConversationMessages(conversationId) : []),
-    enabled: !!conversationId,
-    staleTime: 30 * 1000,
-  });
-
   return {
     conversation: conversationQuery.data,
-    messages: messagesQuery.data || [],
-    isLoading: conversationQuery.isLoading || messagesQuery.isLoading,
-    isFetching: conversationQuery.isFetching || messagesQuery.isFetching,
-    error: conversationQuery.error
-      ? (conversationQuery.error as Error).message
-      : messagesQuery.error
-        ? (messagesQuery.error as Error).message
-        : null,
+    isLoading: conversationQuery.isLoading,
+    isFetching: conversationQuery.isFetching,
+    error: conversationQuery.error ? (conversationQuery.error as Error).message : null,
     refetchConversation: conversationQuery.refetch,
-    refetchMessages: messagesQuery.refetch,
   };
 }

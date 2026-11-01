@@ -4,14 +4,26 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { ChatMessage } from '@/types/chat';
 import { getSocketTokenAction, refreshMessagesAction, sendMessageAction } from '../actions';
-import { CHAT_EVENTS, SEND_TIMEOUT_MS, SOCKET_NAMESPACE, SOCKET_URL } from '../constants/chat-socket';
+import {
+  CHAT_EVENTS,
+  FALLBACK_POLL_MS,
+  SEND_TIMEOUT_MS,
+  SOCKET_NAMESPACE,
+  SOCKET_URL,
+} from '../constants/chat-socket';
 
 const MAX_LENGTH = 2000;
 
 const appendUnique = (list: ChatMessage[], msg: ChatMessage) =>
   list.some((x) => x.id === msg.id) ? list : [...list, msg];
 
-/** Kirim lewat socket, lalu tunggu echo `message:new` dari server sebagai konfirmasi. */
+/** Merge server history with local messages by id, so a socket message that arrives mid-fetch is never lost. */
+const mergeById = (local: ChatMessage[], server: ChatMessage[]) => {
+  const serverIds = new Set(server.map((m) => m.id));
+  return [...server, ...local.filter((m) => !serverIds.has(m.id))];
+};
+
+/** Send over the socket, then wait for the server's `message:new` echo as confirmation. */
 function emitAndWaitEcho(socket: Socket, conversationId: string, messageText: string) {
   return new Promise<ChatMessage>((resolve, reject) => {
     const cleanup = () => {
@@ -19,7 +31,11 @@ function emitAndWaitEcho(socket: Socket, conversationId: string, messageText: st
       socket.off(CHAT_EVENTS.new, onNew);
     };
     const onNew = (msg: ChatMessage) => {
-      if (String(msg.conversationId) === conversationId && msg.senderType === 'user' && msg.messageText === messageText) {
+      if (
+        String(msg.conversationId) === conversationId &&
+        msg.senderType === 'user' &&
+        msg.messageText === messageText
+      ) {
         cleanup();
         resolve(msg);
       }
@@ -35,13 +51,17 @@ function emitAndWaitEcho(socket: Socket, conversationId: string, messageText: st
 }
 
 /**
- * Satu-satunya tempat yang mengurus transport data chat (Socket.IO).
- * - Riwayat awal : `initialMessages` (SSR), tanpa polling.
- * - Pesan masuk  : event `message:new` real-time.
- * - (Re)connect  : join room + sekali fetch ulang riwayat agar tidak ada yang terlewat.
- * - Kirim pesan  : lewat socket; jika socket putus, fallback ke `sendMessageAction`.
+ * The only place that handles chat data transport. No cache layer (no TanStack Query).
+ * - Initial history : `initialMessages` (SSR), always re-synced from the server on connect.
+ * - Incoming        : real-time `message:new` socket event.
+ * - Offline         : light polling fallback, stopped as soon as the socket is back.
+ * - Sending         : via socket; falls back to `sendMessageAction` if the socket is down.
  */
-export function useChatMessages(initialMessages: ChatMessage[], loadError?: string, conversationId?: string | number) {
+export function useChatMessages(
+  initialMessages: ChatMessage[] = [],
+  loadError?: string,
+  conversationId?: string | number,
+) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [online, setOnline] = useState(!loadError);
   const [error, setError] = useState(loadError ?? '');
@@ -49,10 +69,15 @@ export function useChatMessages(initialMessages: ChatMessage[], loadError?: stri
   const socketRef = useRef<Socket | null>(null);
 
   const resync = useCallback(async () => {
-    const r = await refreshMessagesAction();
-    if (r.messages) setMessages(r.messages);
+    try {
+      const r = await refreshMessagesAction();
+      if (r.messages) setMessages((local) => mergeById(local, r.messages!));
+    } catch {
+      // Keep current messages; the next resync will retry.
+    }
   }, []);
 
+  // Socket lifecycle
   useEffect(() => {
     if (!conversationId) return;
     if (!SOCKET_URL) {
@@ -66,7 +91,7 @@ export function useChatMessages(initialMessages: ChatMessage[], loadError?: stri
       transports: ['websocket'],
       reconnection: true,
       reconnectionDelayMax: 10_000,
-      // Dipanggil ulang di setiap (re)connect, jadi token selalu segar.
+      // Called on every (re)connect, so the token is always fresh.
       auth: (cb) => {
         getSocketTokenAction()
           .then((r) => cb({ token: r.token ?? '' }))
@@ -76,7 +101,7 @@ export function useChatMessages(initialMessages: ChatMessage[], loadError?: stri
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      socket.emit(CHAT_EVENTS.join, roomId); // join dulu, baru resync agar tak ada celah
+      socket.emit(CHAT_EVENTS.join, roomId); // join first, then resync so there is no gap
       setOnline(true);
       setError('');
       resync();
@@ -88,9 +113,9 @@ export function useChatMessages(initialMessages: ChatMessage[], loadError?: stri
       if (String(msg.conversationId) === roomId) setMessages((m) => appendUnique(m, msg));
     });
 
-    // Saat tab kembali aktif, segarkan sekali (mis. status "Dibaca admin"). Bukan polling.
+    // Refresh once when the tab becomes visible again (e.g. "read by admin" status).
     const onVisible = () => {
-      if (document.visibilityState === 'visible' && socket.connected) resync();
+      if (document.visibilityState === 'visible') resync();
     };
     document.addEventListener('visibilitychange', onVisible);
 
@@ -102,7 +127,14 @@ export function useChatMessages(initialMessages: ChatMessage[], loadError?: stri
     };
   }, [conversationId, resync]);
 
-  /** Mengembalikan true jika pesan berhasil terkirim. */
+  // Polling fallback: only runs while the socket is offline.
+  useEffect(() => {
+    if (!conversationId || online) return;
+    const timer = setInterval(resync, FALLBACK_POLL_MS);
+    return () => clearInterval(timer);
+  }, [conversationId, online, resync]);
+
+  /** Returns true if the message was sent successfully. */
   const send = useCallback(
     async (value: string) => {
       const messageText = value.trim();
@@ -120,7 +152,7 @@ export function useChatMessages(initialMessages: ChatMessage[], loadError?: stri
           setMessages((m) => appendUnique(m, message));
           return true;
         }
-        // Fallback: socket putus -> kirim via server (membuka koneksi singkat)
+        // Fallback: socket is down -> send through the server (opens a short-lived connection)
         const r = await sendMessageAction(messageText);
         if (r.error) {
           setError(r.error);

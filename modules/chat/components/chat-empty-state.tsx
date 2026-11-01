@@ -8,7 +8,7 @@ export function ChatEmptyState() {
       </span>
       <p className="pt-3 font-semibold text-ink">Belum ada pesan</p>
       <p className="max-w-sm pt-1 text-sm text-ink-soft">
-        Tulis pertanyaan Anda tentang ukuran, desain, sewa, atau status pesanan. Admin akan membalas di sini.
+        Anda bisa bertanya kepada admin disini. Admin akan membalas di sini.
       </p>
     </div>
   );
