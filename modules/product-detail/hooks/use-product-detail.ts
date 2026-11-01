@@ -23,8 +23,11 @@ export function useProductDetail({ productId, initialProduct }: UseProductDetail
     queryKey: ['product-detail', productId],
     queryFn: () => getProductDetail(productId),
     initialData: initialProduct,
+    initialDataUpdatedAt: initialProduct ? 1 : undefined,
     enabled: !!productId,
     staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   return {

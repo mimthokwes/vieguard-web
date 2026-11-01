@@ -10,7 +10,7 @@ export function CategoryGrid() {
       <ul className="grid grid-cols-4 gap-x-2 gap-y-5 lg:grid-cols-8">
         {CATEGORIES.map(({ label, href, image }) => (
           <li key={label}>
-            <Link href={href} className="group flex flex-col items-center gap-2.5 text-center">
+            <Link href={href} prefetch={false} className="group flex flex-col items-center gap-2.5 text-center">
               <span className="relative block size-16 overflow-hidden rounded-full border border-line-strong bg-beige-soft transition-colors group-hover:border-primary sm:size-20">
                 <Image
                   src={image}

@@ -17,6 +17,9 @@ export interface UseCatalogOptions {
 export function useCatalog(options: UseCatalogOptions = {}) {
   const [filterQuery, setFilterQuery] = useState<ProductFilterQuery | undefined>(options.initialQuery);
 
+  const hasInitialProducts = Boolean(options.initialProducts && options.initialProducts.length > 0);
+  const hasInitialCategories = Boolean(options.initialCategories && options.initialCategories.length > 0);
+
   const {
     data: products = options.initialProducts || [],
     isLoading: isLoadingProducts,
@@ -26,8 +29,11 @@ export function useCatalog(options: UseCatalogOptions = {}) {
   } = useQuery({
     queryKey: ['catalog', 'products', filterQuery],
     queryFn: () => getProducts(filterQuery),
-    initialData: options.initialProducts,
+    initialData: hasInitialProducts ? options.initialProducts : undefined,
+    initialDataUpdatedAt: hasInitialProducts ? 1 : undefined,
     staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const {
@@ -38,8 +44,11 @@ export function useCatalog(options: UseCatalogOptions = {}) {
   } = useQuery({
     queryKey: ['catalog', 'categories'],
     queryFn: () => getCategories(),
-    initialData: options.initialCategories,
+    initialData: hasInitialCategories ? options.initialCategories : undefined,
+    initialDataUpdatedAt: hasInitialCategories ? 1 : undefined,
     staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const isLoading = isLoadingProducts || isLoadingCategories;

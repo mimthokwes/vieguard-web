@@ -10,6 +10,7 @@ import { CatalogMode, ProductCard, canRent, rentStock, buyStock } from '@/compon
 import { toNumber } from '@/lib/format';
 import { CatalogFilter, PRICE_OPTIONS, PriceKey, SortKey } from '../components/catalog-filter';
 import { RentalGuarantees } from '../components/tailoring-cta';
+import { useCatalog } from '../hooks/use-catalog';
 
 const PAGE_SIZE = 9;
 const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
@@ -22,7 +23,18 @@ interface CatalogViewProps {
   initialCategory?: string;
 }
 
-export function CatalogView({ products, categories, mode, initialQuery = '', initialCategory = '' }: CatalogViewProps) {
+export function CatalogView({
+  products: initialProducts,
+  categories: initialCategories,
+  mode,
+  initialQuery = '',
+  initialCategory = '',
+}: CatalogViewProps) {
+  const { products, categories } = useCatalog({
+    initialProducts,
+    initialCategories,
+  });
+
   // The search box now lives in the navbar, so the query comes straight from the URL prop.
   // Using the prop directly (not useState) keeps the list in sync when the navbar search changes it.
   const query = initialQuery;
