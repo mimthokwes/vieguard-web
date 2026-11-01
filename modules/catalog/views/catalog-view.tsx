@@ -8,7 +8,7 @@ import { CtaBanner } from '@/components/ui/cta-banner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { CatalogMode, ProductCard, canRent, rentStock, buyStock } from '@/components/product/product-card';
 import { toNumber } from '@/lib/format';
-import { CatalogFilter, SortKey } from '../components/catalog-filter';
+import { CatalogFilter, PRICE_OPTIONS, PriceKey, SortKey } from '../components/catalog-filter';
 import { RentalGuarantees } from '../components/tailoring-cta';
 
 const PAGE_SIZE = 9;
@@ -23,10 +23,15 @@ interface CatalogViewProps {
 }
 
 export function CatalogView({ products, categories, mode, initialQuery = '', initialCategory = '' }: CatalogViewProps) {
-  const [query, setQuery] = useState(initialQuery);
+  // The search box now lives in the navbar, so the query comes straight from the URL prop.
+  // Using the prop directly (not useState) keeps the list in sync when the navbar search changes it.
+  const query = initialQuery;
+
   const [category, setCategory] = useState(initialCategory);
   const [sort, setSort] = useState<SortKey>('newest');
   const [date, setDate] = useState('');
+  const [price, setPrice] = useState<PriceKey>('all');
+  const [availableOnly, setAvailableOnly] = useState(false);
   const [limit, setLimit] = useState(PAGE_SIZE);
 
   const pool = useMemo(() => (mode === 'sewa' ? products.filter(canRent) : products), [products, mode]);
@@ -35,27 +40,36 @@ export function CatalogView({ products, categories, mode, initialQuery = '', ini
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = pool.filter(
-      (p) =>
-        (!category || p.categoryId === category) &&
-        (!q || [p.name, p.description ?? '', p.sku ?? '', p.category?.name ?? ''].some((t) => t.toLowerCase().includes(q)))
-    );
+    const range = PRICE_OPTIONS.find((o) => o.value === price) ?? PRICE_OPTIONS[0];
+
+    const list = pool.filter((p) => {
+      if (category && p.categoryId !== category) return false;
+      if (q && ![p.name, p.description ?? '', p.sku ?? '', p.category?.name ?? ''].some((t) => t.toLowerCase().includes(q))) {
+        return false;
+      }
+      const priceValue = priceOf(p);
+      if (priceValue < range.min || priceValue >= range.max) return false;
+      if (availableOnly && stockOf(p) <= 0) return false;
+      return true;
+    });
+
     const sorted = [...list];
     if (sort === 'price-asc') sorted.sort((a, b) => priceOf(a) - priceOf(b));
     if (sort === 'price-desc') sorted.sort((a, b) => priceOf(b) - priceOf(a));
     if (sort === 'stock') sorted.sort((a, b) => stockOf(b) - stockOf(a));
     return sorted;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pool, query, category, sort]);
+  }, [pool, query, category, price, availableOnly, sort, mode]);
 
+  // Only categories that still have products; the filter component only needs id and name now
   const categoryChips = categories
-    .map((c) => ({ id: c.id, name: c.name, count: pool.filter((p) => p.categoryId === c.id).length }))
-    .filter((c) => c.count > 0);
+    .filter((c) => pool.some((p) => p.categoryId === c.id))
+    .map((c) => ({ id: c.id, name: c.name }));
 
-  const totalStock = pool.reduce((s, p) => s + stockOf(p), 0);
-  const sizes = Array.from(new Set(pool.flatMap((p) => p.variants.map((v) => v.size.toUpperCase()))));
-  const knownSizes = SIZE_ORDER.filter((s) => sizes.includes(s));
-  const sizeRange = knownSizes.length > 1 ? `Ukuran ${knownSizes[0]} - ${knownSizes.at(-1)}` : sizes.length ? `Ukuran ${sizes.join(', ')}` : null;
+  // const totalStock = pool.reduce((s, p) => s + stockOf(p), 0);
+  // const sizes = Array.from(new Set(pool.flatMap((p) => p.variants.map((v) => v.size.toUpperCase()))));
+  // const knownSizes = SIZE_ORDER.filter((s) => sizes.includes(s));
+  // const sizeRange = knownSizes.length > 1 ? `Ukuran ${knownSizes[0]} - ${knownSizes.at(-1)}` : sizes.length ? `Ukuran ${sizes.join(', ')}` : null;
 
   const visible = filtered.slice(0, limit);
   const detailHref = (p: Product) => {
@@ -64,55 +78,37 @@ export function CatalogView({ products, categories, mode, initialQuery = '', ini
   };
 
   const isRental = mode === 'sewa';
+  const resetLimit = () => setLimit(PAGE_SIZE);
 
   return (
     <main>
-      <div className="mx-auto max-w-7xl px-4 pb-6 pt-8 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-ink">
-              {isRental ? 'Katalog Penyewaan Armada Seragam, Topi Shako & Instrumen Marching Band' : 'Katalog Seragam & Perlengkapan Drum Band'}
-            </h1>
-            <p className="pt-2 text-base leading-relaxed text-ink-soft">
-              {isRental
-                ? 'Solusi cepat untuk festival, karnaval hari besar nasional, dan seragam darurat. Bersih, steril, dan inspeksi fungsi terjamin.'
-                : 'Set seragam siap pakai, bendera color guard, topi shako, sepatu parade — tersedia untuk dibeli maupun disewa.'}
-            </p>
-          </div>
-        </div>
-      </div>
-
       <CatalogFilter
-        query={query}
-        onQuery={(v) => {
-          setQuery(v);
-          setLimit(PAGE_SIZE);
-        }}
         date={date}
         onDate={setDate}
+        price={price}
+        onPrice={(v) => {
+          setPrice(v);
+          resetLimit();
+        }}
+        availableOnly={availableOnly}
+        onAvailableOnly={(v) => {
+          setAvailableOnly(v);
+          resetLimit();
+        }}
         sort={sort}
         onSort={setSort}
         categories={categoryChips}
         category={category}
         onCategory={(id) => {
           setCategory(id);
-          setLimit(PAGE_SIZE);
+          resetLimit();
         }}
-        total={pool.length}
       />
-
-      <div className="border-b border-line bg-beige-soft">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 text-[15px] sm:px-6 lg:px-8">
-          <p className="flex items-center gap-2 font-semibold text-primary">
-            <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
-            Menampilkan {visible.length} dari {filtered.length} {isRental ? 'Unit Armada Tersedia' : 'Produk'}
-          </p>
-        </div>
-      </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {visible.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          // Mobile: 2 columns with a tighter gap, tablet: 2 columns, desktop: 3 columns
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
             {visible.map((p) => (
               <ProductCard key={p.id} product={p} mode={mode} detailHref={detailHref(p)} />
             ))}
@@ -124,7 +120,7 @@ export function CatalogView({ products, categories, mode, initialQuery = '', ini
             description={
               products.length === 0
                 ? 'Data katalog belum bisa dimuat. Pastikan server backend berjalan atau coba beberapa saat lagi.'
-                : 'Coba kata kunci lain atau pilih kategori berbeda.'
+                : 'Coba ubah filter harga atau kategori, atau gunakan kata kunci lain di kolom pencarian atas.'
             }
           />
         )}
@@ -145,7 +141,7 @@ export function CatalogView({ products, categories, mode, initialQuery = '', ini
             description="Konsultasikan spesifikasi armada lengkap, kebutuhan durasi sewa, dan pengumpulan data ukuran siswa bersama admin kami."
             actions={
               <>
-                <ButtonLink href="/order/standard?step=2" variant="outline" className="!border-white/30 !bg-white/10 !text-white hover:!bg-white/20">
+                <ButtonLink href="/order/standard?step=2" variant="outline" className="border-white/30! bg-white/10! text-white! hover:bg-white/20!">
                   <Download className="size-4" aria-hidden="true" /> Template Data Ukuran
                 </ButtonLink>
                 <ButtonLink href="/chat?topic=Penawaran%20sewa%20kolektif" variant="gold">

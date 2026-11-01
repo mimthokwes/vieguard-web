@@ -39,7 +39,7 @@ interface Stat { icon: LucideIcon; target: number; suffix: string; label: string
 const STATS: Stat[] = [
   { icon: School, target: 250, suffix: '+', label: 'Sekolah terlayani' },
   { icon: Shirt, target: 12000, suffix: '+', label: 'Kostum diproduksi' },
-  { icon: CalendarCheck, target: 5, suffix: ' thn', label: 'Pengalaman' },
+  { icon: CalendarCheck, target: 6, suffix: ' thn', label: 'Pengalaman' },
   { icon: Star, target: 49, suffix: '/5', label: 'Rating pelanggan', decimals: true },
 ];
 
