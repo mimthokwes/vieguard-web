@@ -1,11 +1,32 @@
 import { Metadata } from 'next';
-import { PackageSelectView } from '@/modules/order/views/package-select-view';
+import { CatalogView } from '@/modules/catalog/views/catalog-view';
+import { getProducts, getCategories } from '@/modules/catalog/services/catalog-service';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Pilih Paket Pemesanan Seragam | VIEGUARD',
-  description: 'Pilih jalur produksi seragam: Paket Standar Institusi atau Paket Kustom Adibusana (Bespoke).',
+  title: 'Pembelian Seragam & Perlengkapan (Pre-Order) | VIEGUARD',
+  description: 'Pesan model seragam marching band, drum band, dan busana institusi dengan skema pre-order berkualitas tinggi.',
 };
 
-export default function OrderPage() {
-  return <PackageSelectView />;
+interface PageProps {
+  searchParams: Promise<{ search?: string; category?: string }>;
+}
+
+export default async function OrderPage({ searchParams }: PageProps) {
+  const [{ search, category }, products, categories] = await Promise.all([
+    searchParams,
+    getProducts({ type: 'beli' }),
+    getCategories(),
+  ]);
+
+  return (
+    <CatalogView
+      mode="beli"
+      products={products}
+      categories={categories}
+      initialQuery={search}
+      initialCategory={category}
+    />
+  );
 }

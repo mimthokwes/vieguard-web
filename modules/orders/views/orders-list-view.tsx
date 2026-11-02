@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import { BadgeCheck, CalendarCheck, CalendarDays, CircleHelp, ClipboardList, Headset, Printer, Scissors, Search } from 'lucide-react';
+import { BadgeCheck, CalendarCheck, CalendarDays, CircleHelp, ClipboardList, MessagesSquare, Scissors, Search } from 'lucide-react';
 import { Order } from '@/types/order';
 import { PageContainer } from '@/components/layout/page-header';
-import { Button, ButtonLink } from '@/components/ui/button';
+import { ButtonLink } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { orderTitle, parseOrderMeta, totalQuantity } from '@/lib/order-status';
@@ -56,50 +56,45 @@ export function OrdersListView({ orders, userName, error }: { orders: Order[]; u
   }, [orders, tab, query, since]);
 
   const TABS: { key: Tab; label: string }[] = [
-    { key: 'all', label: 'Semua Transaksi' },
-    { key: 'production', label: 'Pemesanan Seragam' },
-    { key: 'rental', label: 'Penyewaan Armada' },
-    { key: 'done', label: 'Riwayat Selesai' },
+    { key: 'all', label: 'Semua' },
+    { key: 'production', label: 'Pre-Order' },
+    { key: 'rental', label: 'Sewa' },
+    { key: 'done', label: 'Selesai' },
   ];
 
   return (
     <PageContainer>
 
-      <section className="relative mt-6 overflow-hidden rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
-        <div className="pointer-events-none absolute -right-20 -top-20 size-72 rounded-full bg-gold-light/20 blur-3xl" aria-hidden="true" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="flex items-center gap-2 text-xs">
-              <span className="rounded-full bg-beige-soft px-2.5 py-0.5 font-bold uppercase text-primary">Portal Klien</span>
-              <span className="text-ink-soft">• {userName}</span>
-            </p>
-            <h1 className="pt-2 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Daftar Pesanan & Penyewaan Saya</h1>
-            <p className="pt-2 text-base leading-relaxed text-ink-soft">
-              Pantau seluruh status produksi seragam marching band, reservasi armada sewa, dan riwayat transaksi resmi institusi Anda.
+      <section className="relative mt-6 overflow-hidden rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-7">
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <span className="rounded-full bg-beige-soft px-2.5 py-0.5 text-xs font-bold uppercase text-primary">
+              Pesanan • {userName}
+            </span>
+            <h1 className="pt-2 text-2xl font-extrabold tracking-tight text-ink">Riwayat Pesanan</h1>
+            <p className="pt-1 text-xs text-ink-soft">
+              Pantau progres produksi, jadwal sewa, dan status pesanan Anda.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3 print:hidden">
-            <Button variant="soft" className="border-0" onClick={() => window.print()}>
-              <Printer className="size-4" aria-hidden="true" /> Cetak Laporan
-            </Button>
-            <ButtonLink href="/chat?topic=Bantuan%20pesanan">
-              <Headset className="size-4" aria-hidden="true" /> Bantuan Admin
+          <div className="flex shrink-0 gap-2">
+            <ButtonLink href="/chat?topic=Bantuan%20pesanan" variant="outline" size="sm" className="!border-primary !text-primary hover:!bg-primary/5">
+              <MessagesSquare className="size-4" aria-hidden="true" /> Chat Admin
             </ButtonLink>
           </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-4 pt-8 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Pesanan Aktif" value={`${stats.active} Transaksi`} note={<><span className="mr-1 inline-block size-1.5 rounded-full bg-primary" />Sedang diproses berkala</>} icon={<ClipboardList className="size-6" />} />
-        <StatCard label="Dalam Proses Jahit" value={`${stats.sewing} Pesanan`} note={<b className="text-primary">{stats.sewingUnits} Stel Seragam</b>} icon={<Scissors className="size-6" />} />
+      <div className="grid grid-cols-2 gap-4 pt-6 lg:grid-cols-4">
+        <StatCard label="Pesanan Aktif" value={`${stats.active}`} note="Sedang diproses" icon={<ClipboardList className="size-5" />} />
+        <StatCard label="Dalam Jahit" value={`${stats.sewing}`} note={`${stats.sewingUnits} stel`} icon={<Scissors className="size-5" />} />
         <StatCard
-          label="Jadwal Sewa Berjalan"
-          value={`${stats.rentals} Armada`}
-          note={<b className="text-gold-dark">{stats.rentalUnits} Unit Kostum</b>}
-          icon={<CalendarCheck className="size-6" />}
+          label="Kostum Sewa"
+          value={`${stats.rentals}`}
+          note={`${stats.rentalUnits} unit`}
+          icon={<CalendarCheck className="size-5" />}
           gold
         />
-        <StatCard label="Total Selesai" value={`${stats.done} Proyek`} note="Rekam jejak seluruh pesanan" icon={<BadgeCheck className="size-6" />} muted />
+        <StatCard label="Selesai" value={`${stats.done}`} note="Pesanan tuntas" icon={<BadgeCheck className="size-5" />} muted />
       </div>
 
       <div className="mt-8 flex flex-col gap-4 rounded-2xl bg-surface p-4 shadow-card ring-1 ring-line 2xl:flex-row 2xl:items-center 2xl:justify-between print:hidden">
@@ -127,7 +122,7 @@ export function OrdersListView({ orders, userName, error }: { orders: Order[]; u
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari nomor transaksi atau nama instansi"
+              placeholder="Cari nomor pesanan atau instansi..."
               className="h-11 w-full rounded-lg bg-beige-soft pl-10 pr-3 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary sm:w-72"
             />
           </label>
@@ -156,43 +151,43 @@ export function OrdersListView({ orders, userName, error }: { orders: Order[]; u
 
       <ErrorMessage message={error ? `Gagal memuat pesanan: ${error}` : undefined} className="mt-6" />
 
-      <div className="flex flex-col gap-8 pt-8">
+      <div className="flex flex-col gap-6 pt-6">
         {visible.map((order) => (
           <OrderCard key={order.id} order={order} />
         ))}
         {visible.length === 0 && !error && (
           <EmptyState
             icon={<ClipboardList className="size-7" aria-hidden="true" />}
-            title={orders.length === 0 ? 'Belum ada pesanan' : 'Tidak ada pesanan yang cocok'}
+            title={orders.length === 0 ? 'Belum ada pesanan' : 'Tidak ditemukan'}
             description={
               orders.length === 0
-                ? 'Mulai pesan seragam untuk institusi Anda atau sewa perlengkapan drum band untuk acara terdekat.'
-                : 'Coba ubah tab, kata kunci, atau rentang tanggal.'
+                ? 'Mulai buat pesanan seragam baru atau sewa kostum.'
+                : 'Ubah kata kunci atau filter tanggal.'
             }
-            actionText={orders.length === 0 ? 'Pesan Seragam Sekarang' : undefined}
+            actionText={orders.length === 0 ? 'Pesan Sekarang' : undefined}
             actionHref={orders.length === 0 ? '/order' : undefined}
           />
         )}
       </div>
 
-      <aside className="mt-8 flex flex-col gap-4 rounded-2xl bg-beige-soft p-6 sm:flex-row sm:items-center sm:justify-between print:hidden">
-        <div className="flex items-start gap-4">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-beige text-primary">
-            <CircleHelp className="size-6" aria-hidden="true" />
+      <aside className="mt-8 flex flex-col gap-4 rounded-2xl bg-beige-soft p-5 sm:flex-row sm:items-center sm:justify-between print:hidden">
+        <div className="flex items-center gap-3.5">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-beige text-primary">
+            <CircleHelp className="size-5" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-lg font-bold text-primary">Membutuhkan Revisi Pengukuran atau Penambahan Unit?</p>
-            <p className="pt-0.5 text-sm text-ink-soft">
-              Konsultasikan langsung dengan tim penjahit utama atau perpanjang durasi sewa armada sebelum tanggal jatuh tempo.
+            <p className="font-bold text-ink">Butuh Bantuan Pesanan?</p>
+            <p className="text-xs text-ink-soft">
+              Hubungi admin untuk revisi ukuran, penambahan unit, atau perpanjangan sewa.
             </p>
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
           <ButtonLink href="/order" variant="soft" size="sm" className="!h-9 border-0 bg-surface">
-            Pesan Jahit Tambahan
+            Pesan Baru
           </ButtonLink>
           <ButtonLink href="/chat" variant="dark" size="sm" className="!h-9">
-            Buka Diskusi Baru
+            Chat Admin
           </ButtonLink>
         </div>
       </aside>

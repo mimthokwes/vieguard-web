@@ -81,66 +81,66 @@ export function ProfileView({ user }: { user: User }) {
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-primary">
-              <UserCog className="size-4" aria-hidden="true" /> Konfigurasi Akun Pelanggan
+              <UserCog className="size-4" aria-hidden="true" /> Akun Pelanggan
             </p>
-            <h1 className="pt-3 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">Pengaturan Profil & Berkas Ukuran Siswa Tersimpan</h1>
-            <p className="pt-3 text-base leading-relaxed text-ink-soft">
-              Kelola data kontak penanggung jawab, alamat pengiriman, dan berkas rekap ukuran siswa untuk pemesanan berikutnya.
+            <h1 className="pt-2 text-2xl font-extrabold leading-tight tracking-tight text-ink sm:text-3xl">Profil Akun & Berkas Ukuran Siswa</h1>
+            <p className="pt-2 text-sm leading-relaxed text-ink-soft">
+              Kelola data kontak penanggung jawab, alamat pengiriman, dan berkas rekap ukuran siswa untuk pemesanan seragam.
             </p>
           </div>
           <div className="flex flex-col gap-4 rounded-2xl bg-beige-soft p-4 sm:flex-row sm:items-center">
-            <Stat icon={<Sheet className="size-5" />} label="Total Berkas Tersimpan" value={`${rosters.length} Spreadsheet`} />
+            <Stat icon={<Sheet className="size-5" />} label="Berkas Tersimpan" value={`${rosters.length} Spreadsheet`} />
             <span className="hidden h-12 w-px bg-line-strong sm:block" aria-hidden="true" />
-            <Stat icon={<Users className="size-5" />} label="Siswa Terkatalog" value={`${totalStudents} Personel`} gold />
+            <Stat icon={<Users className="size-5" />} label="Siswa Terdata" value={`${totalStudents} Personel`} gold />
           </div>
         </div>
       </section>
 
       <div className="grid grid-cols-1 gap-6 pt-8 lg:grid-cols-[1fr_492px]">
         <div className="flex flex-col gap-6">
-          <Panel icon={<Building2 className="size-5" />} title="Data Identitas & PIC" subtitle="Kontak resmi penanggung jawab pemesanan busana" badge="Akun Pelanggan">
+          <Panel icon={<Building2 className="size-5" />} title="Identitas & Kontak" subtitle="Informasi penanggung jawab" badge="Akun Pelanggan">
             <form action={identityAction} className="flex flex-col gap-5">
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <Input label="Nama Lengkap / Penanggung Jawab (PIC)" name="name" required defaultValue={user.name} leftIcon={<UserIcon className="size-4" />} error={identityState.fieldErrors?.name} />
+                <Input label="Nama Lengkap" name="name" required defaultValue={user.name} leftIcon={<UserIcon className="size-4" />} error={identityState.fieldErrors?.name} />
                 <Input label="Nomor Telepon / WhatsApp" name="phone" type="tel" defaultValue={user.phone ?? ''} placeholder="+62 812-xxxx-xxxx" leftIcon={<Phone className="size-4" />} error={identityState.fieldErrors?.phone} />
               </div>
-              <Input label="Email Akun" name="email" type="email" defaultValue={user.email} disabled leftIcon={<Mail className="size-4" />} hint="Email digunakan untuk masuk dan tidak dapat diubah dari sini." />
+              <Input label="Email Akun" name="email" type="email" defaultValue={user.email} disabled leftIcon={<Mail className="size-4" />} hint="Email akun tidak dapat diubah." />
               <FormFeedback state={identityState} />
               <div className="flex justify-end">
-                <SubmitButton label="Perbarui Data Identitas" loadingLabel="Menyimpan..." fullWidth={false} size="lg" icon={<Save className="size-4" aria-hidden="true" />} />
+                <SubmitButton label="Simpan Perubahan" loadingLabel="Menyimpan..." fullWidth={false} size="lg" icon={<Save className="size-4" aria-hidden="true" />} />
               </div>
             </form>
           </Panel>
 
-          <Panel icon={<Truck className="size-5" />} title="Alamat Pengiriman & Ekspedisi Logistik" subtitle="Hub serah terima koli dan peti pakaian seragam" badge="Default Pesanan" badgeGold>
+          <Panel icon={<Truck className="size-5" />} title="Alamat Pengiriman" subtitle="Tujuan pengiriman pesanan" badge="Default" badgeGold>
             <form action={addressAction} className="flex flex-col gap-5">
-              <Input label="Nama Penerima / Gedung Tujuan" name="recipient" defaultValue={recipient} placeholder="Contoh: Gedung Kesenian & Ruang Alat (Blok C Lantai 1)" leftIcon={<Building2 className="size-4" />} />
-              <Textarea label="Alamat Lengkap Pengiriman" name="street" required rows={3} defaultValue={street} placeholder="Jalan, kelurahan, kecamatan, kota, kode pos" error={addressState.fieldErrors?.street} />
-              <div className="flex items-center gap-4 rounded-xl bg-canvas p-3">
-                <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-beige-soft text-primary">
-                  <MapPin className="size-6" aria-hidden="true" />
+              <Input label="Penerima / Gedung" name="recipient" defaultValue={recipient} placeholder="Nama penerima atau gedung" leftIcon={<Building2 className="size-4" />} />
+              <Textarea label="Alamat Lengkap" name="street" required rows={3} defaultValue={street} placeholder="Alamat lengkap, kota, kode pos" error={addressState.fieldErrors?.street} />
+              <div className="flex items-center gap-3 rounded-xl bg-canvas p-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-beige-soft text-primary">
+                  <MapPin className="size-5" aria-hidden="true" />
                 </span>
-                <p className="text-[13px] leading-5 text-ink-soft">
-                  Alamat ini otomatis dipakai sebagai alamat pengiriman pada formulir pesanan seragam. Ekspedisi dan ongkir ditentukan bengkel sesuai volume.
+                <p className="text-xs leading-relaxed text-ink-soft">
+                  Alamat default untuk pengiriman pesanan Anda.
                 </p>
               </div>
               <FormFeedback state={addressState} />
               <div className="flex justify-end">
-                <SubmitButton label="Ubah Alamat Pengiriman" loadingLabel="Menyimpan..." fullWidth={false} size="lg" icon={<CircleCheck className="size-4" aria-hidden="true" />} />
+                <SubmitButton label="Simpan Alamat" loadingLabel="Menyimpan..." fullWidth={false} size="lg" icon={<CircleCheck className="size-4" aria-hidden="true" />} />
               </div>
             </form>
           </Panel>
         </div>
 
-        <Panel icon={<FileText className="size-5" />} title="Berkas Ukuran Siswa Tersimpan" subtitle="Format spreadsheet (.xlsx / .csv)" iconGold>
-          <div className="flex gap-3 rounded-xl bg-canvas p-4">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-warning-bg text-gold-dark">
-              <Info className="size-4" aria-hidden="true" />
+        <Panel icon={<FileText className="size-5" />} title="Roster Ukuran Siswa" subtitle="Format spreadsheet (.xlsx / .csv)" iconGold>
+          <div className="flex gap-3 rounded-xl bg-canvas p-3.5">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-warning-bg text-gold-dark mt-0.5">
+              <Info className="size-3.5" aria-hidden="true" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-ink">Kebijakan Pengisian Terpusat</p>
-              <p className="pt-1 text-[13px] leading-5 text-ink-soft">
-                Pencatatan data ukuran terpusat melalui file spreadsheet. Unggah template yang telah diisi tanpa perlu input manual per anak di web.
+              <p className="text-xs font-semibold text-ink">Input Data Siswa Mudah</p>
+              <p className="text-xs leading-relaxed text-ink-soft">
+                Gunakan template spreadsheet untuk mencatat ukuran banyak siswa sekaligus tanpa perlu input manual satu per satu.
               </p>
             </div>
           </div>
@@ -221,9 +221,9 @@ export function ProfileView({ user }: { user: User }) {
 
       <div className="pt-8">
         <CtaBanner
-          eyebrow="Standar Pemotongan & Penjahitan Presisi"
-          title="Penyelarasan Akurat Berdasarkan Data Spreadsheet"
-          description="Setiap baris ukuran di berkas spreadsheet menjadi acuan pemotongan pola kami, memastikan seragam marching band, paduan suara, dan kontingen parade Anda pas tanpa perlu pengukuran tatap muka berulang."
+          eyebrow="Penjahitan Presisi"
+          title="Pola Busana Pas Sesuai Data Ukuran"
+          description="Data ukuran siswa yang Anda unggah menjadi acuan langsung tim pola kami, memastikan seragam marching band pas dan nyaman saat dikenakan."
           decoration={<Ruler className="pointer-events-none absolute right-12 top-1/2 hidden size-48 -translate-y-1/2 text-white/10 md:block" aria-hidden="true" />}
         />
       </div>

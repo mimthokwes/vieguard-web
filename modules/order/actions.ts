@@ -84,8 +84,14 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
   if (!(await getSessionUser())) return { error: 'Sesi berakhir. Silakan masuk kembali.' };
 
   const get = (k: string) => String(formData.get(k) ?? '').trim();
-  const quantity = Number(get('quantity'));
+  const quantity = Number(get('quantity')) || 1;
   const accessories = formData.getAll('accessories').map(String);
+  const material = get('material');
+  const materialDetail = get('materialDetail');
+  const fullMaterial = [material, materialDetail].filter(Boolean).join(' — ');
+  const category = get('category');
+  const consultationNote = get('consultationNote');
+
   const values = {
     institution: get('institution'),
     jenjang: get('jenjang'),
@@ -95,15 +101,23 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
   };
 
   const fieldErrors: Record<string, string> = {};
-  if (!values.institution) fieldErrors.institution = 'Nama instansi wajib diisi.';
-  if (values.description.length < 20) fieldErrors.description = 'Jelaskan konsep desain minimal 20 karakter.';
-  if (values.description.length > 1000) fieldErrors.description = 'Maksimal 1000 karakter.';
-  if (!Number.isInteger(quantity) || quantity < CUSTOM_MIN_QUANTITY)
-    fieldErrors.quantity = `Minimal pemesanan paket kustom ${CUSTOM_MIN_QUANTITY} stel.`;
-  if (!values.eventDate) fieldErrors.eventDate = 'Tanggal acara wajib diisi.';
-  if (values.designReference && !/^https?:\/\//i.test(values.designReference))
+  if (!values.institution) fieldErrors.institution = 'Nama instansi / pemesan wajib diisi.';
+  if (values.description.length < 10) fieldErrors.description = 'Jelaskan konsep dan deskripsi barang minimal 10 karakter.';
+  if (values.description.length > 2000) fieldErrors.description = 'Maksimal 2000 karakter.';
+  if (!Number.isInteger(quantity) || quantity < 1)
+    fieldErrors.quantity = `Jumlah pesanan minimal 1 stel.`;
+  if (!values.eventDate) fieldErrors.eventDate = 'Target tanggal acara wajib diisi.';
+  if (values.designReference && !values.designReference.startsWith('data:') && !/^https?:\/\//i.test(values.designReference))
     fieldErrors.designReference = 'Masukkan tautan yang diawali http:// atau https://';
   if (Object.keys(fieldErrors).length > 0) return { error: 'Periksa kembali isian formulir.', fieldErrors };
+
+  const combinedDescription = [
+    category && `Kategori: ${category}`,
+    fullMaterial && `Preferensi Bahan: ${fullMaterial}`,
+    `\nDeskripsi Desain & Model:\n${values.description}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   const user = await getSessionUser();
   let orderId: string;
@@ -114,15 +128,17 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
       items: [{ itemType: 'product', quantity, unitPrice: 0 }],
       customDetail: {
         designReference: values.designReference || undefined,
-        designDescription: values.description,
+        designDescription: combinedDescription,
         jenisJenjang: values.jenjang || undefined,
         consultationNote: formatOrderMeta({
-          packageName: 'Paket Kustom Adibusana (Bespoke)',
+          packageName: 'Pesanan Custom (Pre-Order Desain Sendiri)',
           institution: values.institution,
           pic: user?.name,
           phone: user?.phone ?? undefined,
           eventDate: values.eventDate,
+          material: fullMaterial || undefined,
           accessories,
+          notes: consultationNote || undefined,
         }),
       },
     });

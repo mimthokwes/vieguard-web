@@ -39,6 +39,7 @@ export interface Product {
   images: ProductImage[];
   variants: ProductVariant[];
   createdAt?: string;
+  productType?: 'beli' | 'sewa' | 'both';
 }
 
 export interface ProductFilterQuery {
@@ -46,6 +47,7 @@ export interface ProductFilterQuery {
   search?: string;
   minPrice?: string;
   maxPrice?: string;
+  type?: 'beli' | 'sewa';
 }
 
 export interface RentalAvailability {
@@ -53,4 +55,25 @@ export interface RentalAvailability {
   availableStock: number;
   totalStock?: number;
   message?: string;
+}
+
+export interface SmartSearchResult {
+  products: Product[];
+  explanation?: {
+    suggestedQuery?: string;
+    matchedTerms?: string[];
+    intention?: string;
+  };
+  meta?: {
+    rawQuery: string;
+    correctedQuery: string;
+    corrections: Array<{ original: string; corrected: string }>;
+    expandedTerms: string[];
+    detectedIntent?: {
+      category?: string;
+      event?: string;
+      description?: string;
+    };
+    total: number;
+  };
 }

@@ -1,3 +1,12 @@
+export interface StoreStats {
+  totalModels: number;
+  totalPurchaseModels: number;
+  totalRentalModels: number;
+  totalCategories: number;
+  totalOrdersCompleted: number;
+  totalTestimonials: number;
+}
+
 export interface StoreProfile {
   id: string;
   storeName: string;
@@ -9,4 +18,5 @@ export interface StoreProfile {
   socialMedia?: string | null;
   logoImage?: string | null;
   operationalHours?: string | null;
+  stats?: StoreStats;
 }

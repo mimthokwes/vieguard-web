@@ -54,11 +54,12 @@ export function Button({ variant, size, fullWidth, className, children, type = '
 interface ButtonLinkProps extends ButtonStyleOptions {
   href: string;
   children: React.ReactNode;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
 
-export function ButtonLink({ href, variant, size, fullWidth, className, children }: ButtonLinkProps) {
+export function ButtonLink({ href, variant, size, fullWidth, className, children, onClick }: ButtonLinkProps) {
   return (
-    <Link href={href} className={buttonClasses({ variant, size, fullWidth, className })}>
+    <Link href={href} onClick={onClick} className={buttonClasses({ variant, size, fullWidth, className })}>
       {children}
     </Link>
   );

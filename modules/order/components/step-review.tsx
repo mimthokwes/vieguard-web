@@ -119,17 +119,17 @@ export function StepReview({ draft, update, goTo, onSubmit, onSaveDraft, submitt
           </div>
         </FormSection>
 
-        <FormSection icon={<Truck className="size-5" aria-hidden="true" />} title="Alamat & Ekspedisi Pengiriman Logistik">
+        <FormSection icon={<Truck className="size-5" aria-hidden="true" />} title="Alamat & Ekspedisi Pengiriman">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-xl bg-beige-soft p-5">
               <p className="flex items-center gap-1.5 pb-3 text-primary">
-                <MapPin className="size-4" aria-hidden="true" /> Alamat Instansi / Sekolah
+                <MapPin className="size-4" aria-hidden="true" /> Alamat Pengiriman
               </p>
               <Textarea
                 name="address"
                 rows={3}
                 aria-label="Alamat pengiriman"
-                placeholder="Alamat lengkap pengiriman seragam"
+                placeholder="Alamat lengkap pengiriman..."
                 value={draft.address}
                 onChange={(e) => update({ address: e.target.value })}
                 error={errors.address}
@@ -139,9 +139,9 @@ export function StepReview({ draft, update, goTo, onSubmit, onSaveDraft, submitt
               <p className="flex items-center gap-1.5 text-primary">
                 <Truck className="size-4" aria-hidden="true" /> Pilihan Ekspedisi
               </p>
-              <p className="pt-3 font-semibold text-ink">Kargo Resmi / Ekspedisi Darat</p>
+              <p className="pt-3 font-semibold text-ink">Kargo / Ekspedisi</p>
               <p className="pt-1 text-sm leading-6 text-ink-soft">
-                Kurir dan ongkos kirim ditentukan bengkel sesuai volume pesanan, lalu diinformasikan bersama penawaran resmi.
+                Ongkos kirim diinformasikan bersama penawaran resmi.
               </p>
             </div>
           </div>
@@ -150,54 +150,54 @@ export function StepReview({ draft, update, goTo, onSubmit, onSaveDraft, submitt
 
       <aside className="h-fit rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line lg:sticky lg:top-28">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-primary">Rincian Estimasi Biaya</p>
-          <span className="rounded-full bg-beige-soft px-3 py-1.5 text-sm font-bold text-primary">FORMULIR RESMI</span>
+          <p className="text-primary font-bold">Estimasi Biaya</p>
+          <span className="rounded-full bg-beige-soft px-3 py-1 text-xs font-bold text-primary">Pre-Order</span>
         </div>
-        <div className="mt-6 flex flex-col gap-3 rounded-xl bg-beige-soft p-5 text-sm">
-          <CostRow label={`Biaya Produksi Seragam (${draft.roster?.rows.length ?? 0} stel)`} value="Dikonfirmasi admin" />
-          <CostRow label="Biaya Kemasan Khusus Box Shako" value="Termasuk" />
-          <CostRow label="Ongkos Kirim Armada Kargo" value={<span className="text-gold-dark">Dihitung Workshop</span>} />
-          <div className="flex items-start justify-between gap-4 border-t border-line pt-3">
-            <b className="text-primary">Estimasi Total</b>
-            <span className="text-right text-ink-soft">Kalkulasi final setelah verifikasi berkas</span>
+        <div className="mt-5 flex flex-col gap-3 rounded-xl bg-beige-soft p-4 text-xs">
+          <CostRow label={`Biaya Produksi (${draft.roster?.rows.length ?? 0} stel)`} value="Dikonfirmasi admin" />
+          <CostRow label="Box Kemasan" value="Termasuk" />
+          <CostRow label="Ongkos Kirim" value={<span className="text-gold-dark">Dihitung Workshop</span>} />
+          <div className="flex items-start justify-between gap-4 border-t border-line pt-2.5">
+            <b className="text-primary text-sm">Estimasi Total</b>
+            <span className="text-right text-ink-soft">Dikonfirmasi admin</span>
           </div>
         </div>
 
-        <div className="mt-6 rounded-xl bg-warning-bg p-5 text-sm leading-6 text-warning">
-          <p className="flex items-center gap-2 font-semibold">
-            <ShieldCheck className="size-4" aria-hidden="true" /> Ketentuan Uang Muka / SPK Resmi Sekolah
+        <div className="mt-5 rounded-xl bg-warning-bg p-4 text-xs leading-relaxed text-warning">
+          <p className="flex items-center gap-1.5 font-semibold">
+            <ShieldCheck className="size-4" aria-hidden="true" /> Ketentuan Pembayaran
           </p>
           <p className="pt-1">
-            Produksi dimulai setelah termin 50% DP diverifikasi bendahara atau terbitnya Surat Perintah Kerja (SPK) Kedinasan resmi dari pihak sekolah.
+            Produksi dimulai setelah verifikasi DP 50% atau penerbitan SPK resmi sekolah.
           </p>
         </div>
 
         <Checkbox
-          className="mt-6 !text-sm !text-ink"
+          className="mt-5 !text-xs !text-ink"
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
-          label="Saya menyatakan bahwa data spesifikasi dan berkas ukuran yang diunggah telah sesuai dan menyetujui Syarat & Ketentuan Produksi."
+          label="Saya menyetujui data pesanan serta syarat & ketentuan yang berlaku."
         />
 
         <ErrorMessage message={error} className="mt-4" />
 
-        <Button size="lg" fullWidth className="mt-6 !h-[52px]" disabled={!agreed || submitting || !draft.roster} onClick={onSubmit}>
+        <Button size="lg" fullWidth className="mt-5 !h-12" disabled={!agreed || submitting || !draft.roster} onClick={onSubmit}>
           {submitting ? (
             <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" /> Mengirim Pesanan...
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" /> Mengirim...
             </>
           ) : (
             <>
-              Konfirmasi & Kirim Pesanan <ArrowRight className="size-4" aria-hidden="true" />
+              Kirim Pesanan <ArrowRight className="size-4" aria-hidden="true" />
             </>
           )}
         </Button>
-        <Button variant="ghost" fullWidth className="mt-2" onClick={onSaveDraft}>
-          Simpan Draf & Lanjutkan Nanti
+        <Button variant="ghost" fullWidth className="mt-2 text-xs" onClick={onSaveDraft}>
+          Simpan Draf
         </Button>
-        <div className="flex justify-center gap-5 pt-5 text-sm text-ink-soft">
-          <span className="flex items-center gap-1"><Lock className="size-3.5 text-success" aria-hidden="true" /> Koneksi Aman</span>
-          <span className="flex items-center gap-1"><Headset className="size-3.5" aria-hidden="true" /> Bantuan PIC Teknis</span>
+        <div className="flex justify-center gap-5 pt-4 text-xs text-ink-soft">
+          <span className="flex items-center gap-1"><Lock className="size-3.5 text-success" aria-hidden="true" /> Aman</span>
+          <span className="flex items-center gap-1"><Headset className="size-3.5" aria-hidden="true" /> Bantuan PIC</span>
         </div>
       </aside>
     </div>

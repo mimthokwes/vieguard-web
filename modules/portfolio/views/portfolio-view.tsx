@@ -77,7 +77,7 @@ export function PortfolioView() {
                 setQuery(e.target.value);
                 setPage(1);
               }}
-              placeholder="Cari proyek, nama institusi, atau tipe seragam..."
+              placeholder="Cari proyek..."
               className="h-11 w-full rounded-lg bg-beige-soft pl-11 pr-4 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </label>
@@ -88,9 +88,9 @@ export function PortfolioView() {
               onChange={(e) => setSort(e.target.value as SortKey)}
               className="h-11 w-full cursor-pointer rounded-lg bg-beige-soft px-4 text-sm font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="newest">Urutkan: Terbaru</option>
-              <option value="oldest">Urutkan: Terlama</option>
-              <option value="quantity">Urutkan: Jumlah Terbanyak</option>
+              <option value="newest">Terbaru</option>
+              <option value="oldest">Terlama</option>
+              <option value="quantity">Jumlah Terbanyak</option>
             </select>
           </label>
         </div>

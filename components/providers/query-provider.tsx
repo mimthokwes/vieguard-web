@@ -12,6 +12,8 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             staleTime: 60 * 1000, // 1 minute cache lifetime
             gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
             refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            refetchOnReconnect: false,
             retry: 1,
           },
         },

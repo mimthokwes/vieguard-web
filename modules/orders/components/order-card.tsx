@@ -28,12 +28,12 @@ export function OrderCard({ order }: { order: Order }) {
     <article className="overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-line">
       <header className="flex flex-wrap items-center justify-between gap-3 bg-canvas px-6 py-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <p className="text-[13px] text-ink-soft">
-            Nomor Transaksi:{' '}
-            <span className={`text-lg font-extrabold ${isRental ? 'text-gold-dark' : 'text-primary'}`}>{order.orderNumber}</span>
+          <p className="text-xs text-ink-soft">
+            No:{' '}
+            <span className={`text-base font-extrabold ${isRental ? 'text-gold-dark' : 'text-primary'}`}>{order.orderNumber}</span>
           </p>
-          <span className="hidden h-5 w-px bg-line-strong sm:block" aria-hidden="true" />
-          <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink-soft">
+          <span className="hidden h-4 w-px bg-line-strong sm:block" aria-hidden="true" />
+          <p className="flex items-center gap-1.5 text-xs text-ink-soft">
             <Clock className="size-3.5" aria-hidden="true" /> {formatDate(order.createdAt)}
           </p>
         </div>
@@ -47,13 +47,13 @@ export function OrderCard({ order }: { order: Order }) {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <h2 className="text-xl font-bold text-ink">{orderTitle(order)}</h2>
             {isRental && order.rental && (
-              <span className="rounded bg-warning-bg px-2 py-1 text-xs font-bold uppercase text-gold-dark">
-                Durasi {rentalDays(order)} Hari Sewa
+              <span className="rounded bg-warning-bg px-2 py-0.5 text-xs font-bold uppercase text-gold-dark">
+                {rentalDays(order)} Hari Sewa
               </span>
             )}
           </div>
           <p className="flex flex-wrap items-center gap-x-2 pt-1 text-sm font-semibold">
-            {meta.institution && <span className="text-primary">Instansi: {meta.institution}</span>}
+            {meta.institution && <span className="text-primary">{meta.institution}</span>}
             {meta.institution && <Dot />}
             <span className="font-normal text-ink-soft">
               {qty} {order.orderType === 'custom' ? 'Stel' : 'Unit'}
@@ -61,17 +61,17 @@ export function OrderCard({ order }: { order: Order }) {
             {(meta.eventDate || order.rental) && <Dot />}
             {isRental && order.rental ? (
               <span className="text-gold-dark">
-                Tanggal Sewa: {formatDate(order.rental.pickupDate, { day: 'numeric', month: 'short' })}–{formatDate(order.rental.returnDate)}
+                Sewa: {formatDate(order.rental.pickupDate, { day: 'numeric', month: 'short' })}–{formatDate(order.rental.returnDate)}
               </span>
             ) : (
-              meta.eventDate && <span className="text-primary">Target Acara: {formatDate(meta.eventDate)}</span>
+              meta.eventDate && <span className="text-primary">Acara: {formatDate(meta.eventDate)}</span>
             )}
           </p>
 
           <div className="mt-4">
             {awaitingQuote ? (
-              <InfoBlock icon={<Hourglass className="size-5" />} tone="warning" title="Menunggu Penawaran Harga dari Admin">
-                Data pesanan sedang ditinjau master tailor. Penawaran resmi akan dikirim lewat notifikasi.
+              <InfoBlock icon={<Hourglass className="size-5" />} tone="warning" title="Menunggu Penawaran">
+                Pesanan sedang ditinjau. Penawaran harga akan dikirim melalui notifikasi.
               </InfoBlock>
             ) : order.requiresProduction && (order.status === 'diproses' || order.status === 'dikonfirmasi') ? (
               <ProductionProgress order={order} />
@@ -107,28 +107,28 @@ export function OrderCard({ order }: { order: Order }) {
             </p>
           )}
 
-          <div className="mt-auto flex flex-col gap-4 pt-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mt-auto flex flex-col gap-4 pt-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-[13px] text-ink-soft">
-                {isRental ? 'Total Biaya Sewa' : 'Total Biaya'}:{' '}
-                <span className={`text-2xl font-extrabold ${isRental ? 'text-gold-dark' : 'text-primary'}`}>
+              <p className="text-xs text-ink-soft">
+                {isRental ? 'Total Sewa' : 'Total'}:{' '}
+                <span className={`text-xl font-extrabold ${isRental ? 'text-gold-dark' : 'text-primary'}`}>
                   {total > 0 ? formatRupiah(total) : 'Menunggu penawaran'}
                 </span>
               </p>
-              <p className="flex items-center gap-1.5 pt-0.5 text-xs font-semibold text-ink-soft">
-                <ShieldCheck className="size-3.5" aria-hidden="true" /> {paymentNote(order)}
+              <p className="flex items-center gap-1.5 pt-0.5 text-xs text-ink-soft">
+                <ShieldCheck className="size-3.5 text-primary" aria-hidden="true" /> {paymentNote(order)}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href={`/orders/${order.id}`} className={buttonClasses({ size: 'md' })}>
-                <TrendingUp className="size-4" aria-hidden="true" /> {awaitingQuote ? 'Lihat Status Penawaran' : 'Lacak Progres'}
+              <Link href={`/orders/${order.id}`} className={buttonClasses({ size: 'sm' })}>
+                <TrendingUp className="size-3.5" aria-hidden="true" /> {awaitingQuote ? 'Lihat Penawaran' : 'Lacak'}
               </Link>
               <Link
                 href={`/chat?topic=${encodeURIComponent(`Pesanan ${order.orderNumber}`)}`}
-                aria-label="Hubungi admin tentang pesanan ini"
-                className={buttonClasses({ variant: 'soft', className: 'border-0 !px-3' })}
+                aria-label="Chat admin"
+                className={buttonClasses({ variant: 'soft', size: 'sm', className: 'border-0 !px-2.5' })}
               >
-                <MessageSquare className="size-4" aria-hidden="true" />
+                <MessageSquare className="size-3.5" aria-hidden="true" />
               </Link>
             </div>
           </div>

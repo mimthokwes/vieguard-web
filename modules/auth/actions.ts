@@ -1,6 +1,6 @@
 "use server";
 
-import { loginUser, registerUser } from './services/auth-service';
+import { loginUser, registerUser, loginWithGoogle } from './services/auth-service';
 import { createSession } from '@/lib/session';
 import { ApiError } from '@/lib/api-client';
 import { revalidatePath } from 'next/cache';
@@ -80,4 +80,27 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
 
   revalidatePath('/', 'layout');
   redirect('/order');
+}
+
+export async function googleLoginAction(credential: string, next?: string): Promise<{ success?: boolean; error?: string }> {
+  if (!credential) {
+    return { error: 'Kredensial login Google tidak ditemukan.' };
+  }
+
+  let authData;
+  try {
+    authData = await loginWithGoogle(credential);
+  } catch (error) {
+    return { error: (error as Error).message || 'Login dengan Google gagal.' };
+  }
+
+  if (!authData?.accessToken) {
+    return { error: 'Gagal membuat sesi login dari akun Google.' };
+  }
+
+  await createSession(authData.accessToken, authData.user, authData.refreshToken);
+  revalidatePath('/', 'layout');
+
+  const destination = safeNext(next ?? '/');
+  redirect(destination);
 }

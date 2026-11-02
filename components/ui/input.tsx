@@ -58,7 +58,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             name={name}
             required={required}
-            className={`${fieldBase} ${fieldBorder(error)} h-11 ${leftIcon ? 'pl-10' : 'pl-4'} ${rightSlot ? 'pr-28' : 'pr-4'} ${className}`}
+            className={`${fieldBase} ${fieldBorder(error)} h-11 ${leftIcon ? 'pl-10' : 'pl-4'} ${rightSlot ? 'pr-12' : 'pr-4'} ${className}`}
             {...props}
           />
           {rightSlot && <span className="absolute right-2 flex items-center">{rightSlot}</span>}

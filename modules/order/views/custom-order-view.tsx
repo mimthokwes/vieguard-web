@@ -14,10 +14,10 @@ import { OrderActionState, submitCustomOrder } from '../actions';
 import { CUSTOM_MIN_QUANTITY, JENJANG_OPTIONS } from '../data';
 
 const PROCEDURE = [
-  { title: 'Unggah Formulir & Sketsa', body: 'Tim kurasi meneliti kelayakan bahan, kombinasi warna, dan ornamen bordir.' },
-  { title: 'Tinjauan Pola oleh Master Tailor', body: 'Analisis struktur kain dan potongan jas memakan waktu 1–2 hari kerja.' },
-  { title: 'Draf Penawaran Resmi & Sketsa 3D', body: 'Penerbitan rincian biaya per stel lengkap dengan visualisasi digital rendering.' },
-  { title: 'Pembuatan Sampel Fisik Prototipe', body: 'Pengerjaan 1 stel master contoh uji pakai sebelum produksi serentak dimulai.' },
+  { title: 'Kirim Desain', body: 'Unggah sketsa atau referensi desain seragam.' },
+  { title: 'Tinjauan Admin', body: 'Admin memeriksa pola dan kelayakan produksi.' },
+  { title: 'Penawaran Harga', body: 'Rincian biaya dan estimasi waktu produksi.' },
+  { title: 'Produksi', body: 'Pengerjaan seragam setelah konfirmasi penawaran.' },
 ];
 
 const initialState: OrderActionState = {};
@@ -37,11 +37,11 @@ export function CustomOrderView({ accessories }: CustomOrderViewProps) {
       <header className="flex flex-col gap-6 py-8 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           <span className="inline-flex items-center gap-2 rounded-full bg-beige-soft px-4 py-1.5 text-sm font-semibold uppercase tracking-wide text-primary">
-            <Palette className="size-4" aria-hidden="true" /> Layanan Masterpiece Atelier
+            <Palette className="size-4" aria-hidden="true" /> Pesanan Custom
           </span>
-          <h1 className="pt-4 text-2xl font-bold text-primary sm:text-3xl">Formulir Pemesanan Paket Kustom (Bespoke Atelier)</h1>
+          <h1 className="pt-4 text-2xl font-bold text-primary sm:text-3xl">Formulir Pesanan Custom</h1>
           <p className="pt-2 text-base leading-relaxed text-ink-soft">
-            Pengajuan rancangan seragam drum band & marching band eksklusif dengan desain baru, bordir sulam timbul, dan konsultasi privat master tailor.
+            Pengajuan seragam marching band dengan desain kustom sesuai kebutuhan tim.
           </p>
         </div>
         <div className="flex items-center gap-3 rounded-2xl bg-surface px-5 py-3.5 shadow-card ring-1 ring-line">
@@ -49,8 +49,8 @@ export function CustomOrderView({ accessories }: CustomOrderViewProps) {
             <Award className="size-5" aria-hidden="true" />
           </span>
           <div>
-            <p className="font-semibold text-ink">Kualitas Konfeksi Grade A</p>
-            <p className="text-sm text-ink-soft">Garansi Presisi Pola 100%</p>
+            <p className="font-semibold text-ink">Kualitas Terjamin</p>
+            <p className="text-sm text-ink-soft">Pola Presisi</p>
           </div>
         </div>
       </header>
@@ -58,13 +58,13 @@ export function CustomOrderView({ accessories }: CustomOrderViewProps) {
       <form action={formAction} className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_390px]">
         <div className="flex flex-col gap-6">
           {/* 01 Design reference */}
-          <NumberedSection n="01" title="Sketsa / Gambar Referensi Desain" subtitle="Kirimkan visualisasi ide, mockup corel, foto referensi, atau pola corak" badge="Opsional">
+          <NumberedSection n="01" title="Referensi Desain" subtitle="Kirimkan sketsa, foto referensi, atau pola desain" badge="Opsional">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="flex flex-col items-center justify-center rounded-xl bg-beige-soft p-6 text-center">
                 <span className="flex size-14 items-center justify-center rounded-full bg-beige text-primary">
                   <UploadCloud className="size-6" aria-hidden="true" />
                 </span>
-                <p className="pt-4 font-semibold text-ink">Tautkan File Referensi Desain</p>
+                <p className="pt-4 font-semibold text-ink">Tautkan Desain</p>
                 <p className="pt-1 text-sm text-ink-soft">Unggah sketsa ke Google Drive / Dropbox, lalu tempel tautannya di bawah.</p>
                 <div className="w-full pt-4 text-left">
                   <Input
@@ -77,42 +77,42 @@ export function CustomOrderView({ accessories }: CustomOrderViewProps) {
                   />
                 </div>
                 <Link href="/chat?topic=Kirim%20sketsa%20desain%20kustom" className="pt-3 text-sm font-semibold text-primary hover:underline">
-                  atau kirim file langsung lewat Obrolan
+                  atau kirim langsung via Chat
                 </Link>
               </div>
               <figure className="relative min-h-[228px] overflow-hidden rounded-xl bg-beige-soft">
                 <figcaption className="absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-beige-soft/95 px-3 py-2.5 text-sm text-ink-soft">
-                  Contoh Referensi Konsep
+                  Contoh Referensi
                 </figcaption>
-                <Image src="/images/portfolio/project-3.webp" alt="Contoh desain konsep atelier" fill sizes="(min-width: 768px) 300px, 100vw" className="object-cover" />
+                <Image src="/images/portfolio/project-3.webp" alt="Contoh desain konsep" fill sizes="(min-width: 768px) 300px, 100vw" className="object-cover" />
                 <span className="absolute inset-x-0 bottom-0 z-10 flex items-center gap-2 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8 text-sm text-white">
-                  <PencilRuler className="size-4" aria-hidden="true" /> Contoh Desain Konsep Atelier
+                  <PencilRuler className="size-4" aria-hidden="true" /> Contoh Desain Seragam
                 </span>
               </figure>
             </div>
           </NumberedSection>
 
           {/* 02 Description */}
-          <NumberedSection n="02" title="Catatan Instruksi & Konsep Desain" subtitle="Jelaskan secara spesifik preferensi potongan, jahitan, dan identitas kontingen">
+          <NumberedSection n="02" title="Konsep Desain" subtitle="Tuliskan preferensi desain, warna, dan bordir">
             <Textarea
-              label="Deskripsi Detail & Filosofi Kostum"
+              label="Deskripsi Desain"
               name="description"
               rows={4}
               required
               maxLength={1000}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Deskripsikan tema warna kustom, gaya potongan jas tunic, ornamen bordir kordon emas, jenis kerah mandarin, belahan belakang, atau aksen monogram logo instansi..."
+              placeholder="Warna, model kerah, bordir, dan detail lainnya..."
               error={err.description}
             />
             <div className="flex justify-between pt-2 text-sm text-ink-soft">
-              <span>Sertakan detail kode warna Pantone jika ada</span>
+              <span>Sertakan kode warna jika ada</span>
               <span>{description.length} / 1000 karakter</span>
             </div>
           </NumberedSection>
 
           {/* 03 Accessories */}
-          <NumberedSection n="03" title="Pilihan Aksesoris Tambahan" subtitle="Lengkapi setelan seragam dengan ornamen pelengkap berkualitas panggung">
+          <NumberedSection n="03" title="Aksesoris Tambahan" subtitle="Pilih aksesoris pelengkap seragam">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {accessories.map((a) => (
                 <label key={a.name} className="flex cursor-pointer gap-3 rounded-xl bg-beige-soft p-5 transition-colors hover:bg-beige has-[:checked]:ring-2 has-[:checked]:ring-primary">
@@ -127,9 +127,9 @@ export function CustomOrderView({ accessories }: CustomOrderViewProps) {
           </NumberedSection>
 
           {/* 04 Quantity & schedule */}
-          <NumberedSection n="04" title="Kuantitas, Instansi & Target Penyelesaian" subtitle="Alokasikan waktu produksi atelier dan tentukan tenggat waktu acara">
+          <NumberedSection n="04" title="Kuantitas & Instansi" subtitle="Tentukan jumlah dan target selesai">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <Input label="Nama Instansi / Sekolah" name="institution" required placeholder="Contoh: SMA Taruna Cendekia" error={err.institution} />
+              <Input label="Nama Instansi" name="institution" required placeholder="Nama instansi atau sekolah" error={err.institution} />
               <Select label="Jenjang" name="jenjang" defaultValue="">
                 <option value="">Pilih jenjang (opsional)</option>
                 {JENJANG_OPTIONS.map((j) => (
@@ -139,22 +139,22 @@ export function CustomOrderView({ accessories }: CustomOrderViewProps) {
                 ))}
               </Select>
               <Input
-                label="Estimasi Kebutuhan Jumlah Stel"
+                label="Jumlah Stel"
                 name="quantity"
                 type="number"
                 min={CUSTOM_MIN_QUANTITY}
                 required
                 placeholder={String(CUSTOM_MIN_QUANTITY)}
                 rightSlot={<span className="pr-2 text-sm text-ink-soft">Stel</span>}
-                hint={`Minimal pemesanan paket kustom: ${CUSTOM_MIN_QUANTITY} stel seragam tim`}
+                hint={`Minimal pemesanan: ${CUSTOM_MIN_QUANTITY} stel`}
                 error={err.quantity}
               />
               <Input
-                label="Target Tanggal Acara / Gladi Bersih"
+                label="Target Acara"
                 name="eventDate"
                 type="date"
                 required
-                hint="Disarankan minimal 30-45 hari sebelum acara puncak"
+                hint="Disarankan min. 30 hari sebelum acara"
                 error={err.eventDate}
               />
             </div>
@@ -163,9 +163,9 @@ export function CustomOrderView({ accessories }: CustomOrderViewProps) {
                 <Ruler className="size-5" aria-hidden="true" />
               </span>
               <div className="flex-1">
-                <p className="text-primary">Panduan Pengumpulan Ukuran Tim</p>
+                <p className="text-primary font-semibold">Template Ukuran Tim</p>
                 <p className="pt-1 text-sm leading-6 text-ink-soft">
-                  Data ukuran siswa/anggota dapat menggunakan <b>template berkas Excel resmi</b> yang kami sediakan, atau diukur langsung oleh tim penjahit saat sampel fisik prototipe disetujui bersama.
+                  Gunakan template berkas Excel resmi untuk mencatat ukuran seluruh anggota tim.
                 </p>
               </div>
               <button type="button" onClick={downloadRosterTemplate} className={buttonClasses({ variant: 'outline', className: 'border-0 shrink-0' })}>
@@ -176,60 +176,56 @@ export function CustomOrderView({ accessories }: CustomOrderViewProps) {
         </div>
 
         <aside className="h-fit rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line lg:sticky lg:top-28">
-          <p className="flex items-center gap-2 font-bold uppercase text-primary">
-            <TrendingUp className="size-4" aria-hidden="true" /> Prosedur Kustomisasi
+          <p className="flex items-center gap-2 font-bold uppercase text-primary text-xs">
+            <TrendingUp className="size-4" aria-hidden="true" /> Prosedur Pemesanan
           </p>
-          <p className="pt-1 text-ink">Alur Penawaran & Pembuatan Sampel</p>
-          <p className="pt-1 text-sm text-ink-soft">Transparansi kerja dari tahap konsepsi hingga pengerjaan massal</p>
-          <ol className="flex flex-col gap-5 pt-6">
+          <p className="pt-1 text-ink font-bold">Alur Penawaran & Produksi</p>
+          <ol className="flex flex-col gap-4 pt-5">
             {PROCEDURE.map((p, i) => (
-              <li key={p.title} className="flex gap-4">
+              <li key={p.title} className="flex gap-3">
                 <span
-                  className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                     i === 0 ? 'bg-primary text-on-primary' : 'bg-beige-soft text-primary'
                   }`}
                 >
                   {i + 1}
                 </span>
-                <span>
-                  <span className="block text-ink">{p.title}</span>
-                  <span className="block pt-1 text-sm leading-6 text-ink-soft">{p.body}</span>
-                </span>
+                <div>
+                  <span className="block text-sm font-semibold text-ink">{p.title}</span>
+                  <span className="block text-xs leading-relaxed text-ink-soft">{p.body}</span>
+                </div>
               </li>
             ))}
           </ol>
-          <div className="mt-6 rounded-xl bg-beige-soft p-5">
-            <div className="flex items-center justify-between gap-3 text-sm uppercase tracking-wide text-ink-soft">
-              Status Dasar Harga
+          <div className="mt-5 rounded-xl bg-beige-soft p-4">
+            <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-wide text-ink-soft">
+              Biaya Pengajuan
               <span className="flex items-center gap-1 font-bold normal-case text-gold-dark">
-                <Lock className="size-3.5" aria-hidden="true" /> Draf Bebas Biaya
+                <Lock className="size-3.5" aria-hidden="true" /> Gratis
               </span>
             </div>
-            <p className="pt-2 text-sm text-ink-soft">
-              <b className="text-primary">Gratis</b> / Pengajuan Awal
-            </p>
-            <p className="pt-2 text-sm leading-6 text-ink-soft">
-              Kalkulasi biaya final dihitung berdasarkan pilihan grade material drill/wool, ketebalan sulaman bordir kawat emas, dan aksesoris terpilih.
+            <p className="pt-1.5 text-xs text-ink-soft">
+              Biaya final dihitung berdasarkan pilihan bahan, bordir, dan aksesoris.
             </p>
           </div>
 
           <ErrorMessage message={state.error} className="mt-4" />
 
           <SubmitButton
-            label="Ajukan Permohonan Penawaran Kustom"
-            loadingLabel="Mengirim Permohonan..."
+            label="Kirim Permohonan"
+            loadingLabel="Mengirim..."
             icon={<Send className="size-4" aria-hidden="true" />}
-            className="mt-6 !h-14"
+            className="mt-5 !h-12"
           />
           <Link
             href="/chat?topic=Konsultasi%20paket%20kustom"
-            className={buttonClasses({ variant: 'gold', size: 'lg', fullWidth: true, className: 'mt-3 !bg-warning-bg !text-gold-dark !shadow-none hover:!bg-gold-light/40' })}
+            className={buttonClasses({ variant: 'gold', size: 'md', fullWidth: true, className: 'mt-2.5 !bg-warning-bg !text-gold-dark !shadow-none hover:!bg-gold-light/40' })}
           >
-            <MessageSquare className="size-4" aria-hidden="true" /> Konsultasi Langsung via Chat
+            <MessageSquare className="size-4" aria-hidden="true" /> Konsultasi via Chat
           </Link>
-          <div className="flex justify-center gap-5 pt-5 text-sm text-ink-soft">
-            <span className="flex items-center gap-1"><ShieldCheck className="size-3.5" aria-hidden="true" /> Transaksi Aman</span>
-            <span className="flex items-center gap-1"><Headset className="size-3.5" aria-hidden="true" /> Respons Cepat 24j</span>
+          <div className="flex justify-center gap-5 pt-4 text-xs text-ink-soft">
+            <span className="flex items-center gap-1"><ShieldCheck className="size-3.5" aria-hidden="true" /> Aman</span>
+            <span className="flex items-center gap-1"><Headset className="size-3.5" aria-hidden="true" /> Respons Cepat</span>
           </div>
         </aside>
       </form>

@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/footer';
 import { getSessionUser } from '@/lib/session';
 import { getStoreProfile } from '@/modules/home/services/store-service';
 import { getNotifications } from '@/modules/notifications/services/notification-service';
+import { getProfile } from '@/modules/profile/services/profile-service';
 import { QueryProvider } from '@/components/providers/query-provider';
 
 const cinzel = Cinzel({
@@ -31,7 +32,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [user, store] = await Promise.all([getSessionUser(), getStoreProfile()]);
+  let [user, store] = await Promise.all([getSessionUser(), getStoreProfile()]);
+  if (user && !user.profilePhoto) {
+    try {
+      const live = await getProfile();
+      if (live?.profilePhoto) {
+        user = { ...user, profilePhoto: live.profilePhoto };
+      }
+    } catch {
+      // ignore live fetch errors
+    }
+  }
   const notifications = user ? await getNotifications() : [];
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 

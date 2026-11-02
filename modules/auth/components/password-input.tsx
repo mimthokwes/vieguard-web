@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 interface PasswordInputProps {
@@ -12,7 +13,7 @@ interface PasswordInputProps {
   minLength?: number;
 }
 
-/** Password field with the Figma "Tampilkan" toggle chip on the right. */
+/** Password field with Eye / EyeOff icon toggle. */
 export function PasswordInput({ label, name, placeholder = 'Kata Sandi', autoComplete, error, minLength }: PasswordInputProps) {
   const [visible, setVisible] = useState(false);
   return (
@@ -29,10 +30,15 @@ export function PasswordInput({ label, name, placeholder = 'Kata Sandi', autoCom
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          aria-pressed={visible}
-          className="rounded border border-line bg-canvas px-3 py-1 text-xs text-ink-soft transition-colors hover:border-primary hover:text-primary"
+          aria-label={visible ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+          title={visible ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+          className="flex size-8 items-center justify-center rounded-md text-ink-soft transition-colors hover:bg-beige-soft hover:text-ink focus:outline-none"
         >
-          {visible ? 'Sembunyikan' : 'Tampilkan'}
+          {visible ? (
+            <Eye className="size-4" aria-hidden="true" />
+          ) : (
+            <EyeOff className="size-4" aria-hidden="true" />
+          )}
         </button>
       }
     />

@@ -23,7 +23,7 @@ export function useProductDetail({ productId, initialProduct }: UseProductDetail
     queryKey: ['product-detail', productId],
     queryFn: () => getProductDetail(productId),
     initialData: initialProduct,
-    initialDataUpdatedAt: initialProduct ? 1 : undefined,
+    initialDataUpdatedAt: initialProduct ? Date.now() : undefined,
     enabled: !!productId,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,

@@ -23,27 +23,27 @@ export function StepIdentity({ draft, update, errors }: StepIdentityProps) {
         <FormSection icon={<Building2 className="size-5" aria-hidden="true" />} title="Data Lembaga & Penanggung Jawab">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Input
-              label="Nama Instansi / Sekolah"
+              label="Nama Instansi"
               name="institution"
               required
-              placeholder="Contoh: SMA Negeri 1 Harapan Bangsa"
+              placeholder="Nama instansi atau sekolah"
               leftIcon={<GraduationCap className="size-4" />}
               value={draft.institution}
               onChange={(e) => update({ institution: e.target.value })}
               error={errors.institution}
             />
             <Input
-              label="Penanggung Jawab / PIC"
+              label="Penanggung Jawab"
               name="pic"
               required
-              placeholder="Nama Lengkap Koordinator"
+              placeholder="Nama lengkap"
               leftIcon={<User className="size-4" />}
               value={draft.pic}
               onChange={(e) => update({ pic: e.target.value })}
               error={errors.pic}
             />
             <Input
-              label="Nomor WhatsApp / Kontak Darurat"
+              label="Nomor Telepon / WhatsApp"
               name="phone"
               type="tel"
               required
@@ -54,7 +54,7 @@ export function StepIdentity({ draft, update, errors }: StepIdentityProps) {
               error={errors.phone}
             />
             <Input
-              label="Target Tanggal Acara / Pemakaian"
+              label="Target Acara"
               name="eventDate"
               type="date"
               required
@@ -144,16 +144,16 @@ export function StepIdentity({ draft, update, errors }: StepIdentityProps) {
                   aria-label="Nama warna kain"
                   value={draft.color}
                   onChange={(e) => update({ color: e.target.value })}
-                  placeholder="Tulis kombinasi warna"
+                  placeholder="Kombinasi warna"
                   className="h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </fieldset>
             <Textarea
-              label="Catatan Teknis / Permintaan Desain Tambahan"
+              label="Catatan Tambahan"
               name="notes"
-              rows={4}
-              placeholder="Tuliskan spesifikasi bordir logo instansi, posisi nama regu, preferensi furing dalam, atau ketentuan khusus seragam..."
+              rows={3}
+              placeholder="Detail bordir, furing, atau catatan khusus..."
               value={draft.notes}
               onChange={(e) => update({ notes: e.target.value })}
             />
@@ -161,15 +161,15 @@ export function StepIdentity({ draft, update, errors }: StepIdentityProps) {
         </FormSection>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <FeatureNote icon={<Ruler className="size-5" />} title="Standar Pola Ergonomis" body="Pola potong dirancang leluasa untuk gerakan manuver instrumen." />
-          <FeatureNote icon={<Award className="size-5" />} title="Bordir Komputer Presisi" body="Kerapatan benang bordir tinggi, tahan cuci berkali-kali tanpa luntur." />
+          <FeatureNote icon={<Ruler className="size-5" />} title="Pola Ergonomis" body="Nyaman untuk manuver instrumen marching band." />
+          <FeatureNote icon={<Award className="size-5" />} title="Bordir Komputer" body="Sulaman rapi, awet, dan tahan cuci berkali-kali." />
         </div>
       </div>
 
       <aside className="flex flex-col gap-6">
         <div className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
           <div className="flex items-center justify-between pb-6">
-            <p className="text-sm uppercase tracking-wider text-ink-soft">Ringkasan Konfigurasi</p>
+            <p className="text-sm uppercase tracking-wider text-ink-soft">Ringkasan</p>
             <span className="rounded-md bg-beige-soft px-2 py-0.5 text-sm text-primary">Langkah 1/3</span>
           </div>
           <PackageSummaryHead />
@@ -179,23 +179,23 @@ export function StepIdentity({ draft, update, errors }: StepIdentityProps) {
             <SummaryRow label="Metode Ukur" value="Form Excel (Langkah 2)" accent />
             <SummaryRow label="Garansi Revisi Jahit" value={STANDARD_PACKAGE.warranty} />
           </div>
-          <div className="mt-5 flex gap-3 rounded-xl bg-beige-soft p-5">
+          <div className="mt-5 flex gap-3 rounded-xl bg-beige-soft p-4">
             <Sheet className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
             <div>
-              <p className="font-semibold text-primary">Pengisian Ukuran Badan di Langkah 2</p>
-              <p className="pt-1 text-sm leading-6 text-ink-soft">
-                Anda tidak perlu memasukkan ukuran satu per satu sekarang. Di langkah selanjutnya, kami menyediakan format Excel siap unduh untuk mendata seluruh personil.
+              <p className="font-semibold text-primary text-sm">Ukuran Tim pada Langkah 2</p>
+              <p className="pt-1 text-xs leading-relaxed text-ink-soft">
+                Format Excel siap unduh tersedia di langkah berikutnya untuk mendata ukuran seluruh anggota.
               </p>
             </div>
           </div>
-          <p className="flex items-start gap-2 pt-5 text-sm text-ink-soft">
+          <p className="flex items-start gap-2 pt-4 text-xs text-ink-soft">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-muted" aria-hidden="true" />
-            Garansi 100% perbaikan jika ukuran tidak sesuai data form.
+            Garansi 100% perbaikan jika ukuran tidak sesuai form.
           </p>
         </div>
-        <div className="flex items-start gap-3 rounded-2xl bg-surface p-5 text-sm text-ink-soft shadow-card ring-1 ring-line">
+        <div className="flex items-start gap-2.5 rounded-2xl bg-surface p-4 text-xs text-ink-soft shadow-card ring-1 ring-line">
           <Info className="mt-0.5 size-4 shrink-0 text-gold-dark" aria-hidden="true" />
-          Harga per stel dikonfirmasi admin setelah data ukuran diverifikasi. Anda akan menerima notifikasi penawaran resmi.
+          Harga final dikonfirmasi admin setelah data ukuran diverifikasi.
         </div>
       </aside>
     </div>

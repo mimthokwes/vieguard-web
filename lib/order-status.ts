@@ -95,6 +95,7 @@ export interface OrderMeta {
   phone?: string;
   eventDate?: string;
   model?: string;
+  material?: string;
   color?: string;
   accessories?: string[];
   rosterFile?: string;
@@ -110,6 +111,7 @@ const META_LABELS: Record<keyof OrderMeta, string> = {
   phone: 'Kontak',
   eventDate: 'Target Acara',
   model: 'Model',
+  material: 'Bahan',
   color: 'Warna',
   accessories: 'Aksesoris',
   rosterFile: 'Berkas Ukuran',

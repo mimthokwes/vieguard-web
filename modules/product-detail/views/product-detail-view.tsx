@@ -10,7 +10,7 @@ import { BookingPanel } from '../components/product-info-panel';
 
 interface ProductDetailViewProps {
   product: Product;
-  mode: 'sewa' | 'all';
+  mode: 'sewa' | 'all' | 'beli';
   initialDate?: string;
   isLoggedIn: boolean;
   currentPath: string;
@@ -19,8 +19,13 @@ interface ProductDetailViewProps {
 export function ProductDetailView({ product, mode, initialDate, isLoggedIn, currentPath }: ProductDetailViewProps) {
   const rentable = canRent(product);
   const buyable = canBuy(product);
-  const modes: ('sewa' | 'beli')[] = mode === 'sewa' ? ['sewa'] : [...(rentable ? ['sewa' as const] : []), ...(buyable ? ['beli' as const] : [])];
-  const primaryMode = modes[0];
+  const modes: ('sewa' | 'beli')[] =
+    mode === 'sewa'
+      ? ['sewa']
+      : mode === 'beli'
+      ? ['beli']
+      : [...(rentable ? ['sewa' as const] : []), ...(buyable ? ['beli' as const] : [])];
+  const primaryMode = modes[0] ?? (buyable ? 'beli' : 'sewa');
   const stock = primaryMode === 'beli' ? buyStock(product) : rentStock(product);
   const price = primaryMode === 'beli' ? product.basePriceBuy : product.basePriceRent;
 
@@ -29,12 +34,23 @@ export function ProductDetailView({ product, mode, initialDate, isLoggedIn, curr
 
       <div className="grid grid-cols-1 gap-6 pt-8 lg:grid-cols-[1fr_492px]">
         <div className="flex flex-col gap-8">
-          <ProductGallery product={product} availabilityLabel={stock > 0 ? (primaryMode === 'beli' ? 'Tersedia untuk Dibeli' : 'Tersedia untuk Disewa') : 'Stok Sedang Kosong'} />
+          <ProductGallery
+            product={product}
+            availabilityLabel={
+              mode === 'beli'
+                ? 'Tersedia untuk Pre-Order'
+                : stock > 0
+                ? primaryMode === 'beli'
+                  ? 'Tersedia untuk Dibeli'
+                  : 'Tersedia untuk Disewa'
+                : 'Stok Sedang Kosong'
+            }
+          />
 
           <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
             <p className="flex flex-wrap items-center gap-2 text-xs text-ink-soft">
               {product.category && <span className="rounded bg-beige-soft px-2 py-0.5 font-semibold text-primary">Kategori: {product.category.name}</span>}
-              <span>• Siap Pakai {stock} Unit</span>
+              <span>• {mode === 'beli' ? 'Skema Pre-Order (Dipesan Baru Dibuat)' : `Siap Pakai ${stock} Unit`}</span>
             </p>
             <h1 className="pt-3 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">{product.name}</h1>
             {primaryMode && (

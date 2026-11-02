@@ -69,6 +69,10 @@ export function registerUser(payload: {
   return authRequest('/auth/register', payload);
 }
 
+export function loginWithGoogle(credential: string): Promise<AuthResponse> {
+  return authRequest('/auth/google', { credential });
+}
+
 /** Revokes the refresh token on the backend (best effort). */
 export async function logoutUser(refreshToken?: string): Promise<void> {
   if (!refreshToken) return;

@@ -32,15 +32,15 @@ export function HeroBanner({ isLoggedIn = false }: Props) {
       <div className="flex w-full max-w-2xl flex-col items-start gap-4 px-6 py-10 sm:px-10 sm:py-14">
         <p className="text-xs font-bold tracking-wide text-gold">Menarik. Cepat. Juara.</p>
         <h1 id="hero-title" className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
-          <span className='text-gold'>Costum Terbaik</span>
+          <span className='text-gold'>Kostum Terbaik</span>
           <br />
           Untuk Setiap Acara 
         </h1>
-        <p className="max-w-md text-sm text-white/85 sm:text-base">
-          Penjahitan seragam costum sekolah, marching band, dan penyewaan perlengkapan acara, dengan konsultasi desain khusus.
+        <p className="max-w-md text-sm text-white/90 sm:text-base leading-relaxed">
+          Spesialis jahit seragam marching band, pre-order custom desain mandiri, dan sewa kostum berkualitas untuk segala acara.
         </p>
         <ButtonLink href={isLoggedIn ? '/order' : '/login'} variant="gold">
-          {isLoggedIn ? 'Mulai pesan' : 'Pesan sekarang'}
+          {isLoggedIn ? 'Mulai Pesan' : 'Pesan Sekarang'}
           <ArrowRight className="size-4" aria-hidden="true" />
         </ButtonLink>
         <ul className="flex flex-wrap gap-x-5 gap-y-2 pt-2">

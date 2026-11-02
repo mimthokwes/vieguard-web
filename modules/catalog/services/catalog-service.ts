@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { apiClient, ApiClientOptions, ApiError } from '@/lib/api-client';
 import { getServerCache, setServerCache } from '@/lib/server-cache';
-import { Product, ProductCategory, ProductFilterQuery } from '@/types/product';
+import { Product, ProductCategory, ProductFilterQuery, SmartSearchResult } from '@/types/product';
 
 const PRODUCTS_TTL_MS = 60 * 1000; // 60 seconds TTL
 const CATEGORIES_TTL_MS = 5 * 60 * 1000; // 5 minutes TTL
@@ -21,6 +21,7 @@ export async function getProducts(query?: ProductFilterQuery, options?: ApiClien
 
   try {
     const params = new URLSearchParams();
+    if (query?.type) params.set('type', query.type);
     if (query?.categoryId) params.set('categoryId', query.categoryId);
     if (query?.search) params.set('search', query.search);
     if (query?.minPrice) params.set('minPrice', query.minPrice);
@@ -35,6 +36,43 @@ export async function getProducts(query?: ProductFilterQuery, options?: ApiClien
   } catch (error) {
     console.error('[getProducts Error]:', (error as Error).message);
     return [];
+  }
+}
+
+/**
+ * Smart search endpoint using HTTP method QUERY (RFC 10008).
+ * Supports typo tolerance, semantic context (e.g. "agustusan" -> karnaval/17 agustus), and query ranking.
+ */
+export async function smartSearchProducts(
+  params: { q: string; type?: 'beli' | 'sewa'; categoryId?: string },
+  options?: ApiClientOptions
+): Promise<SmartSearchResult> {
+  try {
+    const result = await apiClient<SmartSearchResult>('/products/search', {
+      method: 'QUERY' as any,
+      body: {
+        q: params.q,
+        type: params.type,
+        categoryId: params.categoryId,
+      },
+      ...options,
+    });
+
+    return result || { products: [], meta: { rawQuery: params.q, correctedQuery: params.q, corrections: [], expandedTerms: [], total: 0 } };
+  } catch (error) {
+    console.error('[smartSearchProducts Error]:', (error as Error).message);
+    // Graceful fallback to regular products filter if QUERY fails
+    const fallbackProducts = await getProducts({ search: params.q, type: params.type, categoryId: params.categoryId });
+    return {
+      products: fallbackProducts,
+      meta: {
+        rawQuery: params.q,
+        correctedQuery: params.q,
+        corrections: [],
+        expandedTerms: [],
+        total: fallbackProducts.length,
+      },
+    };
   }
 }
 

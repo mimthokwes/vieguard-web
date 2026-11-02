@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BadgeCheck, CalendarDays, CalendarRange, Clock, Headset, Loader2, Minus, MessagesSquare, Plus, ShieldCheck, ShoppingBag, Smartphone, Truck } from 'lucide-react';
+import { BadgeCheck, CalendarDays, CalendarRange, Clock, Headset, Loader2, Minus, MessagesSquare, Plus, Send, ShieldCheck, ShoppingBag, Smartphone, Truck } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Button, buttonClasses } from '@/components/ui/button';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -246,26 +246,26 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
         </div>
 
         {mode === 'sewa' && (
-          <p className="mt-4 flex gap-2 rounded-xl bg-warning-bg p-4 text-[13px] font-semibold leading-5 text-gold-dark">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            Kebijakan Sekolah / Dinas: Institusi resmi dapat menggunakan Surat Rekomendasi Resmi / SPK Kepala Sekolah bertanda tangan basah sebagai pengganti deposit uang tunai.
+          <p className="mt-4 flex items-center gap-2 rounded-xl bg-beige-soft px-3.5 py-2.5 text-xs text-ink-soft">
+            <ShieldCheck className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span>Institusi dapat menggunakan SPK / Rekomendasi Resmi sebagai pengganti deposit tunai.</span>
           </p>
         )}
 
         <ErrorMessage message={error} className="mt-4" />
 
         <Button size="lg" fullWidth className="mt-5 !h-12" onClick={submit} disabled={pending || (mode === 'sewa' && days < 1)}>
-          {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Smartphone className="size-4" aria-hidden="true" />}
-          {!isLoggedIn ? 'Masuk untuk Melanjutkan' : mode === 'sewa' ? 'Lanjutkan Booking & Reservasi Tanggal' : 'Pesan Sekarang'}
+          {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Send className="size-4" aria-hidden="true" />}
+          {!isLoggedIn ? 'Masuk untuk Melanjutkan' : mode === 'sewa' ? 'Lanjutkan Booking Tanggal' : 'Pesan Sekarang'}
         </Button>
         <Link
           href={`/chat?topic=${encodeURIComponent(`Ketersediaan ${product.name}`)}`}
-          className={buttonClasses({ variant: 'soft', size: 'lg', fullWidth: true, className: 'mt-2 border-0' })}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-canvas py-2.5 text-xs font-semibold text-ink transition hover:border-primary hover:text-primary hover:bg-beige-soft"
         >
-          <MessagesSquare className="size-4" aria-hidden="true" /> Konsultasi Ketersediaan via Chat
+          <MessagesSquare className="size-4 text-primary" aria-hidden="true" /> Konsultasi Ketersediaan via Chat
         </Link>
-        <p className="pt-3 text-center text-xs text-ink-soft">
-          {mode === 'sewa' ? 'Pesanan otomatis dibatalkan bila belum dikonfirmasi admin dalam 1 jam.' : 'Admin akan mengonfirmasi ketersediaan dan ongkos kirim.'}
+        <p className="pt-2 text-center text-[11px] text-ink-soft">
+          {mode === 'sewa' ? 'Admin akan segera mengonfirmasi ketersediaan armada tanggal sewa Anda.' : 'Admin akan meninjau ketersediaan dan detail ongkos kirim pesanan.'}
         </p>
       </section>
 

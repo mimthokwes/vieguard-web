@@ -6,9 +6,10 @@ import { Logo } from './logo';
 
 const SERVICE_LINKS = [
   { label: 'Katalog Produk', href: '/catalog' },
-  { label: 'Pesan Jahit Seragam', href: '/order' },
+  { label: 'Pembelian Seragam', href: '/order' },
   { label: 'Penyewaan Busana', href: '/rental' },
-  { label: 'Galeri Portofolio', href: '/portfolio' },
+  { label: 'Pesanan Custom', href: '/custom' },
+  { label: 'Tentang Kami', href: '/about' },
 ];
 
 const HELP_LINKS = [

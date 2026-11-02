@@ -87,7 +87,7 @@ export async function submitBookingAction(input: BookingInput): Promise<BookingR
   try {
     const order = await createOrder({
       orderType: input.mode,
-      requiresProduction: false,
+      requiresProduction: input.mode === 'beli',
       notes: [input.jenjang && `Jenjang: ${input.jenjang}`, input.notes?.trim()].filter(Boolean).join(' — ') || undefined,
       items,
       rentalDetail: input.mode === 'sewa' ? { pickupDate: input.pickupDate!, returnDate: input.returnDate! } : undefined,

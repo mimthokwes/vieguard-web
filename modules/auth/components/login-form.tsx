@@ -19,11 +19,11 @@ export function LoginForm({ next }: { next?: string }) {
       {next && <input type="hidden" name="next" value={next} />}
 
       <Input
-        label="Alamat Email"
+        label="Email"
         name="email"
         type="email"
         autoComplete="email"
-        placeholder="Email pelanggan terdaftar"
+        placeholder="nama@email.com"
         defaultValue={state.values?.email}
         error={state.fieldErrors?.email}
         required
@@ -31,14 +31,14 @@ export function LoginForm({ next }: { next?: string }) {
 
       <PasswordInput label="Kata Sandi" name="password" autoComplete="current-password" error={state.fieldErrors?.password} />
 
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-        <Checkbox name="remember" label="Ingat saya di perangkat ini" />
-        <Link href="/chat" className="text-xs font-semibold text-primary hover:underline">
-          Lupa Kata Sandi? Hubungi admin via chat
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+        <Checkbox name="remember" label="Ingat saya" />
+        <Link href="/chat" className="font-semibold text-primary hover:underline">
+          Lupa sandi?
         </Link>
       </div>
 
-      <SubmitButton label="Masuk ke Akun" loadingLabel="Memverifikasi..." className="mt-1" />
+      <SubmitButton label="Masuk" loadingLabel="Memverifikasi..." className="mt-2" />
     </form>
   );
 }

@@ -1,6 +1,7 @@
 export const NAV_LINKS = [
   { label: 'Katalog', href: '/catalog' },
-  { label: 'Pesan Seragam', href: '/order' },
+  { label: 'Pembelian', href: '/order' },
   { label: 'Penyewaan', href: '/rental' },
-  { label: 'Portofolio', href: '/portfolio' },
+  { label: 'Custom', href: '/custom' },
+  { label: 'Tentang Kami', href: '/about' },
 ];

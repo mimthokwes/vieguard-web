@@ -29,8 +29,8 @@ export function PromoCards({ isLoggedIn = false }: Props) {
         eyebrow="Konsultasi"
         title="Desain khusus"
         description="Bordir lambang dan model sesuai identitas sekolah."
-        cta="Lihat portofolio"
-        href="/portfolio"
+        cta="Pesan custom"
+        href="/custom"
         icon={Sparkles}
       />
     </section>

@@ -5,7 +5,6 @@ import {
   Calculator,
   Check,
   CircleCheck,
-  Download,
   FileText,
   Headset,
   Hourglass,
@@ -22,21 +21,21 @@ import { Order } from '@/types/order';
 import { StoreProfile } from '@/types/store';
 import { PageContainer } from '@/components/layout/page-header';
 import { buttonClasses } from '@/components/ui/button';
-import { CopyButton, PrintButton } from '@/components/ui/copy-button';
+import { CopyButton } from '@/components/ui/copy-button';
 import { formatDate, formatDateTime } from '@/lib/format';
 import { parseOrderMeta, totalQuantity } from '@/lib/order-status';
 
 const STAGES = [
-  { title: 'Draf Masuk & Form Diterima', body: 'Data ukuran awal, target perhelatan, serta berkas desain terekam.', icon: Check },
-  { title: 'Peninjauan Pola & Material', body: 'Master tailor menguji kesesuaian gramasi kain, ornamen, dan struktur bahu.', icon: PencilRuler },
-  { title: 'Penerbitan Rincian Biaya & Sketsa 3D', body: 'Rincian lembar penawaran harga resmi (RAB) dan visualisasi render akhir.', icon: ReceiptText },
-  { title: 'Persetujuan & Pembuatan Sampel Fisik', body: 'Penerbitan PO, SPK Kedinasan resmi, dan penjadwalan fitting master sampel.', icon: CircleCheck },
+  { title: 'Pengajuan Diterima', body: 'Data awal dan referensi desain tersimpan.', icon: Check },
+  { title: 'Tinjauan Pola & Bahan', body: 'Pengecekan pola, kain, dan bordir.', icon: PencilRuler },
+  { title: 'Rincian Biaya & Sketsa', body: 'Penawaran harga resmi dan estimasi pengerjaan.', icon: ReceiptText },
+  { title: 'Persetujuan & Produksi', body: 'Konfirmasi penawaran dan jadwal produksi.', icon: CircleCheck },
 ];
 
 const SERVICE_STANDARDS = [
-  { title: 'Respons Cepat Maks. 24 Jam', body: 'Kalkulasi biaya dan kelayakan sketsa direspons cepat pada hari operasional.' },
-  { title: 'Garansi Fitting Sampel Fisik 1 Stel', body: 'Pengerjaan sampel purwarupa disiapkan sebelum produksi massal dimulai.' },
-  { title: 'Penyesuaian Anggaran Sekolah', body: 'Didukung skema pembayaran bertahap untuk institusi pendidikan dan instansi resmi.' },
+  { title: 'Respons Cepat', body: 'Penawaran direspons dalam 1x24 jam kerja.' },
+  { title: 'Sampel Ukuran', body: 'Uji fitting sampel sebelum produksi massal.' },
+  { title: 'Anggaran Fleksibel', body: 'Mendukung skema pembayaran bertahap.' },
 ];
 
 function daysUntil(date?: string) {
@@ -64,26 +63,25 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
         </p>
       )}
 
-      <section className="relative mt-6 overflow-hidden rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
-        <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-gold-light/20 blur-3xl" aria-hidden="true" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+      <section className="relative mt-6 overflow-hidden rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-7">
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-1 text-xs font-semibold text-warning">
-              <Hourglass className="size-3.5" aria-hidden="true" /> Menunggu Kalkulasi Resmi Master Tailor
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-0.5 text-xs font-semibold text-warning">
+              <Hourglass className="size-3.5" aria-hidden="true" /> Menunggu Penawaran
             </span>
-            <h1 className="pt-3 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">
-              Status Pengajuan Draf Penawaran & Negosiasi Desain
+            <h1 className="pt-2 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+              Status Pengajuan Penawaran
             </h1>
-            <p className="pt-3 text-base leading-relaxed text-ink-soft">
-              Permohonan seragam Anda sedang ditinjau dan dikalkulasi oleh Master Tailor bengkel kami.
+            <p className="pt-1 text-xs text-ink-soft">
+              Permohonan seragam custom Anda sedang ditinjau oleh tim kami.
             </p>
           </div>
           <div className="rounded-xl bg-beige-soft px-4 py-3 text-right">
-            <p className="text-xs font-semibold uppercase text-ink-soft">Nomor Registrasi Draf</p>
-            <p className="flex items-center justify-end gap-2 text-xl font-extrabold text-primary">
+            <p className="text-xs font-semibold uppercase text-ink-soft">Nomor Pengajuan</p>
+            <p className="flex items-center justify-end gap-2 text-lg font-extrabold text-primary">
               {order.orderNumber} <CopyButton value={order.orderNumber} label="Salin nomor pesanan" />
             </p>
-            <p className="text-xs text-ink-soft">Diterima: {formatDateTime(order.createdAt)} WIB</p>
+            <p className="text-xs text-ink-soft">Diterima: {formatDate(order.createdAt)}</p>
           </div>
         </div>
       </section>
@@ -237,32 +235,19 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
         </div>
 
         <aside className="flex flex-col gap-6">
-          <section className="rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
-            <div className="flex gap-3">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-beige-soft text-primary">
+          <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-beige-soft text-primary">
                 <MessagesSquare className="size-5" aria-hidden="true" />
               </span>
-              <h2 className="text-lg font-bold text-ink">Ruang Diskusi & Negosiasi Langsung</h2>
+              <h2 className="text-base font-bold text-ink">Diskusi & Konsultasi Desain</h2>
             </div>
-            <p className="pt-4 text-[15px] leading-6 text-ink-soft">
-              Perlu menambahkan revisi sketsa atau menegosiasikan spesifikasi kain? Hubungi tim desainer penanggung jawab proyek Anda.
+            <p className="pt-3 text-xs leading-relaxed text-ink-soft">
+              Butuh revisi sketsa atau konfirmasi spesifikasi kain? Hubungi tim desainer langsung melalui chat.
             </p>
-            <div className="mt-5 flex items-center gap-3 rounded-xl bg-beige-soft p-3">
-              <span className="flex size-12 items-center justify-center rounded-full border border-gold-light bg-maroon-gradient font-display text-sm font-bold text-gold-light">VG</span>
-              <div>
-                <p className="text-sm font-bold text-ink">Tim Desainer VIEGUARD</p>
-                <p className="text-xs text-ink-soft">Kepala Desain Pola Korps Musik</p>
-                <p className="flex items-center gap-1 text-xs font-semibold text-primary">
-                  <span className="size-1.5 rounded-full bg-success" /> {store?.operationalHours || 'Senin - Sabtu, 08.00 - 17.00'}
-                </p>
-              </div>
-            </div>
-            <Link href={chatHref} className={buttonClasses({ size: 'lg', fullWidth: true, className: 'mt-6' })}>
-              <MessageSquare className="size-4" aria-hidden="true" /> Buka Ruang Obrolan Desainer
+            <Link href={chatHref} className={buttonClasses({ size: 'md', fullWidth: true, className: 'mt-5' })}>
+              <MessageSquare className="size-4" aria-hidden="true" /> Chat Desainer
             </Link>
-            <PrintButton className={buttonClasses({ variant: 'soft', size: 'lg', fullWidth: true, className: 'mt-3 border-0' })}>
-              <Download className="size-4" aria-hidden="true" /> Cetak Ringkasan Draf
-            </PrintButton>
           </section>
 
           <section className="rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">

@@ -17,36 +17,36 @@ export function RegisterForm() {
       <ErrorMessage message={state.error} />
 
       <Input
-        label="Nama Lengkap / Perwakilan Resmi Sekolah"
+        label="Nama Lengkap"
         name="name"
         autoComplete="name"
-        placeholder="Nama Pelanggan"
+        placeholder="Nama Anda"
         defaultValue={state.values?.name}
         error={state.fieldErrors?.name}
         required
       />
       <Input
-        label="Alamat Email"
+        label="Email"
         name="email"
         type="email"
         autoComplete="email"
-        placeholder="nama@sekolah.sch.id"
+        placeholder="nama@email.com"
         defaultValue={state.values?.email}
         error={state.fieldErrors?.email}
         required
       />
       <Input
-        label="Nomor WhatsApp / Telepon"
+        label="Nomor WhatsApp"
         name="phone"
         type="tel"
         autoComplete="tel"
-        placeholder="+62 812-xxxx-xxxx"
+        placeholder="08123456789"
         defaultValue={state.values?.phone}
         error={state.fieldErrors?.phone}
         required
       />
       <PasswordInput
-        label="Buat Kata Sandi"
+        label="Kata Sandi"
         name="password"
         autoComplete="new-password"
         placeholder="Minimal 6 karakter"
@@ -57,18 +57,12 @@ export function RegisterForm() {
       <Checkbox
         name="terms"
         required
-        className="pt-1"
-        label={
-          <>
-            Saya menyetujui <span className="font-bold text-ink underline">Syarat & Ketentuan</span> dan{' '}
-            <span className="font-bold text-ink underline">Kebijakan Penyewaan</span>
-            <span className="text-primary"> *</span>
-          </>
-        }
+        className="pt-1 text-xs"
+        label="Saya menyetujui Syarat & Ketentuan layanan VIEGUARD"
       />
       {state.fieldErrors?.terms && <p className="-mt-2 text-xs text-danger">{state.fieldErrors.terms}</p>}
 
-      <SubmitButton label="Buat Akun Baru" loadingLabel="Mendaftarkan..." className="mt-1" />
+      <SubmitButton label="Daftar" loadingLabel="Mendaftarkan..." className="mt-2" />
     </form>
   );
 }

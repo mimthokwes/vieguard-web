@@ -26,7 +26,6 @@ import { StoreProfile } from '@/types/store';
 import { PageContainer } from '@/components/layout/page-header';
 import { buttonClasses } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PrintButton } from '@/components/ui/copy-button';
 import { formatDate, formatDateTime, formatRupiah, toNumber } from '@/lib/format';
 import { formatImageUrl } from '@/lib/image';
 import {
@@ -81,29 +80,29 @@ export function OrderTrackingView({
         </p>
       )}
 
-      <header className="flex flex-col gap-6 py-8 lg:flex-row lg:items-end lg:justify-between">
+      <header className="flex flex-col gap-6 py-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <Badge tone={statusMeta.tone} pill dot>
-            {order.status === 'diproses' && production ? 'Produksi Sedang Berlangsung' : statusMeta.label}
+            {order.status === 'diproses' && production ? 'Produksi Berlangsung' : statusMeta.label}
           </Badge>
-          <h1 className="pt-3 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">
-            {isRental ? 'Detail Status Penyewaan Armada' : 'Detail Status & Pelacakan Produksi Pesanan'}
+          <h1 className="pt-2 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+            {isRental ? 'Status Sewa' : 'Lacak Pesanan'}
           </h1>
-          <p className="pt-2 text-base leading-relaxed text-ink-soft">
+          <p className="pt-1 text-xs text-ink-soft">
             {isRental
-              ? 'Pantau jadwal pengambilan, batas pengembalian, dan status pembayaran sewa Anda.'
-              : 'Pantau milestone penjahitan, jadwal QC, dan nomor resi kargo resmi pesanan institusi Anda.'}
+              ? 'Jadwal dan status penyewaan kostum.'
+              : 'Pantau progres produksi dan pengiriman pesanan.'}
           </p>
         </div>
-        <div className="flex flex-col gap-4 rounded-2xl bg-surface p-4 shadow-card ring-1 ring-line sm:flex-row sm:items-center">
-          <HeaderFact icon={<ReceiptText className="size-5" />} label="Nomor Transaksi" value={order.orderNumber} />
+        <div className="flex flex-col gap-3 rounded-2xl bg-surface p-3.5 shadow-card ring-1 ring-line sm:flex-row sm:items-center">
+          <HeaderFact icon={<ReceiptText className="size-4 text-primary" />} label="Nomor Pesanan" value={order.orderNumber} />
           {deadline && (
             <>
-              <span className="hidden h-12 w-px bg-line sm:block" aria-hidden="true" />
+              <span className="hidden h-10 w-px bg-line sm:block" aria-hidden="true" />
               <HeaderFact
                 gold
-                icon={<CalendarCheck className="size-5" />}
-                label={isRental ? 'Batas Pengembalian' : 'Batas Waktu Kirim'}
+                icon={<CalendarCheck className="size-4 text-gold-dark" />}
+                label={isRental ? 'Batas Pengembalian' : 'Batas Kirim'}
                 value={formatDate(deadline, { day: 'numeric', month: 'short', year: 'numeric' })}
               />
             </>
@@ -182,12 +181,11 @@ export function OrderTrackingView({
             </section>
           )}
 
-          <section className="rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
+          <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-8">
             <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
-                <History className="size-5 text-primary" aria-hidden="true" /> Log Aktivitas & Catatan Harian
+              <h2 className="flex items-center gap-2 text-base font-bold text-ink sm:text-lg">
+                <History className="size-5 text-primary" aria-hidden="true" /> Log Aktivitas
               </h2>
-              <PrintButton className="text-[13px] font-bold text-primary hover:underline print:hidden">Cetak Catatan</PrintButton>
             </div>
             {history.length === 0 ? (
               <p className="pt-6 text-sm text-ink-soft">Belum ada catatan aktivitas dari admin.</p>
@@ -283,17 +281,14 @@ export function OrderTrackingView({
             </section>
           )}
 
-          <section className="rounded-2xl bg-beige-soft p-6 ring-1 ring-beige">
+          <section className="rounded-2xl bg-beige-soft p-5 ring-1 ring-beige">
             <p className="flex items-center gap-2 font-bold text-ink">
-              <Headset className="size-5 text-gold-dark" aria-hidden="true" /> Pusat Bantuan & Konsultasi
+              <Headset className="size-4 text-gold-dark" aria-hidden="true" /> Bantuan Pesanan
             </p>
-            <p className="pt-3 text-[15px] leading-6 text-ink-soft">Perlu konfirmasi jadwal gladi bersih atau penyesuaian fitting?</p>
-            <Link href={chatHref} className={buttonClasses({ size: 'lg', fullWidth: true, className: 'mt-5' })}>
-              <MessageSquare className="size-4" aria-hidden="true" /> {isRental ? 'Hubungi Admin Sewa' : 'Hubungi Kepala Bengkel Penjahit'}
+            <p className="pt-2 text-xs text-ink-soft">Butuh penyesuaian ukuran atau konfirmasi jadwal?</p>
+            <Link href={chatHref} className={buttonClasses({ size: 'md', fullWidth: true, className: 'mt-4' })}>
+              <MessageSquare className="size-4" aria-hidden="true" /> Chat Admin
             </Link>
-            <p className="flex items-center justify-center gap-1.5 pt-3 text-xs font-semibold text-ink-soft">
-              <span className="size-1.5 rounded-full bg-success" /> {store?.operationalHours || 'Layanan Siap Tanggap Jam Kerja'}
-            </p>
           </section>
         </aside>
       </div>
