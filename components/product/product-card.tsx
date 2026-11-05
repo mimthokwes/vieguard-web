@@ -1,9 +1,8 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Shirt } from 'lucide-react';
+import { Shirt, ArrowRight } from 'lucide-react';
 import { Product } from '@/types/product';
-import { buttonClasses } from '@/components/ui/button';
 import { formatRupiah, toNumber } from '@/lib/format';
 import { primaryImage } from '@/lib/image';
 
@@ -58,7 +57,7 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
   // console.log(name, images, imageUrl);
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/40">
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/40">
       {/* ─── Foto Produk ─── */}
       <Link href={href} className="relative block aspect-4/3 w-full overflow-hidden bg-beige-soft" tabIndex={-1} aria-hidden="true">
         {imageUrl ? (
@@ -67,7 +66,7 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
             alt={name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             unoptimized
           />
         ) : (
@@ -77,40 +76,54 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
           </div>
         )}
         {mode === 'beli' ? (
-          <span className="absolute top-2 left-2 z-10 rounded-md bg-primary/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
+          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-primary/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
             Pre-Order
           </span>
         ) : mode === 'sewa' ? (
-          <span className="absolute top-2 left-2 z-10 rounded-md bg-gold-dark/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
+          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-gold-dark/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
             Sewa
           </span>
         ) : isBuyOnly(product) ? (
-          <span className="absolute top-2 left-2 z-10 rounded-md bg-primary/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
+          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-primary/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
             Pre-Order
           </span>
         ) : isRentOnly(product) ? (
-          <span className="absolute top-2 left-2 z-10 rounded-md bg-gold-dark/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
+          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-gold-dark/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
             Sewa
           </span>
         ) : null}
       </Link>
 
       {/* ─── Info Produk ─── */}
-      <div className="flex flex-1 flex-col p-3">
-        {/* Nama Produk */}
+      <div className="flex flex-1 flex-col p-3.5">
+        {category?.name && (
+          <span className="text-[10px] font-bold tracking-wider uppercase text-gold-dark mb-1">
+            {category.name}
+          </span>
+        )}
+
+        {/* Nama Produk Jelas */}
         <Link href={href}>
-          <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold leading-snug text-ink transition-colors group-hover:text-primary">
+          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-ink transition-colors group-hover:text-primary">
             {name}
           </h3>
         </Link>
 
+        {/* Deskripsi Barang Dibawahnya */}
+        {description && (
+          <p className="line-clamp-2 text-xs text-ink-soft leading-relaxed mt-1">
+            {description}
+          </p>
+        )}
+
         {/* Spacer */}
         <div className="mt-auto" />
 
-        {/* ─── Harga & Tombol Pesan ─── */}
-        <div className="mt-2.5 flex items-center justify-between gap-1.5 pt-1">
-          {/* Harga */}
-          <div className="min-w-0">
+        {/* ─── Harga & Tombol Pesan Full-Width ─── */}
+        <div className="mt-3.5 pt-2.5 border-t border-line/60 space-y-2">
+          {/* Label Harga */}
+          <div className="flex items-baseline justify-between">
+            <span className="text-[11px] font-semibold text-ink-soft">Harga</span>
             {priceLabel ? (
               <p className="truncate text-xs sm:text-sm font-extrabold text-primary">
                 {priceLabel}
@@ -123,12 +136,13 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
             )}
           </div>
 
-          {/* Tombol Pesan Compact */}
+          {/* Tombol Pesan Full-Width */}
           <Link
             href={href}
-            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-2.5 py-1 text-xs font-semibold text-on-primary transition-all hover:bg-primary-hover active:scale-95"
+            className="flex w-full items-center justify-center gap-1 rounded-xl bg-primary py-2 text-xs font-bold text-on-primary shadow-xs transition-all duration-200 hover:bg-primary-hover active:scale-98"
           >
-            {mode === 'beli' ? 'Beli' : mode === 'sewa' ? 'Sewa' : 'Pesan'}
+            <span>{mode === 'beli' ? 'Pesan Sekarang' : mode === 'sewa' ? 'Sewa Sekarang' : 'Pesan Sekarang'}</span>
+            <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
         </div>
       </div>

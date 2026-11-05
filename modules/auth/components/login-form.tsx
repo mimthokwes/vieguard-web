@@ -33,7 +33,7 @@ export function LoginForm({ next }: { next?: string }) {
 
       <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
         <Checkbox name="remember" label="Ingat saya" />
-        <Link href="/chat" className="font-semibold text-primary hover:underline">
+        <Link href="/forgot-password" className="font-semibold text-primary hover:underline">
           Lupa sandi?
         </Link>
       </div>

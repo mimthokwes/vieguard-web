@@ -17,11 +17,11 @@ interface NavbarProps {
 }
 
 // --- Pengaturan perilaku auto-hide ---------------------------------------
-const HIDE_AT = 80; // navbar mulai boleh sembunyi setelah scroll sejauh ini (px)
-const SHOW_AT = 16; // di bawah ini navbar selalu tampil penuh (px)
-const REOPEN_GRACE = 60; // setelah dibuka lewat "ekor", scroll turun segini baru sembunyi lagi (px)
-const SHOW_ON_SCROLL_UP = false; // true = muncul lagi otomatis saat scroll ke atas (ala Safari)
-const REVEAL_DELTA = 12; // seberapa cepat scroll ke atas dianggap disengaja (px per frame)
+const HIDE_AT = 80;
+const SHOW_AT = 16; 
+const REOPEN_GRACE = 60;
+const SHOW_ON_SCROLL_UP = false;
+const REVEAL_DELTA = 12; 
 
 function isActive(pathname: string, href: string) {
   const path = href.split('?')[0];
@@ -29,10 +29,7 @@ function isActive(pathname: string, href: string) {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-/**
- * Navbar sembunyi saat scroll turun, tampil penuh saat kembali ke paling atas.
- * `lock` = true menahan navbar tetap tampil (mis. menu seluler terbuka / ada fokus di dalamnya).
- */
+
 function useAutoHide(lock: boolean) {
   const [hidden, setHidden] = useState(false);
   const lastY = useRef(0);

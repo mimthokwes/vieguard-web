@@ -90,3 +90,46 @@ export async function logoutUser(refreshToken?: string): Promise<void> {
     // Local session is cleared regardless.
   }
 }
+
+async function postAuthJson<T = any>(endpoint: string, payload: unknown): Promise<{ message: string; data?: T }> {
+  const url = `${getApiBaseUrl()}${endpoint}`;
+  try {
+    const res = await axiosClient.post(url, payload, {
+      headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
+    });
+    return {
+      message: res.data?.message || 'Berhasil',
+      data: res.data?.data,
+    };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status ?? 503;
+      const resData = error.response?.data;
+      const message =
+        resData?.message ||
+        resData?.error ||
+        (!error.response || error.code === 'ERR_NETWORK'
+          ? 'Server backend tidak dapat dihubungi. Pastikan backend VIEGUARD sedang berjalan.'
+          : error.message);
+      throw new ApiError(message, status, resData?.errors);
+    }
+    throw error;
+  }
+}
+
+export function requestPasswordResetOtp(email: string): Promise<{ message: string }> {
+  return postAuthJson('/auth/forgot-password', { email });
+}
+
+export function verifyPasswordResetOtp(email: string, otpCode: string): Promise<{ message: string; data?: { valid?: boolean } }> {
+  return postAuthJson<{ valid?: boolean }>('/auth/verify-otp', { email, otpCode });
+}
+
+export function resetPasswordWithOtp(payload: {
+  email: string;
+  otpCode: string;
+  newPassword: string;
+}): Promise<{ message: string }> {
+  return postAuthJson('/auth/reset-password', payload);
+}

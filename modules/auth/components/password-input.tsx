@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
-interface PasswordInputProps {
+interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: string;
   name: string;
   placeholder?: string;
@@ -14,7 +14,15 @@ interface PasswordInputProps {
 }
 
 /** Password field with Eye / EyeOff icon toggle. */
-export function PasswordInput({ label, name, placeholder = 'Kata Sandi', autoComplete, error, minLength }: PasswordInputProps) {
+export function PasswordInput({
+  label,
+  name,
+  placeholder = 'Kata Sandi',
+  autoComplete,
+  error,
+  minLength,
+  ...props
+}: PasswordInputProps) {
   const [visible, setVisible] = useState(false);
   return (
     <Input
@@ -41,6 +49,7 @@ export function PasswordInput({ label, name, placeholder = 'Kata Sandi', autoCom
           )}
         </button>
       }
+      {...props}
     />
   );
 }
