@@ -76,7 +76,7 @@ export function PromoCards({ isLoggedIn = false }: Props) {
             <div className="flex size-11 items-center justify-center rounded-xl bg-gold text-on-gold font-extrabold text-base font-mono">
               03
             </div>
-            <span className="text-xs font-bold text-gold-light bg-primary-deep/80 px-2.5 py-1 rounded-full border border-gold/30">
+            <span className="text-xs font-black text-on-gold bg-gold px-3 py-1 rounded-full shadow-xs">
               Siap Parade
             </span>
           </div>

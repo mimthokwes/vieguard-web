@@ -76,19 +76,19 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
           </div>
         )}
         {mode === 'beli' ? (
-          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-primary/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
+          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-primary px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
             Pre-Order
           </span>
         ) : mode === 'sewa' ? (
-          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-gold-dark/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
+          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-gold px-2.5 py-0.5 text-[10px] font-black text-on-gold shadow-xs">
             Sewa
           </span>
         ) : isBuyOnly(product) ? (
-          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-primary/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
+          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-primary px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
             Pre-Order
           </span>
         ) : isRentOnly(product) ? (
-          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-gold-dark/95 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
+          <span className="absolute top-2.5 left-2.5 z-10 rounded-md bg-gold px-2.5 py-0.5 text-[10px] font-black text-on-gold shadow-xs">
             Sewa
           </span>
         ) : null}

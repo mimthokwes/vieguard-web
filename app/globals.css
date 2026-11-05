@@ -4,25 +4,25 @@
   --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-display: var(--font-cinzel), 'Cinzel', Georgia, serif;
 
-  --color-primary: #9b1c2e;
-  --color-primary-dark: #7f1524;
-  --color-primary-deep: #4a1019;
-  --color-primary-light: #000000;
+  --color-primary: #dc2626;
+  --color-primary-dark: #b91c1c;
+  --color-primary-deep: #991b1b;
+  --color-primary-light: #ef4444;
   --color-on-primary: #ffffff;
 
-  --color-gold: #c9a24a;
-  --color-gold-light: #f2c766;
-  --color-gold-dark: #b07a1c;
-  --color-on-gold: #4a2a00;
+  --color-gold: #ffc72c;
+  --color-gold-light: #ffd866;
+  --color-gold-dark: #c28e00;
+  --color-on-gold: #111111;
 
   --color-canvas: #fff8f5;
   --color-surface: #ffffff;
   --color-beige: #ebdcc6;
   --color-beige-soft: #faf3e8;
 
-  --color-ink: #2b1a16;
-  --color-ink-soft: #5c4740;
-  --color-muted: #8c7468;
+  --color-ink: #111111;
+  --color-ink-soft: #555555;
+  --color-muted: #777777;
   --color-line: #efe4d5;
   --color-line-strong: #e3d3bd;
 
