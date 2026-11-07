@@ -20,11 +20,11 @@ export function ChatMessageList({ messages, userName, adminName }: ChatMessageLi
   }, [messages.length]);
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto bg-canvas/60 px-4 py-6 sm:px-6 " aria-live="polite" >
+    <div ref={scrollRef} className="flex-1 overflow-y-auto bg-canvas/40 px-4 py-6 sm:px-6" aria-live="polite">
       {messages.length === 0 ? (
         <ChatEmptyState />
       ) : (
-        <ol className="flex flex-col gap-4">
+        <ol className="mx-auto flex max-w-5xl flex-col gap-4">
           {messages.map((m, i) => {
             const prev = messages[i - 1];
             const newDay = !prev || new Date(prev.createdAt).toDateString() !== new Date(m.createdAt).toDateString();

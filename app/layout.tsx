@@ -53,7 +53,7 @@ export default async function RootLayout({
           <div className="sticky top-1 z-50 flex items-center justify-center w-full">
             <Navbar user={user} unreadCount={unreadCount} />
           </div>
-          <div className="flex-1">{children}</div>
+          <div className="flex flex-1 flex-col">{children}</div>
           <Footer store={store} />
         </QueryProvider>
       </body>

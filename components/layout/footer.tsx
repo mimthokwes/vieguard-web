@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Clock, Mail, MapPin, Phone } from 'lucide-react';
 import { StoreProfile } from '@/types/store';
 import { Logo } from './logo';
@@ -20,6 +23,11 @@ const HELP_LINKS = [
 ];
 
 export function Footer({ store }: { store?: StoreProfile | null }) {
+  const pathname = usePathname();
+  if (pathname === '/chat' || pathname?.startsWith('/chat/')) {
+    return null;
+  }
+
   const year = new Date().getFullYear();
   const storeName = store?.storeName || 'VIEGUARD';
   const phone = store?.whatsappNumber || store?.phone;

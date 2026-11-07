@@ -36,25 +36,21 @@ export function ChatView({
   const adminName = 'Admin';
 
   return (
-    <main className="flex w-full flex-col px-4 sm:px-6 lg:h-[calc(100dvh-2rem)] lg:px-8">
-      {/* Mobile: tinggi tetap 85dvh (min 560px), halaman memanjang.
-          Desktop (lg): kembali mengisi sisa tinggi layar. */}
-      <section className="mt-4 flex h-[85dvh] min-h-140 flex-col overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-line lg:h-auto lg:min-h-96 lg:flex-1">
-        <ChatHeader
-          adminName={adminName}
-          online={online}
-          topic={topic}
-          operationalHours={operationalHours || DEFAULT_OPERATIONAL_HOURS}
-        />
-        <ChatMessageList messages={messages} userName={userName} adminName={adminName} />
-        <ChatComposer
-          initialText={topic ? `[${topic}] ` : ''}
-          error={error}
-          sending={sending}
-          orderRefs={orderRefs}
-          onSend={send}
-        />
-      </section>
+    <main className="flex flex-1 w-full flex-col h-[calc(100dvh-4.25rem)] bg-surface overflow-hidden">
+      <ChatHeader
+        adminName={adminName}
+        online={online}
+        topic={topic}
+        operationalHours={operationalHours || DEFAULT_OPERATIONAL_HOURS}
+      />
+      <ChatMessageList messages={messages} userName={userName} adminName={adminName} />
+      <ChatComposer
+        initialText={topic ? `[${topic}] ` : ''}
+        error={error}
+        sending={sending}
+        orderRefs={orderRefs}
+        onSend={send}
+      />
     </main>
   );
 }
