@@ -9,7 +9,7 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ adminName, online, topic, operationalHours }: ChatHeaderProps) {
   return (
-    <div className="w-full border-b border-line bg-surface px-4 py-2.5 sm:px-6 shrink-0">
+    <div className="sticky top-0 z-20 w-full shrink-0 border-b border-line bg-surface px-4 py-2.5 sm:px-6">
       <div className="mx-auto flex max-w-5xl items-center gap-3">
         <span className="relative flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary font-display text-sm font-bold text-gold-light">
           VG

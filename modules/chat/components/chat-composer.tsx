@@ -31,7 +31,7 @@ export function ChatComposer({ initialText = '', error, sending, disabled, order
 
   return (
     <form
-      className="w-full border-t border-line bg-surface px-4 py-3 sm:px-6 shrink-0"
+      className="sticky bottom-0 z-30 w-full shrink-0 border-t border-line bg-surface px-4 py-3 sm:px-6 shadow-sm"
       onSubmit={(e) => {
         e.preventDefault();
         submit();

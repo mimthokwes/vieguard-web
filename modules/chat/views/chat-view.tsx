@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from 'react';
 import { ChatMessage } from '@/types/chat';
 import { ChatComposer } from '../components/chat-composer';
 import { ChatHeader } from '../components/chat-header';
@@ -35,8 +36,17 @@ export function ChatView({
 
   const adminName = 'Admin';
 
+  useEffect(() => {
+    // Lock outer body scroll on chat page so only message list scrolls
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
   return (
-    <main className="flex flex-1 w-full flex-col h-[calc(100dvh-4.25rem)] bg-surface overflow-hidden">
+    <main className="relative flex flex-1 w-full flex-col h-[calc(100dvh-4rem)] sm:h-[calc(100dvh-4.25rem)] bg-surface overflow-hidden">
       <ChatHeader
         adminName={adminName}
         online={online}
