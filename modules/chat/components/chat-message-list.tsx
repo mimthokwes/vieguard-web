@@ -13,79 +13,38 @@ interface ChatMessageListProps {
 }
 
 export function ChatMessageList({ messages, userName, adminName }: ChatMessageListProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
 
   const scrollToBottom = (instant = false) => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    if (instant) {
-      el.scrollTop = el.scrollHeight;
-    } else {
-      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-    }
     bottomRef.current?.scrollIntoView({
       behavior: instant ? 'auto' : 'smooth',
       block: 'end',
     });
   };
 
-  // Scroll to bottom immediately on mount and after layout paints
+  // Scroll otomatis ke bawah saat halaman chat pertama kali dibuka
   useEffect(() => {
     scrollToBottom(true);
-
-    const raf = requestAnimationFrame(() => {
-      scrollToBottom(true);
-    });
-
-    const t1 = setTimeout(() => {
-      scrollToBottom(true);
-    }, 100);
-
-    const t2 = setTimeout(() => {
-      scrollToBottom(true);
-    }, 300);
-
+    const raf = requestAnimationFrame(() => scrollToBottom(true));
+    const t = setTimeout(() => scrollToBottom(true), 150);
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(t1);
-      clearTimeout(t2);
+      clearTimeout(t);
     };
   }, []);
 
-  // When messages update (new message sent/received, or re-synced)
+  // Scroll otomatis saat ada pesan baru
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
     scrollToBottom(false);
-  }, [messages.length, messages]);
-
-  // Keep scrolled to bottom if container content resizes (e.g. images or markdown render)
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-
-    const observer = new ResizeObserver(() => {
-      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
-      if (isInitialMount.current || isNearBottom) {
-        scrollToBottom(isInitialMount.current);
-      }
-    });
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  }, [messages.length]);
 
   return (
-    <div
-      ref={scrollRef}
-      className="flex-1 overflow-y-auto bg-canvas/40 px-4 py-6 sm:px-6"
-      aria-live="polite"
-    >
+    <div className="flex-1 bg-canvas/40 px-4 py-6 sm:px-6">
       {messages.length === 0 ? (
         <ChatEmptyState />
       ) : (
