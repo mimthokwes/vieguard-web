@@ -7,6 +7,7 @@ import {
   Check,
   CircleCheck,
   ClipboardList,
+  Clock,
   FileText,
   Headset,
   History,
@@ -71,27 +72,53 @@ export function OrderTrackingView({
   const deadline = order.etaDate ?? meta.eventDate ?? order.rental?.returnDate;
   const chatHref = `/chat?topic=${encodeURIComponent(`Pesanan ${order.orderNumber}`)}`;
 
+  const showWorkshopDocs = production && (order.status === 'diproses' || order.status === 'siap_diambil' || order.status === 'selesai' || (order.orderPhotos && order.orderPhotos.length > 0));
+
   return (
     <PageContainer>
 
       {justCreated && (
-        <p role="status" className="mt-6 flex items-center gap-2 rounded-xl border border-success/25 bg-success-bg px-4 py-3 text-sm font-semibold text-success">
-          <CircleCheck className="size-4" aria-hidden="true" /> Pesanan berhasil dibuat.
-        </p>
+        <div role="status" className="mt-6 flex items-start gap-3 rounded-xl border border-warning/30 bg-warning-bg/60 p-4 text-sm text-ink">
+          <Clock className="mt-0.5 size-5 shrink-0 text-warning-dark" aria-hidden="true" />
+          <div>
+            <p className="font-bold text-warning-dark">Pengajuan Pesanan Berhasil Diterima</p>
+            <p className="text-xs text-ink-soft pt-0.5">
+              Pesanan #{order.orderNumber} telah tersimpan. Admin sedang memeriksa ketersediaan bahan baku kain ke supplier. Setelah bahan terkonfirmasi, rekening pembayaran DP akan otomatis aktif.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {order.status === 'dikonfirmasi' && !order.isLunas && (
+        <div role="status" className="mt-6 flex items-start gap-3 rounded-xl border border-success/30 bg-success-bg p-4 text-sm text-ink">
+          <CircleCheck className="mt-0.5 size-5 shrink-0 text-success" aria-hidden="true" />
+          <div>
+            <p className="font-bold text-success">Bahan Tersedia & Pesanan Dikonfirmasi!</p>
+            <p className="text-xs text-ink-soft pt-0.5">
+              Admin telah mengonfirmasi bahwa bahan kain tersedia. Silakan lakukan transfer DP pada kartu pembayaran untuk memulai pengerjaan di bengkel jahit.
+            </p>
+          </div>
+        </div>
       )}
 
       <header className="flex flex-col gap-6 py-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <Badge tone={statusMeta.tone} pill dot>
-            {order.status === 'diproses' && production ? 'Produksi Berlangsung' : statusMeta.label}
+            {order.status === 'pending'
+              ? 'Menunggu Konfirmasi Bahan'
+              : order.status === 'diproses' && production
+                ? 'Produksi Berlangsung'
+                : statusMeta.label}
           </Badge>
           <h1 className="pt-2 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-            {isRental ? 'Status Sewa' : 'Lacak Pesanan'}
+            {isRental ? 'Status Sewa' : order.status === 'pending' ? 'Status Pengajuan Pre-Order' : 'Lacak Pesanan'}
           </h1>
           <p className="pt-1 text-xs text-ink-soft">
             {isRental
               ? 'Jadwal dan status penyewaan kostum.'
-              : 'Pantau progres produksi dan pengiriman pesanan.'}
+              : order.status === 'pending'
+                ? 'Verifikasi ketersediaan bahan kain di supplier sebelum pembayaran DP dibuka.'
+                : 'Pantau progres produksi dan pengiriman pesanan.'}
           </p>
         </div>
         <div className="flex flex-col gap-3 rounded-2xl bg-surface p-3.5 shadow-card ring-1 ring-line sm:flex-row sm:items-center">
@@ -114,7 +141,7 @@ export function OrderTrackingView({
       <section className="rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
-            <TrendingUp className="size-5 text-primary" aria-hidden="true" /> {production ? 'Tahapan Pengerjaan Busana' : 'Tahapan Pesanan'}
+            <TrendingUp className="size-5 text-primary" aria-hidden="true" /> {production && order.status !== 'pending' && order.status !== 'dikonfirmasi' ? 'Tahapan Pengerjaan Busana' : 'Tahapan Alur Pesanan'}
           </h2>
           <p className="text-[13px] text-ink-soft">
             Pembaruan Terakhir: <b className="text-ink">{formatDateTime(lastUpdate)} WIB</b>
@@ -122,7 +149,7 @@ export function OrderTrackingView({
         </div>
         {order.status === 'dibatalkan' ? (
           <p className="pt-6 text-sm font-semibold text-danger">Pesanan ini telah dibatalkan.</p>
-        ) : production ? (
+        ) : production && order.status !== 'pending' && order.status !== 'dikonfirmasi' ? (
           <ProductionTimeline order={order} />
         ) : (
           <FlowTimeline order={order} />
@@ -151,7 +178,7 @@ export function OrderTrackingView({
             </section>
           )}
 
-          {production && (
+          {showWorkshopDocs ? (
             <section className="rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
@@ -179,37 +206,105 @@ export function OrderTrackingView({
                 </div>
               )}
             </section>
+          ) : (
+            <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-8">
+              <div className="flex items-center gap-3 border-b border-line pb-4">
+                <span className="flex size-10 items-center justify-center rounded-xl bg-beige-soft text-primary">
+                  <Package className="size-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <h2 className="text-base font-bold text-ink sm:text-lg">
+                    {order.status === 'pending' ? 'Pengecekan Ketersediaan Bahan Kain' : 'Bahan Terkonfirmasi — Siap Pengerjaan'}
+                  </h2>
+                  <p className="text-xs text-ink-soft">
+                    {order.status === 'pending'
+                      ? 'Tim admin sedang memeriksa stok kain ke supplier rekanan'
+                      : 'Lakukan pembayaran DP agar bengkel dapat segera memulai proses produksi'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <div className="rounded-xl bg-beige-soft p-4 text-xs leading-relaxed text-ink-soft">
+                  <p className="font-semibold text-ink">Mengapa pesanan harus dikonfirmasi terlebih dahulu?</p>
+                  <p className="mt-1">
+                    VieGuard menerapkan sistem <i>Made-to-Order</i>. Setiap pesanan dicek langsung ke supplier bahan untuk memastikan ketersediaan dan kesesuaian spesifikasi kain sebelum Anda melakukan pembayaran DP.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-line bg-canvas p-4 text-xs">
+                  <p className="font-bold text-ink">Tahapan Alur Pesanan Anda:</p>
+                  <ol className="mt-2.5 space-y-2">
+                    <li className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-success text-[10px] font-bold text-white">✓</span>
+                      <span><b>1. Pengajuan Pesanan:</b> Ukuran dan rincian pesanan telah tersimpan.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${order.status === 'pending' ? 'bg-warning-dark' : 'bg-success'}`}>
+                        {order.status === 'pending' ? '2' : '✓'}
+                      </span>
+                      <span><b>2. Pengecekan Bahan ke Supplier:</b> Admin memastikan stok kain & aksesoris tersedia (estimasi max 1x24 jam kerja).</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${order.status === 'dikonfirmasi' ? 'bg-primary' : 'bg-muted'}`}>
+                        3
+                      </span>
+                      <span><b>3. Pembayaran DP:</b> Setelah bahan terkonfirmasi, Anda dapat mentransfer DP 50% dan mengunggah bukti bayar.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-white">4</span>
+                      <span><b>4. Produksi Bengkel Jahit:</b> Bahan dibeli dan proses jahit dimulai. Foto progres jahit akan diunggah di halaman ini.</span>
+                    </li>
+                  </ol>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface p-4">
+                  <div>
+                    <p className="text-xs font-semibold text-ink">Ada pertanyaan mengenai bahan atau jadwal?</p>
+                    <p className="text-[11px] text-ink-soft">Tim kami siap membantu Anda secara langsung via chat.</p>
+                  </div>
+                  <Link
+                    href={chatHref}
+                    className="flex items-center gap-1.5 rounded-lg border border-line bg-canvas px-3 py-1.5 text-xs font-semibold text-primary transition hover:border-primary hover:bg-beige-soft"
+                  >
+                    <MessageSquare className="size-3.5" aria-hidden="true" /> Tanya Admin via Chat
+                  </Link>
+                </div>
+              </div>
+            </section>
           )}
 
-          <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-8">
-            <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
-              <h2 className="flex items-center gap-2 text-base font-bold text-ink sm:text-lg">
-                <History className="size-5 text-primary" aria-hidden="true" /> Log Aktivitas
-              </h2>
-            </div>
-            {history.length === 0 ? (
-              <p className="pt-6 text-sm text-ink-soft">Belum ada catatan aktivitas dari admin.</p>
-            ) : (
-              <ol className="relative flex flex-col gap-6 pt-6">
-                <span className="absolute bottom-2 left-[11px] top-8 w-px bg-line-strong" aria-hidden="true" />
-                {[...history].reverse().map((h, i) => (
-                  <li key={h.id} className="relative flex gap-4 pl-0">
-                    <span className={`relative z-10 mt-1 flex size-6 shrink-0 items-center justify-center rounded-full ${i === 0 ? 'bg-primary' : 'bg-beige'}`}>
-                      <span className="size-2 rounded-full bg-surface" />
-                    </span>
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <p className="font-bold text-ink">{h.statusLabel}</p>
-                        <p className="text-xs text-ink-soft">{formatDateTime(h.createdAt)} WIB</p>
+          {(history.length > 0 || showWorkshopDocs) && (
+            <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-8">
+              <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
+                <h2 className="flex items-center gap-2 text-base font-bold text-ink sm:text-lg">
+                  <History className="size-5 text-primary" aria-hidden="true" /> Log Aktivitas
+                </h2>
+              </div>
+              {history.length === 0 ? (
+                <p className="pt-6 text-sm text-ink-soft">Belum ada catatan aktivitas dari admin.</p>
+              ) : (
+                <ol className="relative flex flex-col gap-6 pt-6">
+                  <span className="absolute bottom-2 left-[11px] top-8 w-px bg-line-strong" aria-hidden="true" />
+                  {[...history].reverse().map((h, i) => (
+                    <li key={h.id} className="relative flex gap-4 pl-0">
+                      <span className={`relative z-10 mt-1 flex size-6 shrink-0 items-center justify-center rounded-full ${i === 0 ? 'bg-primary' : 'bg-beige'}`}>
+                        <span className="size-2 rounded-full bg-surface" />
+                      </span>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <p className="font-bold text-ink">{h.statusLabel}</p>
+                          <p className="text-xs text-ink-soft">{formatDateTime(h.createdAt)} WIB</p>
+                        </div>
+                        {h.note && <p className="pt-1 text-[15px] leading-6 text-ink-soft">{h.note}</p>}
+                        <p className="pt-1 text-xs font-semibold text-primary">Progres {h.progressPercentage}%</p>
                       </div>
-                      {h.note && <p className="pt-1 text-[15px] leading-6 text-ink-soft">{h.note}</p>}
-                      <p className="pt-1 text-xs font-semibold text-primary">Progres {h.progressPercentage}%</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          )}
         </div>
 
         <aside className="flex flex-col gap-6">

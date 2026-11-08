@@ -203,7 +203,9 @@ export function paymentNote(order: Order) {
   const verified = (order.payments ?? []).filter((p) => p.status === 'terverifikasi' && p.paymentType !== 'refund');
   if (verified.length > 0) return `DP Terverifikasi (${formatRupiah(verified.reduce((s, p) => s + toNumber(p.amount), 0))})`;
   if ((order.payments ?? []).some((p) => p.status === 'menunggu')) return 'Bukti pembayaran menunggu verifikasi';
+  if (order.status === 'pending') return 'Menunggu pengecekan bahan';
   if (toNumber(order.dpAmount) > 0) return `Menunggu pembayaran DP ${formatRupiah(order.dpAmount)}`;
+  if (order.status === 'dikonfirmasi') return 'Siap bayar DP';
   return 'Belum ada pembayaran';
 }
 

@@ -20,6 +20,12 @@ export function OrderStatusPill({ order }: { order: Order }) {
   if (isAwaitingQuote(order)) {
     label = 'Menunggu Penawaran Harga';
     tone = 'warning';
+  } else if (order.status === 'pending') {
+    label = order.orderType === 'beli' ? 'Pengecekan Bahan' : 'Menunggu Konfirmasi';
+    tone = 'warning';
+  } else if (order.status === 'dikonfirmasi') {
+    label = order.isLunas ? 'Dikonfirmasi (Lunas)' : 'Dikonfirmasi (Siap Bayar DP)';
+    tone = 'info';
   } else if (order.status === 'diproses' && order.requiresProduction) {
     const idx = activeStageIndex(order);
     if (idx >= 0 && idx < PRODUCTION_STAGES.length) label = `${PRODUCTION_STAGES[idx]!.title} (Langkah ${idx + 1}/${PRODUCTION_STAGES.length})`;
