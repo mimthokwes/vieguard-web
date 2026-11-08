@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from 'next/cache';
-import { uploadPaymentProof, createSnapPayment } from './services/orders-service';
+import { uploadPaymentProof, createSnapPayment, chargeDirectPayment, DirectPaymentResponse } from './services/orders-service';
 import { getSessionToken } from '@/lib/session';
 import { encodeOrderId } from '@/lib/order-hash';
 
@@ -9,6 +9,24 @@ export interface PaymentActionState {
   error?: string;
   success?: boolean;
 }
+
+export async function chargeDirectPaymentAction(
+  orderId: string,
+  paymentMethod: 'qris' | 'va',
+  bank?: 'bca' | 'mandiri' | 'bni' | 'bri' | 'permata' | 'cimb',
+  paymentType: 'dp' | 'pelunasan' = 'dp'
+): Promise<{ error?: string; data?: DirectPaymentResponse }> {
+  const token = await getSessionToken();
+  if (!token) return { error: 'Sesi berakhir. Silakan masuk kembali.' };
+
+  try {
+    const res = await chargeDirectPayment(orderId, { paymentMethod, bank, paymentType });
+    return { data: res };
+  } catch (error) {
+    return { error: (error as Error).message || 'Gagal memproses pembayaran online.' };
+  }
+}
+
 
 export async function createSnapPaymentAction(
   orderId: string,

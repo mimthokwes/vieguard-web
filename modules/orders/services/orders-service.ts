@@ -68,3 +68,45 @@ export async function createSnapPayment(
   });
 }
 
+export interface DirectPaymentResponse {
+  orderId: string;
+  originalOrderNumber: string;
+  orderNumber: string;
+  paymentType: 'dp' | 'pelunasan';
+  grossAmount: number;
+  paymentMethod: 'qris' | 'va';
+  transactionId: string;
+  transactionStatus: string;
+  expiryTime?: string;
+  qrUrl?: string;
+  qrString?: string;
+  bank?: string;
+  vaNumber?: string;
+  billKey?: string;
+  billerCode?: string;
+}
+
+export async function chargeDirectPayment(
+  orderId: string,
+  options: {
+    paymentMethod: 'qris' | 'va';
+    bank?: 'bca' | 'mandiri' | 'bni' | 'bri' | 'permata' | 'cimb';
+    paymentType?: 'dp' | 'pelunasan';
+  }
+): Promise<DirectPaymentResponse> {
+  const token = await getSessionToken();
+  if (!token) throw new ApiError('Silakan masuk terlebih dahulu.', 401);
+
+  return apiClient<DirectPaymentResponse>('/payments/charge', {
+    method: 'POST',
+    body: {
+      orderId,
+      paymentMethod: options.paymentMethod,
+      bank: options.bank,
+      paymentType: options.paymentType,
+    },
+    token,
+  });
+}
+
+
