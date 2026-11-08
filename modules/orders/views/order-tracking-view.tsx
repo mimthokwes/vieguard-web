@@ -8,12 +8,12 @@ import {
   CircleCheck,
   ClipboardList,
   Clock,
+  CreditCard,
   FileText,
   Images,
   MessageSquare,
   Package,
   PackageCheck,
-  ReceiptText,
   Ruler,
   Scissors,
   Shirt,
@@ -24,30 +24,25 @@ import { StoreProfile } from '@/types/store';
 import { PageContainer } from '@/components/layout/page-header';
 import { buttonClasses } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { CopyButton } from '@/components/ui/copy-button';
 import { formatDate, formatDateTime, formatRupiah, toNumber } from '@/lib/format';
 import { formatImageUrl } from '@/lib/image';
 import {
   ORDER_STATUS_META,
   ORDER_TYPE_LABEL,
-  PRODUCTION_STAGES,
   RENTAL_STATUS_META,
-  activeStageIndex,
-  orderProgressPercent,
   orderTitle,
   parseOrderMeta,
   totalQuantity,
 } from '@/lib/order-status';
 import { PaymentCard } from '../components/payment-card';
 
-const STAGE_ICONS = [Scissors, Shirt, Ruler, CircleCheck, Box];
-
-/** Order lifecycle used for purchases and rentals (no production milestones). */
-const FLOW_STAGES: { title: string; statuses: Order['status'][] }[] = [
-  { title: 'Pesanan Diterima', statuses: ['pending'] },
-  { title: 'Dikonfirmasi Admin', statuses: ['dikonfirmasi'] },
-  { title: 'Disiapkan', statuses: ['diproses'] },
-  { title: 'Siap Diambil / Dikirim', statuses: ['siap_diambil'] },
-  { title: 'Selesai', statuses: ['selesai'] },
+const ORDER_FLOW_STAGES = [
+  { title: 'Pesanan Diterima', icon: ClipboardList },
+  { title: 'Dikonfirmasi Admin', icon: CircleCheck },
+  { title: 'Pembayaran DP', icon: CreditCard },
+  { title: 'Proses Pembuatan', icon: Scissors },
+  { title: 'Siap Diambil / Dikirim', icon: PackageCheck },
 ];
 
 export function OrderTrackingView({
@@ -98,7 +93,7 @@ export function OrderTrackingView({
         </div>
       )}
 
-      <header className="flex flex-col gap-6 py-6 lg:flex-row lg:items-end lg:justify-between">
+      <header className="py-6">
         <div className="max-w-2xl">
           <Badge tone={statusMeta.tone} pill dot>
             {order.status === 'pending'
@@ -115,22 +110,8 @@ export function OrderTrackingView({
               ? 'Jadwal dan status penyewaan kostum.'
               : order.status === 'pending'
                 ? 'Verifikasi ketersediaan bahan kain di supplier sebelum pembayaran DP dibuka.'
-                : 'Pantau progres produksi dan pengiriman pesanan.'}
+                : 'Pantau progres produksi dan status pesanan.'}
           </p>
-        </div>
-        <div className="flex flex-col gap-3 rounded-2xl bg-surface p-3.5 shadow-card ring-1 ring-line sm:flex-row sm:items-center">
-          <HeaderFact icon={<ReceiptText className="size-4 text-primary" />} label="Nomor Pesanan" value={order.orderNumber} />
-          {deadline && (
-            <>
-              <span className="hidden h-10 w-px bg-line sm:block" aria-hidden="true" />
-              <HeaderFact
-                gold
-                icon={<CalendarCheck className="size-4 text-gold-dark" />}
-                label={isRental ? 'Batas Pengembalian' : 'Batas Kirim'}
-                value={formatDate(deadline, { day: 'numeric', month: 'short', year: 'numeric' })}
-              />
-            </>
-          )}
         </div>
       </header>
 
@@ -138,7 +119,7 @@ export function OrderTrackingView({
       <section className="rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
-            <TrendingUp className="size-5 text-primary" aria-hidden="true" /> {production && order.status !== 'pending' && order.status !== 'dikonfirmasi' ? 'Tahapan Pengerjaan Busana' : 'Tahapan Alur Pesanan'}
+            <TrendingUp className="size-5 text-primary" aria-hidden="true" /> Tahapan Alur Pesanan
           </h2>
           <p className="text-[13px] text-ink-soft">
             Pembaruan Terakhir: <b className="text-ink">{formatDateTime(lastUpdate)} WIB</b>
@@ -146,8 +127,6 @@ export function OrderTrackingView({
         </div>
         {order.status === 'dibatalkan' ? (
           <p className="pt-6 text-sm font-semibold text-danger">Pesanan ini telah dibatalkan.</p>
-        ) : production && order.status !== 'pending' && order.status !== 'dikonfirmasi' ? (
-          <ProductionTimeline order={order} />
         ) : (
           <FlowTimeline order={order} />
         )}
@@ -278,6 +257,13 @@ export function OrderTrackingView({
               <ClipboardList className="size-5 text-primary" aria-hidden="true" /> Spesifikasi Pesanan
             </h2>
             <dl className="flex flex-col gap-4 pt-4 text-sm">
+              <div className="flex items-center justify-between rounded-xl bg-beige-soft px-3.5 py-2.5">
+                <div>
+                  <dt className="text-[11px] font-semibold uppercase text-ink-soft">Nomor Pesanan</dt>
+                  <dd className="font-extrabold text-primary">{order.orderNumber}</dd>
+                </div>
+                <CopyButton value={order.orderNumber} label="Salin" />
+              </div>
               <Fact label="Item Produk" value={orderTitle(order)} />
               <div className="grid grid-cols-2 gap-4">
                 <Fact label="Kuota Pembuatan" value={`${totalQuantity(order)} ${order.orderType === 'custom' ? 'Stel' : 'Unit'}`} accent />
@@ -324,40 +310,126 @@ export function OrderTrackingView({
   );
 }
 
-function ProductionTimeline({ order }: { order: Order }) {
-  const idx = activeStageIndex(order);
-  const pct = orderProgressPercent(order);
+function FlowTimeline({ order }: { order: Order }) {
+  const payments = order.payments ?? [];
+  const paid = payments
+    .filter((p) => p.status === 'terverifikasi' && p.paymentType !== 'refund')
+    .reduce((s, p) => s + toNumber(p.amount), 0);
+  const dpVerified = paid > 0 || order.isLunas;
+  const isSelesai = order.status === 'selesai';
+
+  // Stages:
+  // 0: 1. Pesanan Diterima
+  // 1: 2. Dikonfirmasi Admin
+  // 2: 3. Pembayaran DP
+  // 3: 4. Proses Pembuatan
+  // 4: 5. Siap Diambil / Dikirim
+  let activeIdx = 0;
+  if (isSelesai) {
+    activeIdx = 4;
+  } else if (order.status === 'siap_diambil') {
+    activeIdx = 4;
+  } else if (order.status === 'diproses') {
+    activeIdx = 3;
+  } else if (order.status === 'dikonfirmasi') {
+    activeIdx = dpVerified ? 3 : 1;
+  } else {
+    // pending
+    activeIdx = 0;
+  }
+
   return (
     <ol className="grid grid-cols-1 gap-6 pt-8 sm:grid-cols-5">
-      {PRODUCTION_STAGES.map((s, i) => {
-        const done = i < idx;
-        const active = i === idx;
-        const Icon = STAGE_ICONS[i]!;
+      {ORDER_FLOW_STAGES.map((s, i) => {
+        const isDone = isSelesai || i < activeIdx || (i === activeIdx && activeIdx === 1 && order.status === 'dikonfirmasi');
+        const isActive = !isSelesai && i === activeIdx;
+        const Icon = s.icon;
+
+        // Connector line logic:
+        // i < activeIdx: line is completely filled (done).
+        // i === activeIdx && !isSelesai: line is 50% filled (in-progress halfway!).
+        // i > activeIdx: line is empty.
+        const isLineDone = isSelesai || i < activeIdx;
+        const isLineHalf = !isSelesai && i === activeIdx;
+
         return (
-          <li key={s.title} className="relative flex flex-row items-center gap-4 text-left sm:flex-col sm:gap-0 sm:text-center">
-            {i < PRODUCTION_STAGES.length - 1 && (
-              <span className={`absolute left-1/2 top-6 hidden h-1 w-full sm:block ${i < idx ? 'bg-primary' : 'bg-line'}`} aria-hidden="true" />
+          <li key={s.title} className="relative flex items-center gap-4 sm:flex-col sm:gap-0 sm:text-center">
+            {/* Desktop Horizontal Line */}
+            {i < ORDER_FLOW_STAGES.length - 1 && (
+              <span className="absolute left-1/2 top-6 hidden h-1 w-full sm:block bg-line overflow-visible z-0" aria-hidden="true">
+                <span
+                  className={`relative block h-full transition-all duration-500 ${
+                    isLineDone
+                      ? 'w-full bg-primary'
+                      : isLineHalf
+                        ? 'w-1/2 bg-primary'
+                        : 'w-0'
+                  }`}
+                >
+                  {isLineHalf && (
+                    <>
+                      <span className="absolute -right-1 -top-[3px] size-2.5 rounded-full bg-primary" />
+                      <span className="absolute -right-1 -top-[3px] size-2.5 rounded-full bg-primary ring-4 ring-primary/30 animate-ping" />
+                    </>
+                  )}
+                </span>
+              </span>
             )}
+
+            {/* Mobile Vertical Line */}
+            {i < ORDER_FLOW_STAGES.length - 1 && (
+              <span className="absolute left-6 top-12 h-6 w-0.5 sm:hidden bg-line overflow-visible" aria-hidden="true">
+                <span
+                  className={`relative block w-full ${
+                    isLineDone
+                      ? 'h-full bg-primary'
+                      : isLineHalf
+                        ? 'h-1/2 bg-primary'
+                        : 'h-0'
+                  }`}
+                >
+                  {isLineHalf && (
+                    <span className="absolute -left-[3px] -bottom-1 size-2 rounded-full bg-primary animate-ping" />
+                  )}
+                </span>
+              </span>
+            )}
+
             <span
-              className={`relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full ${
-                done || active ? 'bg-primary text-on-primary ring-4 ring-beige-soft' : 'bg-canvas text-muted'
+              className={`relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+                isDone || isActive
+                  ? 'bg-primary text-on-primary ring-4 ring-beige-soft shadow-xs'
+                  : 'bg-canvas text-muted ring-1 ring-line'
               }`}
             >
-              {done ? <Check className="size-5" strokeWidth={3} aria-hidden="true" /> : <Icon className="size-5" aria-hidden="true" />}
+              {isDone && !isActive ? (
+                <Check className="size-5" strokeWidth={3} aria-hidden="true" />
+              ) : (
+                <Icon className="size-5" aria-hidden="true" />
+              )}
             </span>
+
             <span className="sm:pt-3">
-              <span className={`block text-[15px] font-semibold ${active ? 'text-primary' : done ? 'text-ink' : 'text-muted'}`}>
+              <span
+                className={`block text-[13.5px] font-bold ${
+                  isActive
+                    ? 'text-primary'
+                    : isDone
+                      ? 'text-ink'
+                      : 'text-muted'
+                }`}
+              >
                 {i + 1}. {s.title}
               </span>
-              <span className="block pt-1 text-xs">
-                {done ? (
-                  <span className="text-primary">Selesai</span>
-                ) : active ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 font-semibold text-on-primary">
-                    <span className="size-1.5 rounded-full bg-gold" /> Progres {pct}%
+              <span className="block pt-0.5 text-[11px]">
+                {isSelesai || (isDone && !isActive) ? (
+                  <span className="font-semibold text-primary">Selesai</span>
+                ) : isActive ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 font-bold text-warning-dark">
+                    <span className="size-1.5 rounded-full bg-warning-dark animate-pulse" /> Sedang Berjalan
                   </span>
                 ) : (
-                  <span className="text-muted">{idx < 0 ? 'Menunggu konfirmasi' : 'Menunggu Giliran'}</span>
+                  <span className="text-muted">Berikutnya</span>
                 )}
               </span>
             </span>
@@ -365,47 +437,6 @@ function ProductionTimeline({ order }: { order: Order }) {
         );
       })}
     </ol>
-  );
-}
-
-function FlowTimeline({ order }: { order: Order }) {
-  const idx = FLOW_STAGES.findIndex((s) => s.statuses.includes(order.status));
-  return (
-    <ol className="grid grid-cols-1 gap-6 pt-8 sm:grid-cols-5">
-      {FLOW_STAGES.map((s, i) => {
-        const done = i < idx || order.status === 'selesai';
-        const active = i === idx && order.status !== 'selesai';
-        return (
-          <li key={s.title} className="relative flex items-center gap-4 sm:flex-col sm:gap-0 sm:text-center">
-            {i < FLOW_STAGES.length - 1 && (
-              <span className={`absolute left-1/2 top-6 hidden h-1 w-full sm:block ${i < idx ? 'bg-primary' : 'bg-line'}`} aria-hidden="true" />
-            )}
-            <span
-              className={`relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full ${
-                done || active ? 'bg-primary text-on-primary ring-4 ring-beige-soft' : 'bg-canvas text-muted'
-              }`}
-            >
-              {done ? <Check className="size-5" strokeWidth={3} aria-hidden="true" /> : i === 3 ? <PackageCheck className="size-5" /> : <Package className="size-5" />}
-            </span>
-            <span className={`text-[15px] font-semibold sm:pt-3 ${active ? 'text-primary' : done ? 'text-ink' : 'text-muted'}`}>
-              {i + 1}. {s.title}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-function HeaderFact({ icon, label, value, gold = false }: { icon: React.ReactNode; label: string; value: string; gold?: boolean }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${gold ? 'bg-warning-bg text-gold-dark' : 'bg-beige-soft text-primary'}`}>{icon}</span>
-      <div>
-        <p className="text-xs font-semibold uppercase text-ink-soft">{label}</p>
-        <p className={`text-[15px] font-bold ${gold ? 'text-gold-dark' : 'text-ink'}`}>{value}</p>
-      </div>
-    </div>
   );
 }
 
