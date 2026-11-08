@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { createOrder } from './services/order-service';
 import { getSessionUser } from '@/lib/session';
 import { formatOrderMeta } from '@/lib/order-status';
+import { encodeOrderId } from '@/lib/order-hash';
 import { CUSTOM_MIN_QUANTITY, STANDARD_PACKAGE } from './data';
 
 export interface OrderActionState {
@@ -77,7 +78,7 @@ export async function submitStandardOrder(input: StandardOrderInput): Promise<Or
   }
 
   revalidatePath('/orders');
-  redirect(`/orders/${orderId}?created=1`);
+  redirect(`/orders/${encodeOrderId(orderId)}?created=1`);
 }
 
 export async function submitCustomOrder(_prev: OrderActionState, formData: FormData): Promise<OrderActionState> {
@@ -148,5 +149,5 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
   }
 
   revalidatePath('/orders');
-  redirect(`/orders/${orderId}?created=1`);
+  redirect(`/orders/${encodeOrderId(orderId)}?created=1`);
 }

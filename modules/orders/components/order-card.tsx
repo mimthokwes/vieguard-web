@@ -14,6 +14,7 @@ import {
   parseOrderMeta,
   totalQuantity,
 } from '@/lib/order-status';
+import { encodeOrderId } from '@/lib/order-hash';
 import { OrderStatusPill } from './order-status-pill';
 import { OrderVisual } from './order-visual';
 
@@ -120,7 +121,7 @@ export function OrderCard({ order }: { order: Order }) {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href={`/orders/${order.id}`} className={buttonClasses({ size: 'sm' })}>
+              <Link href={`/orders/${encodeOrderId(order.id)}`} className={buttonClasses({ size: 'sm' })}>
                 <TrendingUp className="size-3.5" aria-hidden="true" /> {awaitingQuote ? 'Lihat Penawaran' : 'Lacak'}
               </Link>
               <Link

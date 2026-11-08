@@ -23,6 +23,7 @@ import {
 import { AppNotification } from '@/types/notification';
 import { PageContainer } from '@/components/layout/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { encodeOrderId } from '@/lib/order-hash';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { relativeTime } from '@/lib/format';
 import { markAllReadAction, markReadAction } from '../actions';
@@ -187,7 +188,7 @@ export function NotificationsView({ notifications }: { notifications: AppNotific
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
                     {n.relatedOrderId ? (
                       <Link
-                        href={`/orders/${n.relatedOrderId}`}
+                        href={`/orders/${encodeOrderId(n.relatedOrderId)}`}
                         onClick={() => !n.isRead && markRead(n.id)}
                         className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                       >

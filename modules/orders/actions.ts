@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { uploadPaymentProof } from './services/orders-service';
 import { getSessionToken } from '@/lib/session';
+import { encodeOrderId } from '@/lib/order-hash';
 
 export interface PaymentActionState {
   error?: string;
@@ -41,5 +42,7 @@ export async function uploadPaymentProofAction(_prev: PaymentActionState, formDa
   }
 
   revalidatePath(`/orders/${orderId}`);
+  revalidatePath(`/orders/${encodeOrderId(orderId)}`);
+  revalidatePath('/orders');
   return { success: true };
 }
