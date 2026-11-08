@@ -9,8 +9,6 @@ import {
   ClipboardList,
   Clock,
   FileText,
-  Headset,
-  History,
   Images,
   MessageSquare,
   Package,
@@ -20,7 +18,6 @@ import {
   Scissors,
   Shirt,
   TrendingUp,
-  Truck,
 } from 'lucide-react';
 import { Order, OrderStatusHistory } from '@/types/order';
 import { StoreProfile } from '@/types/store';
@@ -273,38 +270,6 @@ export function OrderTrackingView({
               </div>
             </section>
           )}
-
-          {(history.length > 0 || showWorkshopDocs) && (
-            <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-8">
-              <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
-                <h2 className="flex items-center gap-2 text-base font-bold text-ink sm:text-lg">
-                  <History className="size-5 text-primary" aria-hidden="true" /> Log Aktivitas
-                </h2>
-              </div>
-              {history.length === 0 ? (
-                <p className="pt-6 text-sm text-ink-soft">Belum ada catatan aktivitas dari admin.</p>
-              ) : (
-                <ol className="relative flex flex-col gap-6 pt-6">
-                  <span className="absolute bottom-2 left-[11px] top-8 w-px bg-line-strong" aria-hidden="true" />
-                  {[...history].reverse().map((h, i) => (
-                    <li key={h.id} className="relative flex gap-4 pl-0">
-                      <span className={`relative z-10 mt-1 flex size-6 shrink-0 items-center justify-center rounded-full ${i === 0 ? 'bg-primary' : 'bg-beige'}`}>
-                        <span className="size-2 rounded-full bg-surface" />
-                      </span>
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-baseline justify-between gap-2">
-                          <p className="font-bold text-ink">{h.statusLabel}</p>
-                          <p className="text-xs text-ink-soft">{formatDateTime(h.createdAt)} WIB</p>
-                        </div>
-                        {h.note && <p className="pt-1 text-[15px] leading-6 text-ink-soft">{h.note}</p>}
-                        <p className="pt-1 text-xs font-semibold text-primary">Progres {h.progressPercentage}%</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </section>
-          )}
         </div>
 
         <aside className="flex flex-col gap-6">
@@ -353,38 +318,6 @@ export function OrderTrackingView({
           </section>
 
           <PaymentCard order={order} />
-
-          {!isRental && (
-            <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
-              <h2 className="flex items-center gap-2 border-b border-line pb-3 text-lg font-bold text-ink">
-                <Truck className="size-5 text-primary" aria-hidden="true" /> Logistik & Pengiriman
-              </h2>
-              <dl className="flex flex-col gap-4 pt-4 text-sm">
-                <Fact label="Ekspedisi Ditunjuk" value={order.courier || 'Ditentukan bengkel'} />
-                {order.trackingNumber && <Fact label="Nomor Resi" value={order.trackingNumber} accent />}
-                {meta.address && <Fact label="Alamat Pengiriman Institusi" value={meta.address} />}
-              </dl>
-              {(order.etaDate || order.shippedAt) && (
-                <div className="mt-4 flex gap-3 rounded-xl bg-warning-bg p-4">
-                  <CalendarClock className="size-5 shrink-0 text-gold-dark" aria-hidden="true" />
-                  <div>
-                    <p className="text-xs font-semibold text-ink-soft">{order.etaDate ? 'Estimasi Tiba di Lokasi' : 'Dikirim'}</p>
-                    <p className="font-bold text-gold-dark">{formatDate(order.etaDate ?? order.shippedAt, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                  </div>
-                </div>
-              )}
-            </section>
-          )}
-
-          <section className="rounded-2xl bg-beige-soft p-5 ring-1 ring-beige">
-            <p className="flex items-center gap-2 font-bold text-ink">
-              <Headset className="size-4 text-gold-dark" aria-hidden="true" /> Bantuan Pesanan
-            </p>
-            <p className="pt-2 text-xs text-ink-soft">Butuh penyesuaian ukuran atau konfirmasi jadwal?</p>
-            <Link href={chatHref} className={buttonClasses({ size: 'md', fullWidth: true, className: 'mt-4' })}>
-              <MessageSquare className="size-4" aria-hidden="true" /> Chat Admin
-            </Link>
-          </section>
         </aside>
       </div>
     </PageContainer>
