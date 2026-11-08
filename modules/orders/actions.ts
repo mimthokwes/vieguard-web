@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from 'next/cache';
-import { uploadPaymentProof } from './services/orders-service';
+import { uploadPaymentProof, createSnapPayment } from './services/orders-service';
 import { getSessionToken } from '@/lib/session';
 import { encodeOrderId } from '@/lib/order-hash';
 
@@ -9,6 +9,23 @@ export interface PaymentActionState {
   error?: string;
   success?: boolean;
 }
+
+export async function createSnapPaymentAction(
+  orderId: string,
+  paymentMethod: 'qris' | 'va',
+  paymentType: 'dp' | 'pelunasan'
+): Promise<{ error?: string; snapToken?: string; redirectUrl?: string }> {
+  const token = await getSessionToken();
+  if (!token) return { error: 'Sesi berakhir. Silakan masuk kembali.' };
+
+  try {
+    const res = await createSnapPayment(orderId, { paymentMethod, paymentType });
+    return { snapToken: res.snapToken, redirectUrl: res.redirectUrl };
+  } catch (error) {
+    return { error: (error as Error).message || 'Gagal menyiapkan pembayaran online.' };
+  }
+}
+
 
 const MAX_PROOF_BYTES = 5 * 1024 * 1024;
 

@@ -46,3 +46,25 @@ export async function getOrderStatusHistory(id: string): Promise<OrderStatusHist
 export async function uploadPaymentProof(formData: FormData, token: string): Promise<unknown> {
   return apiUpload('/payments/proof', formData, token);
 }
+
+export async function createSnapPayment(
+  orderId: string,
+  options?: {
+    paymentMethod?: 'qris' | 'va';
+    paymentType?: 'dp' | 'pelunasan';
+  }
+): Promise<{ snapToken: string; redirectUrl: string; grossAmount: number }> {
+  const token = await getSessionToken();
+  if (!token) throw new ApiError('Silakan masuk terlebih dahulu.', 401);
+
+  return apiClient<{ snapToken: string; redirectUrl: string; grossAmount: number }>('/payments/snap', {
+    method: 'POST',
+    body: {
+      orderId,
+      paymentMethod: options?.paymentMethod,
+      paymentType: options?.paymentType,
+    },
+    token,
+  });
+}
+
