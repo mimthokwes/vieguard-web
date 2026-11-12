@@ -120,8 +120,8 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
             {mode === 'sewa' ? <CalendarDays className="size-5" aria-hidden="true" /> : <ShoppingBag className="size-5" aria-hidden="true" />}
           </span>
           <div>
-            <h2 className="text-lg font-bold text-ink">{mode === 'sewa' ? 'Pemesanan Tanggal & Armada Sewa' : 'Pembelian Produk'}</h2>
-            <p className="text-xs text-ink-soft">{mode === 'sewa' ? 'Konfigurasi jadwal dan kuota seragam' : 'Pilih ukuran dan jumlah unit'}</p>
+            <h2 className="text-lg font-bold text-ink">{mode === 'sewa' ? 'Pemesanan Tanggal & Armada Sewa' : 'Pengajuan Pre-Order'}</h2>
+            <p className="text-xs text-ink-soft">{mode === 'sewa' ? 'Konfigurasi jadwal dan kuota seragam' : 'Pilih ukuran & ajukan pengecekan bahan'}</p>
           </div>
         </div>
 
@@ -243,6 +243,15 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
             </span>
             <span className="text-2xl font-extrabold text-primary">{formatRupiah(subtotal)}</span>
           </div>
+          {mode === 'beli' && subtotal > 0 && (
+            <div className="mt-2.5 flex items-center justify-between border-t border-dashed border-line pt-2 text-xs">
+              <span className="text-ink-soft">Perkiraan DP 50%:</span>
+              <span className="font-bold text-ink">
+                {formatRupiah(subtotal * 0.5)}{' '}
+                <span className="font-normal text-muted">(dibayar setelah bahan dikonfirmasi)</span>
+              </span>
+            </div>
+          )}
         </div>
 
         {mode === 'sewa' && (
@@ -256,7 +265,7 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
 
         <Button size="lg" fullWidth className="mt-5 !h-12" onClick={submit} disabled={pending || (mode === 'sewa' && days < 1)}>
           {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Send className="size-4" aria-hidden="true" />}
-          {!isLoggedIn ? 'Masuk untuk Melanjutkan' : mode === 'sewa' ? 'Lanjutkan Booking Tanggal' : 'Pesan Sekarang'}
+          {!isLoggedIn ? 'Masuk untuk Melanjutkan' : mode === 'sewa' ? 'Ajukan Booking Tanggal' : 'Ajukan Pesanan (Pre-Order)'}
         </Button>
         <Link
           href={`/chat?topic=${encodeURIComponent(`Ketersediaan ${product.name}`)}`}
@@ -265,7 +274,9 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
           <MessagesSquare className="size-4 text-primary" aria-hidden="true" /> Konsultasi Ketersediaan via Chat
         </Link>
         <p className="pt-2 text-center text-[11px] text-ink-soft">
-          {mode === 'sewa' ? 'Admin akan segera mengonfirmasi ketersediaan armada tanggal sewa Anda.' : 'Admin akan meninjau ketersediaan dan detail ongkos kirim pesanan.'}
+          {mode === 'sewa'
+            ? 'Admin akan segera mengonfirmasi ketersediaan armada tanggal sewa Anda.'
+            : 'Admin akan memeriksa ketersediaan bahan kain ke supplier terlebih dahulu sebelum pembayaran DP dibuka.'}
         </p>
       </section>
 

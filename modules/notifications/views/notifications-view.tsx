@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useMemo, useState, useTransition } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -16,6 +16,7 @@ import {
   MailOpen,
   PackageCheck,
   ReceiptText,
+  RefreshCw,
   Scissors,
   Truck,
   XCircle,
@@ -23,9 +24,10 @@ import {
 import { AppNotification } from '@/types/notification';
 import { PageContainer } from '@/components/layout/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { encodeOrderId } from '@/lib/order-hash';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { relativeTime } from '@/lib/format';
-import { markAllReadAction, markReadAction } from '../actions';
+import { useNotifications } from '../hooks/use-notifications';
 
 type Group = 'order' | 'rental' | 'quote';
 
@@ -56,36 +58,48 @@ function metaFor(type: string) {
 
 type Tab = 'all' | 'unread' | Group;
 
-export function NotificationsView({ notifications }: { notifications: AppNotification[] }) {
+export function NotificationsView({ notifications: initialNotifications }: { notifications: AppNotification[] }) {
   const [tab, setTab] = useState<Tab>('all');
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState('');
-  const [markingAll, startMarkAll] = useTransition();
 
-  const items = useMemo(() => notifications.map((n) => ({ ...n, isRead: n.isRead || readIds.has(n.id) })), [notifications, readIds]);
-  const unread = items.filter((n) => !n.isRead).length;
-  const today = items.filter((n) => new Date(n.createdAt).toDateString() === new Date().toDateString()).length;
+  const {
+    notifications,
+    unreadCount: unread,
+    isFetching,
+    isUpdating,
+    refetch,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications({ initialNotifications });
+
+  const items = notifications;
+  const today = useMemo(() => items.filter((n) => new Date(n.createdAt).toDateString() === new Date().toDateString()).length, [items]);
+
   const count = (t: Tab) =>
     t === 'all' ? items.length : t === 'unread' ? unread : items.filter((n) => metaFor(n.type).group === t).length;
   const visible = items.filter((n) => (tab === 'all' ? true : tab === 'unread' ? !n.isRead : metaFor(n.type).group === tab));
 
-  const markRead = async (id: string) => {
+  const handleMarkRead = async (id: string) => {
     setPendingId(id);
     setError('');
-    const r = await markReadAction(id);
-    setPendingId(null);
-    if (r.error) setError(r.error);
-    else setReadIds((s) => new Set(s).add(id));
+    try {
+      await markAsRead(id);
+    } catch (err) {
+      setError((err as Error).message || 'Gagal menandai notifikasi.');
+    } finally {
+      setPendingId(null);
+    }
   };
 
-  const markAll = () =>
-    startMarkAll(async () => {
-      setError('');
-      const r = await markAllReadAction();
-      if (r.error) setError(r.error);
-      else setReadIds(new Set(items.map((n) => n.id)));
-    });
+  const handleMarkAll = async () => {
+    setError('');
+    try {
+      await markAllAsRead();
+    } catch (err) {
+      setError((err as Error).message || 'Gagal menandai semua notifikasi.');
+    }
+  };
 
   const TABS: { key: Tab; label: string }[] = [
     { key: 'all', label: 'Semua' },
@@ -97,35 +111,54 @@ export function NotificationsView({ notifications }: { notifications: AppNotific
 
   return (
     <PageContainer>
-
       <header className="flex flex-col gap-5 py-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="rounded-full bg-beige-soft px-2.5 py-0.5 text-xs font-bold uppercase text-primary">
-            Notifikasi
-          </span>
+          <span className="rounded-full bg-beige-soft px-2.5 py-0.5 text-xs font-bold uppercase text-primary">Notifikasi</span>
           <h1 className="pt-2 text-2xl font-extrabold tracking-tight text-ink">Notifikasi</h1>
-          <p className="pt-1 text-xs text-ink-soft">
-            Pembaruan status pesanan, produksi, dan pembayaran.
-          </p>
+          <p className="pt-1 text-xs text-ink-soft">Pembaruan status pesanan, produksi, dan pembayaran.</p>
         </div>
-        <button
-          type="button"
-          onClick={markAll}
-          disabled={markingAll || unread === 0}
-          className="flex items-center gap-2 self-start rounded-xl bg-surface px-4 py-2 text-xs font-semibold text-primary shadow-card ring-1 ring-line transition-colors hover:bg-beige-soft disabled:opacity-50 sm:self-auto"
-        >
-          {markingAll ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : <CheckCheck className="size-3.5" aria-hidden="true" />}
-          Tandai Semua Dibaca
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            title="Segarkan notifikasi"
+            className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-soft shadow-xs transition-colors hover:bg-beige-soft hover:text-primary disabled:opacity-50"
+          >
+            <RefreshCw className={`size-3.5 ${isFetching ? 'animate-spin text-primary' : ''}`} aria-hidden="true" />
+            <span className="hidden sm:inline">{isFetching ? 'Memeriksa...' : 'Segarkan'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleMarkAll}
+            disabled={isUpdating || unread === 0}
+            className="flex items-center gap-2 rounded-xl bg-surface px-4 py-2 text-xs font-semibold text-primary shadow-card ring-1 ring-line transition-colors hover:bg-beige-soft disabled:opacity-50"
+          >
+            {isUpdating ? (
+              <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+            ) : (
+              <CheckCheck className="size-3.5" aria-hidden="true" />
+            )}
+            Tandai Semua Dibaca
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
-        <StatCard icon={<MailOpen className="size-4" />} label="Belum Dibaca" value={String(unread)} badge={unread > 0 ? 'Baru' : undefined} />
+        <StatCard
+          icon={<MailOpen className="size-4" />}
+          label="Belum Dibaca"
+          value={String(unread)}
+          badge={unread > 0 ? 'Baru' : undefined}
+        />
         <StatCard icon={<Clock className="size-4" />} label="Hari Ini" value={String(today)} />
         <StatCard icon={<Bell className="size-4" />} label="Total" value={String(items.length)} />
       </div>
 
-      <div className="mt-6 flex gap-1 overflow-x-auto rounded-xl bg-surface p-1.5 shadow-card ring-1 ring-line scrollbar-none" role="tablist">
+      <div
+        className="mt-6 flex gap-1 overflow-x-auto rounded-xl bg-surface p-1.5 shadow-card ring-1 ring-line scrollbar-none"
+        role="tablist"
+      >
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -140,7 +173,11 @@ export function NotificationsView({ notifications }: { notifications: AppNotific
             {t.label}
             <span
               className={`rounded px-1.5 py-0.5 text-[11px] font-bold ${
-                tab === t.key ? 'bg-white/20 text-white' : t.key === 'unread' && unread > 0 ? 'bg-warning-bg text-gold-dark' : 'bg-canvas text-ink-soft'
+                tab === t.key
+                  ? 'bg-white/20 text-white'
+                  : t.key === 'unread' && unread > 0
+                    ? 'bg-warning-bg text-gold-dark'
+                    : 'bg-canvas text-ink-soft'
               }`}
             >
               {count(t.key)}
@@ -163,7 +200,9 @@ export function NotificationsView({ notifications }: { notifications: AppNotific
               }`}
             >
               <div className="flex gap-3.5">
-                <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${n.isRead ? 'bg-canvas text-ink-soft' : 'bg-surface text-primary shadow-soft'}`}>
+                <span
+                  className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${n.isRead ? 'bg-canvas text-ink-soft' : 'bg-surface text-primary shadow-soft'}`}
+                >
                   <Icon className="size-4" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -171,7 +210,11 @@ export function NotificationsView({ notifications }: { notifications: AppNotific
                     <span className="flex items-center gap-2">
                       <span
                         className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                          n.isRead ? 'bg-canvas text-ink-soft' : meta.group === 'rental' ? 'bg-gold-dark text-white' : 'bg-primary text-on-primary'
+                          n.isRead
+                            ? 'bg-canvas text-ink-soft'
+                            : meta.group === 'rental'
+                              ? 'bg-gold-dark text-white'
+                              : 'bg-primary text-on-primary'
                         }`}
                       >
                         {meta.label}
@@ -187,8 +230,8 @@ export function NotificationsView({ notifications }: { notifications: AppNotific
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
                     {n.relatedOrderId ? (
                       <Link
-                        href={`/orders/${n.relatedOrderId}`}
-                        onClick={() => !n.isRead && markRead(n.id)}
+                        href={`/orders/${encodeOrderId(n.relatedOrderId)}`}
+                        onClick={() => !n.isRead && handleMarkRead(n.id)}
                         className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                       >
                         {meta.cta} <ArrowRight className="size-3.5" aria-hidden="true" />
@@ -205,7 +248,7 @@ export function NotificationsView({ notifications }: { notifications: AppNotific
                     ) : (
                       <button
                         type="button"
-                        onClick={() => markRead(n.id)}
+                        onClick={() => handleMarkRead(n.id)}
                         disabled={pendingId === n.id}
                         className="text-xs font-semibold text-ink-soft hover:text-primary disabled:opacity-50"
                       >
@@ -225,9 +268,7 @@ export function NotificationsView({ notifications }: { notifications: AppNotific
           icon={<Bell className="size-7" aria-hidden="true" />}
           title={items.length === 0 ? 'Belum ada notifikasi' : 'Tidak ada notifikasi'}
           description={
-            items.length === 0
-              ? 'Notifikasi aktivitas pesanan akan muncul di sini.'
-              : 'Pilih tab lain untuk melihat notifikasi.'
+            items.length === 0 ? 'Notifikasi aktivitas pesanan akan muncul di sini.' : 'Pilih tab lain untuk melihat notifikasi.'
           }
         />
       )}

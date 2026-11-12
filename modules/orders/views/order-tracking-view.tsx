@@ -7,61 +7,60 @@ import {
   Check,
   CircleCheck,
   ClipboardList,
+  Clock,
+  CreditCard,
   FileText,
-  Headset,
-  History,
   Images,
   MessageSquare,
   Package,
   PackageCheck,
-  ReceiptText,
+  RefreshCw,
   Ruler,
   Scissors,
   Shirt,
+  ShoppingBag,
   TrendingUp,
-  Truck,
 } from 'lucide-react';
 import { Order, OrderStatusHistory } from '@/types/order';
 import { StoreProfile } from '@/types/store';
 import { PageContainer } from '@/components/layout/page-header';
 import { buttonClasses } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { CopyButton } from '@/components/ui/copy-button';
 import { formatDate, formatDateTime, formatRupiah, toNumber } from '@/lib/format';
-import { formatImageUrl } from '@/lib/image';
-import {
-  ORDER_STATUS_META,
-  ORDER_TYPE_LABEL,
-  PRODUCTION_STAGES,
-  RENTAL_STATUS_META,
-  activeStageIndex,
-  orderProgressPercent,
-  orderTitle,
-  parseOrderMeta,
-  totalQuantity,
-} from '@/lib/order-status';
+import { formatImageUrl, primaryImage } from '@/lib/image';
+import { ORDER_STATUS_META, ORDER_TYPE_LABEL, RENTAL_STATUS_META, orderTitle, parseOrderMeta, totalQuantity } from '@/lib/order-status';
+import { OrderNotificationToast } from '../components/order-notification-toast';
 import { PaymentCard } from '../components/payment-card';
 
-const STAGE_ICONS = [Scissors, Shirt, Ruler, CircleCheck, Box];
-
-/** Order lifecycle used for purchases and rentals (no production milestones). */
-const FLOW_STAGES: { title: string; statuses: Order['status'][] }[] = [
-  { title: 'Pesanan Diterima', statuses: ['pending'] },
-  { title: 'Dikonfirmasi Admin', statuses: ['dikonfirmasi'] },
-  { title: 'Disiapkan', statuses: ['diproses'] },
-  { title: 'Siap Diambil / Dikirim', statuses: ['siap_diambil'] },
-  { title: 'Selesai', statuses: ['selesai'] },
+const ORDER_FLOW_STAGES = [
+  { title: 'Pesanan Diterima', icon: ClipboardList },
+  { title: 'Dikonfirmasi Admin', icon: CircleCheck },
+  { title: 'Pembayaran DP', icon: CreditCard },
+  { title: 'Proses Pembuatan', icon: Scissors },
+  { title: 'Siap Diambil / Dikirim', icon: PackageCheck },
 ];
+
+const TYPE_FALLBACK: Record<Order['orderType'], string> = {
+  custom: '/images/portfolio/project-1.webp',
+  beli: '/images/portfolio/project-6.webp',
+  sewa: '/images/portfolio/project-2.webp',
+};
 
 export function OrderTrackingView({
   order,
   history,
   store,
   justCreated,
+  isFetching,
+  onRefresh,
 }: {
   order: Order;
   history: OrderStatusHistory[];
   store?: StoreProfile | null;
   justCreated?: boolean;
+  isFetching?: boolean;
+  onRefresh?: () => void;
 }) {
   const meta = parseOrderMeta(order);
   const isRental = order.orderType === 'sewa';
@@ -71,59 +70,60 @@ export function OrderTrackingView({
   const deadline = order.etaDate ?? meta.eventDate ?? order.rental?.returnDate;
   const chatHref = `/chat?topic=${encodeURIComponent(`Pesanan ${order.orderNumber}`)}`;
 
+  const showWorkshopDocs =
+    production &&
+    (order.status === 'diproses' ||
+      order.status === 'siap_diambil' ||
+      order.status === 'selesai' ||
+      (order.orderPhotos && order.orderPhotos.length > 0));
+
   return (
     <PageContainer>
+      {/* Sticky floating notification (slides in from right, disappears after a few seconds) */}
+      {order.status === 'dikonfirmasi' && !order.isLunas ? (
+        <OrderNotificationToast type="confirmed" orderNumber={order.orderNumber} />
+      ) : justCreated && order.status === 'pending' ? (
+        <OrderNotificationToast type="created" orderNumber={order.orderNumber} />
+      ) : null}
 
-      {justCreated && (
-        <p role="status" className="mt-6 flex items-center gap-2 rounded-xl border border-success/25 bg-success-bg px-4 py-3 text-sm font-semibold text-success">
-          <CircleCheck className="size-4" aria-hidden="true" /> Pesanan berhasil dibuat.
-        </p>
-      )}
+      {/* Card Tahapan Alur Pesanan (menggabungkan Judul, Status Pill, dan Timeline) */}
+      <section className="mt-6 rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-8">
+        <div className="flex flex-col gap-4 border-b border-line pb-5">
+          <div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-xl font-extrabold tracking-tight text-ink sm:text-2xl">{isRental ? 'Status Sewa' : 'Lacak Pesanan'}</h1>
+              <Badge tone={statusMeta.tone} pill dot>
+                {order.status === 'pending'
+                  ? 'Menunggu Konfirmasi Bahan'
+                  : order.status === 'diproses' && production
+                    ? 'Produksi Berlangsung'
+                    : statusMeta.label}
+              </Badge>
+              {onRefresh && (
+                <button
+                  type="button"
+                  onClick={onRefresh}
+                  disabled={isFetching}
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink-soft hover:bg-beige-soft hover:text-primary transition-colors disabled:opacity-50"
+                  title="Segarkan status pesanan"
+                >
+                  <RefreshCw className={`size-3.5 ${isFetching ? 'animate-spin text-primary' : ''}`} />
+                  <span>{isFetching ? 'Memeriksa...' : 'Cek Status'}</span>
+                </button>
+              )}
+            </div>
+            <p className="pt-1 text-xs text-ink-soft">
+              {isRental
+                ? 'Jadwal dan status penyewaan kostum.'
+                : order.status === 'pending'
+                  ? 'Pengecekan bahan kain di supplier sebelum pembayaran DP dibuka.'
+                  : 'Pantau tahapan pengerjaan dan progres produksi pesanan Anda.'}
+            </p>
+          </div>
+        </div>
 
-      <header className="flex flex-col gap-6 py-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-2xl">
-          <Badge tone={statusMeta.tone} pill dot>
-            {order.status === 'diproses' && production ? 'Produksi Berlangsung' : statusMeta.label}
-          </Badge>
-          <h1 className="pt-2 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-            {isRental ? 'Status Sewa' : 'Lacak Pesanan'}
-          </h1>
-          <p className="pt-1 text-xs text-ink-soft">
-            {isRental
-              ? 'Jadwal dan status penyewaan kostum.'
-              : 'Pantau progres produksi dan pengiriman pesanan.'}
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 rounded-2xl bg-surface p-3.5 shadow-card ring-1 ring-line sm:flex-row sm:items-center">
-          <HeaderFact icon={<ReceiptText className="size-4 text-primary" />} label="Nomor Pesanan" value={order.orderNumber} />
-          {deadline && (
-            <>
-              <span className="hidden h-10 w-px bg-line sm:block" aria-hidden="true" />
-              <HeaderFact
-                gold
-                icon={<CalendarCheck className="size-4 text-gold-dark" />}
-                label={isRental ? 'Batas Pengembalian' : 'Batas Kirim'}
-                value={formatDate(deadline, { day: 'numeric', month: 'short', year: 'numeric' })}
-              />
-            </>
-          )}
-        </div>
-      </header>
-
-      {/* Milestones */}
-      <section className="rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
-            <TrendingUp className="size-5 text-primary" aria-hidden="true" /> {production ? 'Tahapan Pengerjaan Busana' : 'Tahapan Pesanan'}
-          </h2>
-          <p className="text-[13px] text-ink-soft">
-            Pembaruan Terakhir: <b className="text-ink">{formatDateTime(lastUpdate)} WIB</b>
-          </p>
-        </div>
         {order.status === 'dibatalkan' ? (
           <p className="pt-6 text-sm font-semibold text-danger">Pesanan ini telah dibatalkan.</p>
-        ) : production ? (
-          <ProductionTimeline order={order} />
         ) : (
           <FlowTimeline order={order} />
         )}
@@ -151,12 +151,197 @@ export function OrderTrackingView({
             </section>
           )}
 
-          {production && (
-            <section className="rounded-2xl bg-surface p-8 shadow-card ring-1 ring-line">
-              <div className="flex items-center justify-between gap-3">
+          {/* Card Rincian Produk Dipesan (Ala Shopee / Tokopedia) */}
+          <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
+                <ShoppingBag className="size-5 text-primary" aria-hidden="true" /> Rincian Produk yang Dipesan
+              </h2>
+              <span className="rounded-full bg-beige-soft px-3 py-1 text-xs font-bold text-primary">
+                {ORDER_TYPE_LABEL[order.orderType]}
+              </span>
+            </div>
+
+            {/* List Barang Dipesan */}
+            <div className="divide-y divide-line">
+              {order.items.map((it) => {
+                const itemImage = primaryImage(it.product?.images) ?? it.accessory?.imageUrl ?? TYPE_FALLBACK[order.orderType];
+                const unitPrice =
+                  toNumber(it.unitPrice) > 0
+                    ? toNumber(it.unitPrice)
+                    : Math.round(toNumber(order.totalPrice) / Math.max(1, totalQuantity(order)));
+                const subtotal = toNumber(it.subtotal) > 0 ? toNumber(it.subtotal) : unitPrice * it.quantity;
+
+                return (
+                  <div key={it.id} className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
+                    {/* Thumbnail Foto Produk */}
+                    <div className="relative size-20 shrink-0 overflow-hidden rounded-xl border border-line bg-beige-soft sm:size-24">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={itemImage}
+                        alt={it.product?.name ?? it.accessory?.name ?? 'Foto produk'}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+
+                    {/* Informasi Produk */}
+                    <div className="flex flex-1 flex-col justify-between">
+                      <div>
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <h3 className="text-base font-bold text-ink sm:text-lg">
+                            {it.product?.name ?? it.accessory?.name ?? orderTitle(order)}
+                          </h3>
+                          <span className="text-base font-extrabold text-ink">{formatRupiah(subtotal)}</span>
+                        </div>
+
+                        {/* Variasi / Ukuran */}
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          {it.size && (
+                            <span className="rounded-lg border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-ink">
+                              Ukuran: <span className="text-primary">{it.size}</span>
+                            </span>
+                          )}
+                          {it.productVariant?.size && it.productVariant.size !== it.size && (
+                            <span className="rounded-lg border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-ink">
+                              Varian: <span className="text-primary">{it.productVariant.size}</span>
+                            </span>
+                          )}
+                          <span className="rounded-lg border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-ink-soft">
+                            Kuantitas:{' '}
+                            <b className="text-ink">
+                              {it.quantity} {order.orderType === 'custom' ? 'Stel' : 'Unit'}
+                            </b>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 text-xs text-ink-soft">
+                        Harga Satuan: <b className="text-ink">{formatRupiah(unitPrice)}</b>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Catatan / Spesifikasi Khusus */}
+            {(meta.institution || meta.pic || meta.eventDate || meta.rosterFile || order.notes) && (
+              <div className="mt-4 rounded-xl bg-beige-soft/70 p-4 text-xs">
+                <p className="font-bold text-ink">Catatan & Rincian Pesanan:</p>
+                <div className="mt-2 grid grid-cols-1 gap-2 text-ink-soft sm:grid-cols-2">
+                  {meta.institution && (
+                    <p>
+                      Institusi / Pemesan: <b className="text-ink">{meta.institution}</b>
+                    </p>
+                  )}
+                  {meta.pic && (
+                    <p>
+                      Penanggung Jawab: <b className="text-ink">{meta.pic}</b>
+                    </p>
+                  )}
+                  {meta.eventDate && (
+                    <p>
+                      Target Pemakaian: <b className="text-ink">{meta.eventDate}</b>
+                    </p>
+                  )}
+                  {meta.rosterFile && (
+                    <p>
+                      Berkas Terlampir: <b className="text-ink">{meta.rosterFile}</b>
+                    </p>
+                  )}
+                  {order.notes && (
+                    <p className="sm:col-span-2">
+                      Catatan: <b className="text-ink">{order.notes}</b>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Subtotal & Action Bar ala Shopee */}
+            <div className="mt-6 flex flex-col gap-4 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="text-xs text-ink-soft">Total Pesanan ({totalQuantity(order)} produk):</span>
+                <span className="ml-2 text-xl font-extrabold text-primary">
+                  {toNumber(order.totalPrice) > 0 ? formatRupiah(order.totalPrice) : 'Menunggu penawaran'}
+                </span>
+              </div>
+
+              {/* Action Buttons: Chat Admin & Beli Lagi */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Link
+                  href={chatHref}
+                  className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-bold text-ink shadow-xs transition hover:border-primary hover:text-primary"
+                >
+                  <MessageSquare className="size-4 text-primary" aria-hidden="true" />
+                  <span>Tanya Admin via Chat</span>
+                </Link>
+
+                {order.items[0]?.productId && (
+                  <Link
+                    href={`/product/${order.items[0].productId}`}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-beige-soft px-4 py-2.5 text-xs font-bold text-primary transition hover:bg-primary hover:text-white"
+                  >
+                    <span>Lihat Halaman Produk</span>
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Informasi & Spesifikasi Pesanan (Disatukan di bawah rincian produk agar tidak kosong) */}
+            <div className="mt-6 border-t border-line pt-6">
+              <h3 className="mb-3.5 flex items-center gap-2 text-sm font-bold text-ink">
+                <FileText className="size-4 text-primary" aria-hidden="true" /> Informasi Pesanan
+              </h3>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {/* Nomor Pesanan Box */}
+                <div className="flex items-center justify-between rounded-xl bg-beige-soft px-3.5 py-2.5">
+                  <div>
+                    <span className="block text-[11px] font-semibold uppercase text-ink-soft">Nomor Pesanan</span>
+                    <span className="font-extrabold text-primary">{order.orderNumber}</span>
+                  </div>
+                  <CopyButton value={order.orderNumber} label="Salin" />
+                </div>
+
+                {/* Status Kesiapan Bahan Box */}
+                <div className="flex items-center justify-between rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-xs">
+                  <div>
+                    <span className="block text-[11px] text-ink-soft">Kesiapan Bahan:</span>
+                    {order.status === 'pending' ? (
+                      <span className="font-bold text-warning-dark">Dicek ke supplier</span>
+                    ) : (
+                      <span className="font-bold text-success">Terkonfirmasi aman</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tipe Transaksi Box */}
+                <div className="flex items-center justify-between rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-xs">
+                  <div>
+                    <span className="block text-[11px] text-ink-soft">Tipe Transaksi</span>
+                    <span className="font-bold text-ink">{ORDER_TYPE_LABEL[order.orderType]}</span>
+                  </div>
+                </div>
+              </div>
+
+              {deadline && (
+                <div className="mt-3 rounded-xl border border-line bg-canvas p-3 text-xs">
+                  <span className="text-ink-soft">Target / Estimasi Waktu Selesai: </span>
+                  <b className="text-ink">{formatDate(deadline)}</b>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Dokumentasi Visual Bengkel Jahit (Muncul saat tahap pengerjaan) */}
+          {showWorkshopDocs && (
+            <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-8">
+              <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
                 <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
                   <Images className="size-5 text-primary" aria-hidden="true" /> Dokumentasi Visual dari Bengkel Jahit
                 </h2>
+                <span className="text-xs text-ink-soft">Foto progres jahit asli</span>
               </div>
               {order.orderPhotos && order.orderPhotos.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-3">
@@ -175,161 +360,117 @@ export function OrderTrackingView({
                 <div className="mt-6 flex flex-col items-center rounded-xl border border-dashed border-line-strong bg-canvas p-8 text-center">
                   <Images className="size-8 text-muted" aria-hidden="true" />
                   <p className="pt-3 text-sm font-semibold text-ink">Belum ada foto dokumentasi</p>
-                  <p className="text-xs text-ink-soft">Foto proses akan muncul di sini saat bengkel mengunggahnya.</p>
+                  <p className="text-xs text-ink-soft">Foto proses jahit akan diunggah oleh bengkel saat produksi berlangsung.</p>
                 </div>
               )}
             </section>
           )}
-
-          <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-8">
-            <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
-              <h2 className="flex items-center gap-2 text-base font-bold text-ink sm:text-lg">
-                <History className="size-5 text-primary" aria-hidden="true" /> Log Aktivitas
-              </h2>
-            </div>
-            {history.length === 0 ? (
-              <p className="pt-6 text-sm text-ink-soft">Belum ada catatan aktivitas dari admin.</p>
-            ) : (
-              <ol className="relative flex flex-col gap-6 pt-6">
-                <span className="absolute bottom-2 left-[11px] top-8 w-px bg-line-strong" aria-hidden="true" />
-                {[...history].reverse().map((h, i) => (
-                  <li key={h.id} className="relative flex gap-4 pl-0">
-                    <span className={`relative z-10 mt-1 flex size-6 shrink-0 items-center justify-center rounded-full ${i === 0 ? 'bg-primary' : 'bg-beige'}`}>
-                      <span className="size-2 rounded-full bg-surface" />
-                    </span>
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <p className="font-bold text-ink">{h.statusLabel}</p>
-                        <p className="text-xs text-ink-soft">{formatDateTime(h.createdAt)} WIB</p>
-                      </div>
-                      {h.note && <p className="pt-1 text-[15px] leading-6 text-ink-soft">{h.note}</p>}
-                      <p className="pt-1 text-xs font-semibold text-primary">Progres {h.progressPercentage}%</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
         </div>
 
         <aside className="flex flex-col gap-6">
-          <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
-            <h2 className="flex items-center gap-2 border-b border-line pb-3 text-lg font-bold text-ink">
-              <ClipboardList className="size-5 text-primary" aria-hidden="true" /> Spesifikasi Pesanan
-            </h2>
-            <dl className="flex flex-col gap-4 pt-4 text-sm">
-              <Fact label="Item Produk" value={orderTitle(order)} />
-              <div className="grid grid-cols-2 gap-4">
-                <Fact label="Kuota Pembuatan" value={`${totalQuantity(order)} ${order.orderType === 'custom' ? 'Stel' : 'Unit'}`} accent />
-                <Fact label="Jenis" value={ORDER_TYPE_LABEL[order.orderType]} />
-              </div>
-              {(meta.pic || meta.institution) && (
-                <div className="grid grid-cols-2 gap-4">
-                  {meta.institution && <Fact label="Institusi / Sekolah" value={meta.institution} />}
-                  {meta.pic && <Fact label="Penanggung Jawab (PIC)" value={meta.pic} />}
-                </div>
-              )}
-              <div>
-                <dt className="text-xs text-ink-soft">Rincian Item</dt>
-                <dd className="pt-1">
-                  <ul className="flex flex-wrap gap-1.5">
-                    {order.items.map((it) => (
-                      <li key={it.id} className="rounded bg-beige-soft px-2 py-0.5 text-xs font-semibold text-primary">
-                        {it.product?.name ?? it.accessory?.name ?? 'Seragam'}
-                        {it.size ? ` · ${it.size}` : ''} × {it.quantity}
-                      </li>
-                    ))}
-                  </ul>
-                </dd>
-              </div>
-              {meta.rosterFile && (
-                <div className="rounded-lg bg-beige-soft p-3">
-                  <dt className="text-xs text-ink-soft">Berkas Terlampir</dt>
-                  <dd className="flex items-center gap-2 pt-1 font-semibold text-ink">
-                    <FileText className="size-4 text-primary" aria-hidden="true" /> {meta.rosterFile}
-                  </dd>
-                </div>
-              )}
-            </dl>
-            <div className="mt-4 flex items-center justify-between border-t border-line pt-4">
-              <span className="text-[13px] text-ink-soft">Total Biaya Pesanan</span>
-              <span className="text-xl font-extrabold text-ink">{toNumber(order.totalPrice) > 0 ? formatRupiah(order.totalPrice) : 'Menunggu penawaran'}</span>
-            </div>
-          </section>
-
           <PaymentCard order={order} />
-
-          {!isRental && (
-            <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
-              <h2 className="flex items-center gap-2 border-b border-line pb-3 text-lg font-bold text-ink">
-                <Truck className="size-5 text-primary" aria-hidden="true" /> Logistik & Pengiriman
-              </h2>
-              <dl className="flex flex-col gap-4 pt-4 text-sm">
-                <Fact label="Ekspedisi Ditunjuk" value={order.courier || 'Ditentukan bengkel'} />
-                {order.trackingNumber && <Fact label="Nomor Resi" value={order.trackingNumber} accent />}
-                {meta.address && <Fact label="Alamat Pengiriman Institusi" value={meta.address} />}
-              </dl>
-              {(order.etaDate || order.shippedAt) && (
-                <div className="mt-4 flex gap-3 rounded-xl bg-warning-bg p-4">
-                  <CalendarClock className="size-5 shrink-0 text-gold-dark" aria-hidden="true" />
-                  <div>
-                    <p className="text-xs font-semibold text-ink-soft">{order.etaDate ? 'Estimasi Tiba di Lokasi' : 'Dikirim'}</p>
-                    <p className="font-bold text-gold-dark">{formatDate(order.etaDate ?? order.shippedAt, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                  </div>
-                </div>
-              )}
-            </section>
-          )}
-
-          <section className="rounded-2xl bg-beige-soft p-5 ring-1 ring-beige">
-            <p className="flex items-center gap-2 font-bold text-ink">
-              <Headset className="size-4 text-gold-dark" aria-hidden="true" /> Bantuan Pesanan
-            </p>
-            <p className="pt-2 text-xs text-ink-soft">Butuh penyesuaian ukuran atau konfirmasi jadwal?</p>
-            <Link href={chatHref} className={buttonClasses({ size: 'md', fullWidth: true, className: 'mt-4' })}>
-              <MessageSquare className="size-4" aria-hidden="true" /> Chat Admin
-            </Link>
-          </section>
         </aside>
       </div>
     </PageContainer>
   );
 }
 
-function ProductionTimeline({ order }: { order: Order }) {
-  const idx = activeStageIndex(order);
-  const pct = orderProgressPercent(order);
+function FlowTimeline({ order }: { order: Order }) {
+  const payments = order.payments ?? [];
+  const paid = payments
+    .filter((p) => p.status === 'terverifikasi' && p.paymentType !== 'refund')
+    .reduce((s, p) => s + toNumber(p.amount), 0);
+  const dpVerified = paid > 0 || order.isLunas;
+  const isSelesai = order.status === 'selesai';
+
+  // Stages:
+  // 0: 1. Pesanan Diterima
+  // 1: 2. Dikonfirmasi Admin
+  // 2: 3. Pembayaran DP
+  // 3: 4. Proses Pembuatan
+  // 4: 5. Siap Diambil / Dikirim
+  let activeIdx = 0;
+  if (isSelesai) {
+    activeIdx = 4;
+  } else if (order.status === 'siap_diambil') {
+    activeIdx = 4;
+  } else if (order.status === 'diproses') {
+    activeIdx = 3;
+  } else if (order.status === 'dikonfirmasi') {
+    activeIdx = dpVerified ? 3 : 1;
+  } else {
+    // pending
+    activeIdx = 0;
+  }
+
   return (
     <ol className="grid grid-cols-1 gap-6 pt-8 sm:grid-cols-5">
-      {PRODUCTION_STAGES.map((s, i) => {
-        const done = i < idx;
-        const active = i === idx;
-        const Icon = STAGE_ICONS[i]!;
+      {ORDER_FLOW_STAGES.map((s, i) => {
+        const isDone = isSelesai || i < activeIdx || (i === activeIdx && activeIdx === 1 && order.status === 'dikonfirmasi');
+        const isActive = !isSelesai && i === activeIdx;
+        const Icon = s.icon;
+
+        // Connector line logic:
+        // i < activeIdx: line is completely filled (done).
+        // i === activeIdx && !isSelesai: line is 50% filled (in-progress halfway!).
+        // i > activeIdx: line is empty.
+        const isLineDone = isSelesai || i < activeIdx;
+        const isLineHalf = !isSelesai && i === activeIdx;
+
         return (
-          <li key={s.title} className="relative flex flex-row items-center gap-4 text-left sm:flex-col sm:gap-0 sm:text-center">
-            {i < PRODUCTION_STAGES.length - 1 && (
-              <span className={`absolute left-1/2 top-6 hidden h-1 w-full sm:block ${i < idx ? 'bg-primary' : 'bg-line'}`} aria-hidden="true" />
+          <li key={s.title} className="relative flex items-center gap-4 sm:flex-col sm:gap-0 sm:text-center">
+            {/* Desktop Horizontal Line */}
+            {i < ORDER_FLOW_STAGES.length - 1 && (
+              <span className="absolute left-1/2 top-6 hidden h-1 w-full sm:block bg-line overflow-visible z-0" aria-hidden="true">
+                <span
+                  className={`relative block h-full transition-all duration-500 ${
+                    isLineDone ? 'w-full bg-primary' : isLineHalf ? 'w-1/2 bg-primary' : 'w-0'
+                  }`}
+                >
+                  {isLineHalf && (
+                    <>
+                      <span className="absolute -right-1 -top-[3px] size-2.5 rounded-full bg-primary" />
+                      <span className="absolute -right-1 -top-[3px] size-2.5 rounded-full bg-primary ring-4 ring-primary/30 animate-ping" />
+                    </>
+                  )}
+                </span>
+              </span>
             )}
+
+            {/* Mobile Vertical Line */}
+            {i < ORDER_FLOW_STAGES.length - 1 && (
+              <span className="absolute left-6 top-12 h-6 w-0.5 sm:hidden bg-line overflow-visible" aria-hidden="true">
+                <span className={`relative block w-full ${isLineDone ? 'h-full bg-primary' : isLineHalf ? 'h-1/2 bg-primary' : 'h-0'}`}>
+                  {isLineHalf && <span className="absolute -left-[3px] -bottom-1 size-2 rounded-full bg-primary animate-ping" />}
+                </span>
+              </span>
+            )}
+
             <span
-              className={`relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full ${
-                done || active ? 'bg-primary text-on-primary ring-4 ring-beige-soft' : 'bg-canvas text-muted'
+              className={`relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+                isDone || isActive ? 'bg-primary text-on-primary ring-4 ring-beige-soft shadow-xs' : 'bg-canvas text-muted ring-1 ring-line'
               }`}
             >
-              {done ? <Check className="size-5" strokeWidth={3} aria-hidden="true" /> : <Icon className="size-5" aria-hidden="true" />}
+              {isDone && !isActive ? (
+                <Check className="size-5" strokeWidth={3} aria-hidden="true" />
+              ) : (
+                <Icon className="size-5" aria-hidden="true" />
+              )}
             </span>
+
             <span className="sm:pt-3">
-              <span className={`block text-[15px] font-semibold ${active ? 'text-primary' : done ? 'text-ink' : 'text-muted'}`}>
+              <span className={`block text-[13.5px] font-bold ${isActive ? 'text-primary' : isDone ? 'text-ink' : 'text-muted'}`}>
                 {i + 1}. {s.title}
               </span>
-              <span className="block pt-1 text-xs">
-                {done ? (
-                  <span className="text-primary">Selesai</span>
-                ) : active ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 font-semibold text-on-primary">
-                    <span className="size-1.5 rounded-full bg-gold" /> Progres {pct}%
+              <span className="block pt-0.5 text-[11px]">
+                {isSelesai || (isDone && !isActive) ? (
+                  <span className="font-semibold text-primary">Selesai</span>
+                ) : isActive ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 font-bold text-warning-dark">
+                    <span className="size-1.5 rounded-full bg-warning-dark animate-pulse" /> Sedang Berjalan
                   </span>
                 ) : (
-                  <span className="text-muted">{idx < 0 ? 'Menunggu konfirmasi' : 'Menunggu Giliran'}</span>
+                  <span className="text-muted">Berikutnya</span>
                 )}
               </span>
             </span>
@@ -337,47 +478,6 @@ function ProductionTimeline({ order }: { order: Order }) {
         );
       })}
     </ol>
-  );
-}
-
-function FlowTimeline({ order }: { order: Order }) {
-  const idx = FLOW_STAGES.findIndex((s) => s.statuses.includes(order.status));
-  return (
-    <ol className="grid grid-cols-1 gap-6 pt-8 sm:grid-cols-5">
-      {FLOW_STAGES.map((s, i) => {
-        const done = i < idx || order.status === 'selesai';
-        const active = i === idx && order.status !== 'selesai';
-        return (
-          <li key={s.title} className="relative flex items-center gap-4 sm:flex-col sm:gap-0 sm:text-center">
-            {i < FLOW_STAGES.length - 1 && (
-              <span className={`absolute left-1/2 top-6 hidden h-1 w-full sm:block ${i < idx ? 'bg-primary' : 'bg-line'}`} aria-hidden="true" />
-            )}
-            <span
-              className={`relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full ${
-                done || active ? 'bg-primary text-on-primary ring-4 ring-beige-soft' : 'bg-canvas text-muted'
-              }`}
-            >
-              {done ? <Check className="size-5" strokeWidth={3} aria-hidden="true" /> : i === 3 ? <PackageCheck className="size-5" /> : <Package className="size-5" />}
-            </span>
-            <span className={`text-[15px] font-semibold sm:pt-3 ${active ? 'text-primary' : done ? 'text-ink' : 'text-muted'}`}>
-              {i + 1}. {s.title}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-function HeaderFact({ icon, label, value, gold = false }: { icon: React.ReactNode; label: string; value: string; gold?: boolean }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${gold ? 'bg-warning-bg text-gold-dark' : 'bg-beige-soft text-primary'}`}>{icon}</span>
-      <div>
-        <p className="text-xs font-semibold uppercase text-ink-soft">{label}</p>
-        <p className={`text-[15px] font-bold ${gold ? 'text-gold-dark' : 'text-ink'}`}>{value}</p>
-      </div>
-    </div>
   );
 }
 
@@ -401,4 +501,3 @@ function ScheduleBox({ label, date, time, gold = false }: { label: string; date:
     </div>
   );
 }
-

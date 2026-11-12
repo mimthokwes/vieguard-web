@@ -14,6 +14,7 @@ import {
   parseOrderMeta,
   totalQuantity,
 } from '@/lib/order-status';
+import { encodeOrderId } from '@/lib/order-hash';
 import { OrderStatusPill } from './order-status-pill';
 import { OrderVisual } from './order-visual';
 
@@ -120,7 +121,7 @@ export function OrderCard({ order }: { order: Order }) {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href={`/orders/${order.id}`} className={buttonClasses({ size: 'sm' })}>
+              <Link href={`/orders/${encodeOrderId(order.id)}`} className={buttonClasses({ size: 'sm' })}>
                 <TrendingUp className="size-3.5" aria-hidden="true" /> {awaitingQuote ? 'Lihat Penawaran' : 'Lacak'}
               </Link>
               <Link
@@ -203,7 +204,9 @@ export function paymentNote(order: Order) {
   const verified = (order.payments ?? []).filter((p) => p.status === 'terverifikasi' && p.paymentType !== 'refund');
   if (verified.length > 0) return `DP Terverifikasi (${formatRupiah(verified.reduce((s, p) => s + toNumber(p.amount), 0))})`;
   if ((order.payments ?? []).some((p) => p.status === 'menunggu')) return 'Bukti pembayaran menunggu verifikasi';
+  if (order.status === 'pending') return 'Menunggu pengecekan bahan';
   if (toNumber(order.dpAmount) > 0) return `Menunggu pembayaran DP ${formatRupiah(order.dpAmount)}`;
+  if (order.status === 'dikonfirmasi') return 'Siap bayar DP';
   return 'Belum ada pembayaran';
 }
 

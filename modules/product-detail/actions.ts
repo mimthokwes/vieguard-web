@@ -6,6 +6,7 @@ import { checkProductAvailability, getProductDetail as getProductById } from './
 import { createOrder } from '@/modules/order/services/order-service';
 import { getSessionUser } from '@/lib/session';
 import { toNumber } from '@/lib/format';
+import { encodeOrderId } from '@/lib/order-hash';
 import { Product } from '@/types/product';
 
 export interface BookingInput {
@@ -98,5 +99,5 @@ export async function submitBookingAction(input: BookingInput): Promise<BookingR
   }
 
   revalidatePath('/orders');
-  redirect(`/orders/${orderId}?created=1`);
+  redirect(`/orders/${encodeOrderId(orderId)}?created=1`);
 }

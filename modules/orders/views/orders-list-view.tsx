@@ -1,7 +1,17 @@
-"use client";
+'use client';
 
 import React, { useMemo, useState } from 'react';
-import { BadgeCheck, CalendarCheck, CalendarDays, CircleHelp, ClipboardList, MessagesSquare, Scissors, Search } from 'lucide-react';
+import {
+  BadgeCheck,
+  CalendarCheck,
+  CalendarDays,
+  CircleHelp,
+  ClipboardList,
+  MessagesSquare,
+  RefreshCw,
+  Scissors,
+  Search,
+} from 'lucide-react';
 import { Order } from '@/types/order';
 import { PageContainer } from '@/components/layout/page-header';
 import { ButtonLink } from '@/components/ui/button';
@@ -9,13 +19,25 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { orderTitle, parseOrderMeta, totalQuantity } from '@/lib/order-status';
 import { OrderCard } from '../components/order-card';
+import { useOrders } from '../hooks/use-orders';
 
 type Tab = 'all' | 'production' | 'rental' | 'done';
 type DateRange = 'all' | '30' | '90' | 'year';
 
 const isActiveOrder = (o: Order) => o.status !== 'selesai' && o.status !== 'dibatalkan';
 
-export function OrdersListView({ orders, userName, error }: { orders: Order[]; userName: string; error?: string }) {
+export function OrdersListView({
+  orders: initialOrders,
+  userName,
+  error: initialError,
+}: {
+  orders: Order[];
+  userName: string;
+  error?: string;
+}) {
+  const { orders, isFetching, error: fetchError, refetch } = useOrders({ initialOrders });
+  const error = fetchError || initialError;
+
   const [tab, setTab] = useState<Tab>('all');
   const [query, setQuery] = useState('');
   const [range, setRange] = useState<DateRange>('all');
@@ -25,7 +47,9 @@ export function OrdersListView({ orders, userName, error }: { orders: Order[]; u
   const stats = useMemo(() => {
     const active = orders.filter(isActiveOrder);
     const sewing = orders.filter((o) => o.requiresProduction && o.status === 'diproses');
-    const rentals = orders.filter((o) => o.orderType === 'sewa' && o.rental && (o.rental.status === 'dipesan' || o.rental.status === 'diambil'));
+    const rentals = orders.filter(
+      (o) => o.orderType === 'sewa' && o.rental && (o.rental.status === 'dipesan' || o.rental.status === 'diambil')
+    );
     return {
       active: active.length,
       sewing: sewing.length,
@@ -64,20 +88,30 @@ export function OrdersListView({ orders, userName, error }: { orders: Order[]; u
 
   return (
     <PageContainer>
-
       <section className="relative mt-6 overflow-hidden rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-7">
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span className="rounded-full bg-beige-soft px-2.5 py-0.5 text-xs font-bold uppercase text-primary">
-              Pesanan • {userName}
-            </span>
+            <span className="rounded-full bg-beige-soft px-2.5 py-0.5 text-xs font-bold uppercase text-primary">Pesanan • {userName}</span>
             <h1 className="pt-2 text-2xl font-extrabold tracking-tight text-ink">Riwayat Pesanan</h1>
-            <p className="pt-1 text-xs text-ink-soft">
-              Pantau progres produksi, jadwal sewa, dan status pesanan Anda.
-            </p>
+            <p className="pt-1 text-xs text-ink-soft">Pantau progres produksi, jadwal sewa, dan status pesanan Anda.</p>
           </div>
-          <div className="flex shrink-0 gap-2">
-            <ButtonLink href="/chat?topic=Bantuan%20pesanan" variant="outline" size="sm" className="!border-primary !text-primary hover:!bg-primary/5">
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              title="Segarkan status pesanan"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-soft shadow-xs transition-colors hover:bg-beige-soft hover:text-primary disabled:opacity-50"
+            >
+              <RefreshCw className={`size-3.5 ${isFetching ? 'animate-spin text-primary' : ''}`} aria-hidden="true" />
+              <span className="hidden sm:inline">{isFetching ? 'Memeriksa...' : 'Segarkan'}</span>
+            </button>
+            <ButtonLink
+              href="/chat?topic=Bantuan%20pesanan"
+              variant="outline"
+              size="sm"
+              className="!border-primary !text-primary hover:!bg-primary/5"
+            >
               <MessagesSquare className="size-4" aria-hidden="true" /> Chat Admin
             </ButtonLink>
           </div>
@@ -135,7 +169,11 @@ export function OrdersListView({ orders, userName, error }: { orders: Order[]; u
                 const value = e.target.value as DateRange;
                 setRange(value);
                 setSince(
-                  value === 'all' ? 0 : value === 'year' ? new Date(new Date().getFullYear(), 0, 1).getTime() : Date.now() - Number(value) * 86400000
+                  value === 'all'
+                    ? 0
+                    : value === 'year'
+                      ? new Date(new Date().getFullYear(), 0, 1).getTime()
+                      : Date.now() - Number(value) * 86400000
                 );
               }}
               className="h-11 w-full cursor-pointer rounded-lg bg-beige-soft pl-9 pr-4 text-sm font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-primary"
@@ -159,11 +197,7 @@ export function OrdersListView({ orders, userName, error }: { orders: Order[]; u
           <EmptyState
             icon={<ClipboardList className="size-7" aria-hidden="true" />}
             title={orders.length === 0 ? 'Belum ada pesanan' : 'Tidak ditemukan'}
-            description={
-              orders.length === 0
-                ? 'Mulai buat pesanan seragam baru atau sewa kostum.'
-                : 'Ubah kata kunci atau filter tanggal.'
-            }
+            description={orders.length === 0 ? 'Mulai buat pesanan seragam baru atau sewa kostum.' : 'Ubah kata kunci atau filter tanggal.'}
             actionText={orders.length === 0 ? 'Pesan Sekarang' : undefined}
             actionHref={orders.length === 0 ? '/order' : undefined}
           />
@@ -177,9 +211,7 @@ export function OrdersListView({ orders, userName, error }: { orders: Order[]; u
           </span>
           <div>
             <p className="font-bold text-ink">Butuh Bantuan Pesanan?</p>
-            <p className="text-xs text-ink-soft">
-              Hubungi admin untuk revisi ukuran, penambahan unit, atau perpanjangan sewa.
-            </p>
+            <p className="text-xs text-ink-soft">Hubungi admin untuk revisi ukuran, penambahan unit, atau perpanjangan sewa.</p>
           </div>
         </div>
         <div className="flex shrink-0 gap-2">

@@ -141,7 +141,7 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
             href={href}
             className="flex w-full items-center justify-center gap-1 rounded-xl bg-primary py-2 text-xs font-bold text-on-primary shadow-xs transition-all duration-200 hover:bg-primary-hover active:scale-98"
           >
-            <span>{mode === 'beli' ? 'Pesan Sekarang' : mode === 'sewa' ? 'Sewa Sekarang' : 'Pesan Sekarang'}</span>
+            <span>{mode === 'beli' ? 'Pre-Order' : mode === 'sewa' ? 'Sewa Kostum' : 'Lihat Detail'}</span>
             <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
         </div>

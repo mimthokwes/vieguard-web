@@ -8,15 +8,16 @@ import { ConsultationBanner } from '../components/consultation-banner';
 
 export async function HomeView({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-2 py-4 px-2 sm:px-1 sm:py-2 lg:gap-10 lg:px-4">
+    <main className="flex w-full flex-col">
       <HeroBanner isLoggedIn={isLoggedIn} />
-      <CategoryGrid />
-      <PromoCards isLoggedIn={isLoggedIn} />
-      <FeaturedPortfolio />
-      <FeatureHighlights />
-      <CatalogHighlights />
-      <ConsultationBanner />
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 py-8 px-4 sm:px-6 lg:gap-12 lg:px-8">
+        <CategoryGrid />
+        <PromoCards isLoggedIn={isLoggedIn} />
+        <FeaturedPortfolio />
+        <FeatureHighlights />
+        <CatalogHighlights />
+        <ConsultationBanner />
+      </div>
     </main>
   );
 }
-
