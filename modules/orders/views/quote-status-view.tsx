@@ -14,6 +14,7 @@ import {
   NotebookPen,
   PencilRuler,
   ReceiptText,
+  RefreshCw,
   Route,
   ScrollText,
 } from 'lucide-react';
@@ -45,7 +46,19 @@ function daysUntil(date?: string) {
   return Math.ceil((d.getTime() - Date.now()) / 86400000);
 }
 
-export function QuoteStatusView({ order, store, justCreated }: { order: Order; store?: StoreProfile | null; justCreated?: boolean }) {
+export function QuoteStatusView({
+  order,
+  store,
+  justCreated,
+  isFetching,
+  onRefresh,
+}: {
+  order: Order;
+  store?: StoreProfile | null;
+  justCreated?: boolean;
+  isFetching?: boolean;
+  onRefresh?: () => void;
+}) {
   const meta = parseOrderMeta(order);
   const detail = order.customOrderDetail;
   const remaining = daysUntil(meta.eventDate);
@@ -56,25 +69,38 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
 
   return (
     <PageContainer>
-
       {justCreated && (
-        <p role="status" className="mt-6 flex items-center gap-2 rounded-xl border border-success/25 bg-success-bg px-4 py-3 text-sm font-semibold text-success">
-          <CircleCheck className="size-4" aria-hidden="true" /> Permohonan berhasil dikirim. Admin akan meninjau dan mengirim penawaran resmi.
+        <p
+          role="status"
+          className="mt-6 flex items-center gap-2 rounded-xl border border-success/25 bg-success-bg px-4 py-3 text-sm font-semibold text-success"
+        >
+          <CircleCheck className="size-4" aria-hidden="true" /> Permohonan berhasil dikirim. Admin akan meninjau dan mengirim penawaran
+          resmi.
         </p>
       )}
 
       <section className="relative mt-6 overflow-hidden rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line sm:p-7">
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-0.5 text-xs font-semibold text-warning">
-              <Hourglass className="size-3.5" aria-hidden="true" /> Menunggu Penawaran
-            </span>
-            <h1 className="pt-2 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-              Status Pengajuan Penawaran
-            </h1>
-            <p className="pt-1 text-xs text-ink-soft">
-              Permohonan seragam custom Anda sedang ditinjau oleh tim kami.
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-0.5 text-xs font-semibold text-warning">
+                <Hourglass className="size-3.5" aria-hidden="true" /> Menunggu Penawaran
+              </span>
+              {onRefresh && (
+                <button
+                  type="button"
+                  onClick={onRefresh}
+                  disabled={isFetching}
+                  className="inline-flex items-center gap-1 rounded-md border border-line bg-surface px-2 py-0.5 text-[11px] font-medium text-ink-soft hover:bg-beige-soft hover:text-primary transition-colors disabled:opacity-50"
+                  title="Segarkan status penawaran"
+                >
+                  <RefreshCw className={`size-3 ${isFetching ? 'animate-spin text-primary' : ''}`} />
+                  <span>{isFetching ? 'Memeriksa...' : 'Cek Status'}</span>
+                </button>
+              )}
+            </div>
+            <h1 className="pt-2 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">Status Pengajuan Penawaran</h1>
+            <p className="pt-1 text-xs text-ink-soft">Permohonan seragam custom Anda sedang ditinjau oleh tim kami.</p>
           </div>
           <div className="rounded-xl bg-beige-soft px-4 py-3 text-right">
             <p className="text-xs font-semibold uppercase text-ink-soft">Nomor Pengajuan</p>
@@ -101,7 +127,10 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
                 const current = i === active;
                 const Icon = s.icon;
                 return (
-                  <li key={s.title} className={`flex flex-col rounded-xl p-4 ${current ? 'bg-beige-soft ring-1 ring-beige' : done ? 'bg-canvas' : ''}`}>
+                  <li
+                    key={s.title}
+                    className={`flex flex-col rounded-xl p-4 ${current ? 'bg-beige-soft ring-1 ring-beige' : done ? 'bg-canvas' : ''}`}
+                  >
                     <div className="flex items-center justify-between">
                       <span
                         className={`flex size-8 items-center justify-center rounded-full ${
@@ -141,7 +170,9 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
                 <h2 className="text-lg font-bold text-ink">Ringkasan Rencana Pemesanan</h2>
                 <p className="text-[13px] text-ink-soft">Spesifikasi atribut busana korps seragam yang diajukan ke bengkel garmen.</p>
               </div>
-              {meta.packageName && <span className="rounded-full bg-beige-soft px-3 py-1 text-xs font-bold text-primary">{meta.packageName}</span>}
+              {meta.packageName && (
+                <span className="rounded-full bg-beige-soft px-3 py-1 text-xs font-bold text-primary">{meta.packageName}</span>
+              )}
             </div>
             <div className="flex flex-col gap-6 pt-6 md:flex-row">
               <figure className="w-full shrink-0 md:w-56">
@@ -158,7 +189,12 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
                   </span>
                 </div>
                 {detail?.designReference && !isImageRef && (
-                  <a href={detail.designReference} target="_blank" rel="noreferrer" className="mt-2 block truncate text-center text-xs font-semibold text-primary underline">
+                  <a
+                    href={detail.designReference}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 block truncate text-center text-xs font-semibold text-primary underline"
+                  >
                     Buka tautan referensi
                   </a>
                 )}
@@ -171,7 +207,13 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
                   <Meta
                     label="Target Acara"
                     value={formatDate(meta.eventDate, { day: 'numeric', month: 'long', year: 'numeric' })}
-                    sub={remaining !== null ? (remaining >= 0 ? `Sisa waktu produksi: ${remaining} hari` : 'Tanggal acara sudah lewat') : undefined}
+                    sub={
+                      remaining !== null
+                        ? remaining >= 0
+                          ? `Sisa waktu produksi: ${remaining} hari`
+                          : 'Tanggal acara sudah lewat'
+                        : undefined
+                    }
                     subAccent
                   />
                   {meta.accessories && meta.accessories.length > 0 && (
@@ -229,7 +271,8 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
             </div>
             <p className="mt-4 flex gap-2 rounded-xl bg-warning-bg px-4 py-3 text-[13px] leading-5 text-warning">
               <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              Estimasi rincian biaya per stel dan total akan diterbitkan maksimal dalam 1×24 jam kerja. Anda akan menerima notifikasi begitu penawaran tersedia.
+              Estimasi rincian biaya per stel dan total akan diterbitkan maksimal dalam 1×24 jam kerja. Anda akan menerima notifikasi begitu
+              penawaran tersedia.
             </p>
           </section>
         </div>
@@ -293,7 +336,19 @@ export function QuoteStatusView({ order, store, justCreated }: { order: Order; s
   );
 }
 
-function Meta({ label, value, sub, big = false, subAccent = false }: { label: string; value: string; sub?: string; big?: boolean; subAccent?: boolean }) {
+function Meta({
+  label,
+  value,
+  sub,
+  big = false,
+  subAccent = false,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  big?: boolean;
+  subAccent?: boolean;
+}) {
   return (
     <div>
       <dt className="text-xs font-semibold uppercase text-ink-soft">{label}</dt>

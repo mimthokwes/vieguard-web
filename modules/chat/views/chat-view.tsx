@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { ChatMessage } from '@/types/chat';
 import { ChatComposer } from '../components/chat-composer';
@@ -17,40 +17,17 @@ interface ChatViewProps {
   loadError?: string;
 }
 
-export function ChatView({
-  conversationId,
-  initialMessages,
-  userName,
-  topic,
-  orderRefs,
-  operationalHours,
-  loadError,
-}: ChatViewProps) {
+export function ChatView({ conversationId, initialMessages, userName, topic, orderRefs, operationalHours, loadError }: ChatViewProps) {
   // conversationId is required: without it the hook never opens the socket.
-  const { messages, online, error, sending, send } = useChatMessages(
-    initialMessages,
-    loadError,
-    conversationId,
-  );
+  const { messages, online, error, sending, send } = useChatMessages(initialMessages, loadError, conversationId);
 
   const adminName = 'Admin';
 
   return (
-    <main className="relative flex min-h-[calc(100dvh-4.25rem)] flex-1 w-full flex-col bg-surface">
-      <ChatHeader
-        adminName={adminName}
-        online={online}
-        topic={topic}
-        operationalHours={operationalHours || DEFAULT_OPERATIONAL_HOURS}
-      />
+    <main className="relative flex min-h-[calc(100dvh-4.25rem)] flex-1 w-full flex-col bg-surface pt-2.5 sm:pt-3 md:pt-0">
+      <ChatHeader adminName={adminName} online={online} topic={topic} operationalHours={operationalHours || DEFAULT_OPERATIONAL_HOURS} />
       <ChatMessageList messages={messages} userName={userName} adminName={adminName} />
-      <ChatComposer
-        initialText={topic ? `[${topic}] ` : ''}
-        error={error}
-        sending={sending}
-        orderRefs={orderRefs}
-        onSend={send}
-      />
+      <ChatComposer initialText={topic ? `[${topic}] ` : ''} error={error} sending={sending} orderRefs={orderRefs} onSend={send} />
     </main>
   );
 }

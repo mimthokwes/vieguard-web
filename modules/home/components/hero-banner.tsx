@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import hero from '@/public/hero-section.png';
@@ -10,47 +11,57 @@ export function HeroBanner({ isLoggedIn = false }: Props) {
   return (
     <section
       aria-labelledby="hero-title"
-      className="relative isolate flex min-h-105 items-center overflow-hidden rounded-2xl border border-beige sm:min-h-115 lg:min-h-125"
+      className="relative isolate flex min-h-[100dvh] w-full items-center overflow-hidden pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-24"
     >
-      {/* Gambar sebagai latar penuh */}
+      {/* Gambar sebagai latar penuh satu layar */}
       <Image
         src={hero}
-        alt=""
+        alt="Kostum Marching Band Vieguard"
         fill
         priority
         placeholder="blur"
-        sizes="(min-width: 1280px) 1216px, 100vw"
-        className="-z-20 object-cover"
+        sizes="100vw"
+        className="-z-20 object-cover object-center"
       />
 
-      {/* Lapisan gelap agar teks tetap terbaca: rata di mobile, gradasi kiri-ke-kanan di layar lebar */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-black/55 md:bg-transparent md:bg-linear-to-r md:from-black/75 md:via-black/45 md:to-transparent"
-      />
-
-      <div className="flex w-full max-w-2xl flex-col items-start gap-4 px-6 py-10 sm:px-10 sm:py-14">
-        <p className="text-xs font-bold tracking-wide text-gold">Menarik. Cepat. Juara.</p>
-        <h1 id="hero-title" className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
-          <span className='text-gold'>Kostum Terbaik</span>
-          <br />
-          Untuk Setiap Acara 
-        </h1>
-        <p className="max-w-md text-sm text-white/90 sm:text-base leading-relaxed">
-          Spesialis jahit seragam marching band, pre-order custom desain mandiri, dan sewa kostum berkualitas untuk segala acara.
-        </p>
-        <ButtonLink href={isLoggedIn ? '/order' : '/login'} variant="gold">
-          {isLoggedIn ? 'Mulai Pesan' : 'Pesan Sekarang'}
-          <ArrowRight className="size-4" aria-hidden="true" />
-        </ButtonLink>
-        <ul className="flex flex-wrap gap-x-5 gap-y-2 pt-2">
-          {HERO_FEATURES.map(({ icon: Icon, label }) => (
-            <li key={label} className="flex items-center gap-1.5 text-xs font-semibold text-white/90">
-              <Icon className="size-4 text-gold" aria-hidden="true" />
-              {label}
-            </li>
-          ))}
-        </ul>
+      <div className="mx-auto flex w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex max-w-2xl flex-col items-start gap-4 rounded-3xl bg-black/45 backdrop-blur-md p-6 sm:p-8 border border-white/15 shadow-2xl">
+          <p className="text-xs font-bold tracking-wide text-gold [text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]">Wujudkan. Tampil. Juara.</p>
+          <h1
+            id="hero-title"
+            className="text-3xl font-extrabold leading-tight tracking-tight text-white [text-shadow:_0_2px_8px_rgba(0,0,0,0.7)] sm:text-4xl lg:text-5xl"
+          >
+            <span className="text-gold">Kostum Terbaik</span>
+            <br />
+            Untuk Setiap Acara
+          </h1>
+          <p className="max-w-md text-sm text-white sm:text-base leading-relaxed [text-shadow:_0_1px_4px_rgba(0,0,0,0.8)]">
+            Spesialis jahit seragam marching band, pre-order custom desain mandiri, dan sewa kostum berkualitas untuk segala acara.
+          </p>
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-1">
+            <ButtonLink href={isLoggedIn ? '/order' : '/login'} variant="gold" className="shadow-lg">
+              {isLoggedIn ? 'Mulai Pesan' : 'Pesan Sekarang'}
+            </ButtonLink>
+            <Link
+              href="/catalog"
+              className="group inline-flex items-center gap-1.5 text-sm sm:text-base font-bold text-white hover:text-gold transition-colors [text-shadow:_0_1px_4px_rgba(0,0,0,0.8)]"
+            >
+              Lihat Kostum
+              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+            </Link>
+          </div>
+          <ul className="flex flex-wrap gap-x-5 gap-y-2 pt-2">
+            {HERO_FEATURES.map(({ icon: Icon, label }) => (
+              <li
+                key={label}
+                className="flex items-center gap-1.5 text-xs font-semibold text-white [text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]"
+              >
+                <Icon className="size-4 text-gold drop-shadow-xs" aria-hidden="true" />
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );

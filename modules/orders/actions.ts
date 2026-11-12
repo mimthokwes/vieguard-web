@@ -1,13 +1,35 @@
-"use server";
+'use server';
 
 import { revalidatePath } from 'next/cache';
-import { uploadPaymentProof, createSnapPayment, chargeDirectPayment, DirectPaymentResponse } from './services/orders-service';
+import {
+  getMyOrders,
+  getOrderDetail,
+  getOrderStatusHistory,
+  uploadPaymentProof,
+  createSnapPayment,
+  chargeDirectPayment,
+  DirectPaymentResponse,
+} from './services/orders-service';
 import { getSessionToken } from '@/lib/session';
 import { encodeOrderId } from '@/lib/order-hash';
+import { Order, OrderStatusHistory } from '@/types/order';
 
 export interface PaymentActionState {
   error?: string;
   success?: boolean;
+}
+
+export async function getMyOrdersAction(): Promise<{ orders: Order[]; error?: string }> {
+  return getMyOrders();
+}
+
+export async function getOrderDetailAction(id: string): Promise<{ order?: Order; history?: OrderStatusHistory[]; error?: string }> {
+  try {
+    const [order, history] = await Promise.all([getOrderDetail(id), getOrderStatusHistory(id)]);
+    return { order, history };
+  } catch (error) {
+    return { error: (error as Error).message };
+  }
 }
 
 export async function chargeDirectPaymentAction(
@@ -27,7 +49,6 @@ export async function chargeDirectPaymentAction(
   }
 }
 
-
 export async function createSnapPaymentAction(
   orderId: string,
   paymentMethod: 'qris' | 'va',
@@ -43,7 +64,6 @@ export async function createSnapPaymentAction(
     return { error: (error as Error).message || 'Gagal menyiapkan pembayaran online.' };
   }
 }
-
 
 const MAX_PROOF_BYTES = 5 * 1024 * 1024;
 

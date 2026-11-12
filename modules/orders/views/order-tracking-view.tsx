@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Package,
   PackageCheck,
+  RefreshCw,
   Ruler,
   Scissors,
   Shirt,
@@ -28,14 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/ui/copy-button';
 import { formatDate, formatDateTime, formatRupiah, toNumber } from '@/lib/format';
 import { formatImageUrl, primaryImage } from '@/lib/image';
-import {
-  ORDER_STATUS_META,
-  ORDER_TYPE_LABEL,
-  RENTAL_STATUS_META,
-  orderTitle,
-  parseOrderMeta,
-  totalQuantity,
-} from '@/lib/order-status';
+import { ORDER_STATUS_META, ORDER_TYPE_LABEL, RENTAL_STATUS_META, orderTitle, parseOrderMeta, totalQuantity } from '@/lib/order-status';
 import { OrderNotificationToast } from '../components/order-notification-toast';
 import { PaymentCard } from '../components/payment-card';
 
@@ -58,11 +52,15 @@ export function OrderTrackingView({
   history,
   store,
   justCreated,
+  isFetching,
+  onRefresh,
 }: {
   order: Order;
   history: OrderStatusHistory[];
   store?: StoreProfile | null;
   justCreated?: boolean;
+  isFetching?: boolean;
+  onRefresh?: () => void;
 }) {
   const meta = parseOrderMeta(order);
   const isRental = order.orderType === 'sewa';
@@ -72,7 +70,12 @@ export function OrderTrackingView({
   const deadline = order.etaDate ?? meta.eventDate ?? order.rental?.returnDate;
   const chatHref = `/chat?topic=${encodeURIComponent(`Pesanan ${order.orderNumber}`)}`;
 
-  const showWorkshopDocs = production && (order.status === 'diproses' || order.status === 'siap_diambil' || order.status === 'selesai' || (order.orderPhotos && order.orderPhotos.length > 0));
+  const showWorkshopDocs =
+    production &&
+    (order.status === 'diproses' ||
+      order.status === 'siap_diambil' ||
+      order.status === 'selesai' ||
+      (order.orderPhotos && order.orderPhotos.length > 0));
 
   return (
     <PageContainer>
@@ -88,9 +91,7 @@ export function OrderTrackingView({
         <div className="flex flex-col gap-4 border-b border-line pb-5">
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-xl font-extrabold tracking-tight text-ink sm:text-2xl">
-                {isRental ? 'Status Sewa' : 'Lacak Pesanan'}
-              </h1>
+              <h1 className="text-xl font-extrabold tracking-tight text-ink sm:text-2xl">{isRental ? 'Status Sewa' : 'Lacak Pesanan'}</h1>
               <Badge tone={statusMeta.tone} pill dot>
                 {order.status === 'pending'
                   ? 'Menunggu Konfirmasi Bahan'
@@ -98,6 +99,18 @@ export function OrderTrackingView({
                     ? 'Produksi Berlangsung'
                     : statusMeta.label}
               </Badge>
+              {onRefresh && (
+                <button
+                  type="button"
+                  onClick={onRefresh}
+                  disabled={isFetching}
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink-soft hover:bg-beige-soft hover:text-primary transition-colors disabled:opacity-50"
+                  title="Segarkan status pesanan"
+                >
+                  <RefreshCw className={`size-3.5 ${isFetching ? 'animate-spin text-primary' : ''}`} />
+                  <span>{isFetching ? 'Memeriksa...' : 'Cek Status'}</span>
+                </button>
+              )}
             </div>
             <p className="pt-1 text-xs text-ink-soft">
               {isRental
@@ -152,10 +165,7 @@ export function OrderTrackingView({
             {/* List Barang Dipesan */}
             <div className="divide-y divide-line">
               {order.items.map((it) => {
-                const itemImage =
-                  primaryImage(it.product?.images) ??
-                  it.accessory?.imageUrl ??
-                  TYPE_FALLBACK[order.orderType];
+                const itemImage = primaryImage(it.product?.images) ?? it.accessory?.imageUrl ?? TYPE_FALLBACK[order.orderType];
                 const unitPrice =
                   toNumber(it.unitPrice) > 0
                     ? toNumber(it.unitPrice)
@@ -181,9 +191,7 @@ export function OrderTrackingView({
                           <h3 className="text-base font-bold text-ink sm:text-lg">
                             {it.product?.name ?? it.accessory?.name ?? orderTitle(order)}
                           </h3>
-                          <span className="text-base font-extrabold text-ink">
-                            {formatRupiah(subtotal)}
-                          </span>
+                          <span className="text-base font-extrabold text-ink">{formatRupiah(subtotal)}</span>
                         </div>
 
                         {/* Variasi / Ukuran */}
@@ -199,7 +207,10 @@ export function OrderTrackingView({
                             </span>
                           )}
                           <span className="rounded-lg border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-ink-soft">
-                            Kuantitas: <b className="text-ink">{it.quantity} {order.orderType === 'custom' ? 'Stel' : 'Unit'}</b>
+                            Kuantitas:{' '}
+                            <b className="text-ink">
+                              {it.quantity} {order.orderType === 'custom' ? 'Stel' : 'Unit'}
+                            </b>
                           </span>
                         </div>
                       </div>
@@ -218,11 +229,31 @@ export function OrderTrackingView({
               <div className="mt-4 rounded-xl bg-beige-soft/70 p-4 text-xs">
                 <p className="font-bold text-ink">Catatan & Rincian Pesanan:</p>
                 <div className="mt-2 grid grid-cols-1 gap-2 text-ink-soft sm:grid-cols-2">
-                  {meta.institution && <p>Institusi / Pemesan: <b className="text-ink">{meta.institution}</b></p>}
-                  {meta.pic && <p>Penanggung Jawab: <b className="text-ink">{meta.pic}</b></p>}
-                  {meta.eventDate && <p>Target Pemakaian: <b className="text-ink">{meta.eventDate}</b></p>}
-                  {meta.rosterFile && <p>Berkas Terlampir: <b className="text-ink">{meta.rosterFile}</b></p>}
-                  {order.notes && <p className="sm:col-span-2">Catatan: <b className="text-ink">{order.notes}</b></p>}
+                  {meta.institution && (
+                    <p>
+                      Institusi / Pemesan: <b className="text-ink">{meta.institution}</b>
+                    </p>
+                  )}
+                  {meta.pic && (
+                    <p>
+                      Penanggung Jawab: <b className="text-ink">{meta.pic}</b>
+                    </p>
+                  )}
+                  {meta.eventDate && (
+                    <p>
+                      Target Pemakaian: <b className="text-ink">{meta.eventDate}</b>
+                    </p>
+                  )}
+                  {meta.rosterFile && (
+                    <p>
+                      Berkas Terlampir: <b className="text-ink">{meta.rosterFile}</b>
+                    </p>
+                  )}
+                  {order.notes && (
+                    <p className="sm:col-span-2">
+                      Catatan: <b className="text-ink">{order.notes}</b>
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -393,11 +424,7 @@ function FlowTimeline({ order }: { order: Order }) {
               <span className="absolute left-1/2 top-6 hidden h-1 w-full sm:block bg-line overflow-visible z-0" aria-hidden="true">
                 <span
                   className={`relative block h-full transition-all duration-500 ${
-                    isLineDone
-                      ? 'w-full bg-primary'
-                      : isLineHalf
-                        ? 'w-1/2 bg-primary'
-                        : 'w-0'
+                    isLineDone ? 'w-full bg-primary' : isLineHalf ? 'w-1/2 bg-primary' : 'w-0'
                   }`}
                 >
                   {isLineHalf && (
@@ -413,27 +440,15 @@ function FlowTimeline({ order }: { order: Order }) {
             {/* Mobile Vertical Line */}
             {i < ORDER_FLOW_STAGES.length - 1 && (
               <span className="absolute left-6 top-12 h-6 w-0.5 sm:hidden bg-line overflow-visible" aria-hidden="true">
-                <span
-                  className={`relative block w-full ${
-                    isLineDone
-                      ? 'h-full bg-primary'
-                      : isLineHalf
-                        ? 'h-1/2 bg-primary'
-                        : 'h-0'
-                  }`}
-                >
-                  {isLineHalf && (
-                    <span className="absolute -left-[3px] -bottom-1 size-2 rounded-full bg-primary animate-ping" />
-                  )}
+                <span className={`relative block w-full ${isLineDone ? 'h-full bg-primary' : isLineHalf ? 'h-1/2 bg-primary' : 'h-0'}`}>
+                  {isLineHalf && <span className="absolute -left-[3px] -bottom-1 size-2 rounded-full bg-primary animate-ping" />}
                 </span>
               </span>
             )}
 
             <span
               className={`relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-                isDone || isActive
-                  ? 'bg-primary text-on-primary ring-4 ring-beige-soft shadow-xs'
-                  : 'bg-canvas text-muted ring-1 ring-line'
+                isDone || isActive ? 'bg-primary text-on-primary ring-4 ring-beige-soft shadow-xs' : 'bg-canvas text-muted ring-1 ring-line'
               }`}
             >
               {isDone && !isActive ? (
@@ -444,15 +459,7 @@ function FlowTimeline({ order }: { order: Order }) {
             </span>
 
             <span className="sm:pt-3">
-              <span
-                className={`block text-[13.5px] font-bold ${
-                  isActive
-                    ? 'text-primary'
-                    : isDone
-                      ? 'text-ink'
-                      : 'text-muted'
-                }`}
-              >
+              <span className={`block text-[13.5px] font-bold ${isActive ? 'text-primary' : isDone ? 'text-ink' : 'text-muted'}`}>
                 {i + 1}. {s.title}
               </span>
               <span className="block pt-0.5 text-[11px]">
@@ -494,4 +501,3 @@ function ScheduleBox({ label, date, time, gold = false }: { label: string; date:
     </div>
   );
 }
-

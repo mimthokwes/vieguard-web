@@ -3,10 +3,8 @@ import { notFound, redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/session';
 import { getOrderDetail, getOrderStatusHistory } from '@/modules/orders/services/orders-service';
 import { getStoreProfile } from '@/modules/home/services/store-service';
-import { isAwaitingQuote } from '@/lib/order-status';
 import { decodeOrderId, encodeOrderId } from '@/lib/order-hash';
-import { QuoteStatusView } from '@/modules/orders/views/quote-status-view';
-import { OrderTrackingView } from '@/modules/orders/views/order-tracking-view';
+import { OrderDetailClientView } from '@/modules/orders/views/order-detail-client-view';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,9 +43,5 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
   ]);
   const justCreated = created === '1';
 
-  // Custom orders without a price yet show the quotation room (Figma screen 11).
-  if (isAwaitingQuote(order)) {
-    return <QuoteStatusView order={order} store={store} justCreated={justCreated} />;
-  }
-  return <OrderTrackingView order={order} history={history} store={store} justCreated={justCreated} />;
+  return <OrderDetailClientView orderId={id} initialOrder={order} initialHistory={history} store={store} justCreated={justCreated} />;
 }
