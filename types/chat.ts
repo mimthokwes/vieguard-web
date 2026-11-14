@@ -13,6 +13,7 @@ export interface Conversation {
   id: string;
   userId: string;
   adminId?: string | null;
+  isBotActive?: boolean;
   lastMessageAt?: string | null;
   admin?: { id?: string; name: string } | null;
 }

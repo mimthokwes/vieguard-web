@@ -3,12 +3,22 @@
 import { revalidatePath } from 'next/cache';
 import { getNotifications, markNotificationRead } from './services/notification-service';
 import { AppNotification } from '@/types/notification';
+import { getSessionToken } from '@/lib/session';
 
 export async function getNotificationsAction(): Promise<AppNotification[]> {
   try {
     return await getNotifications();
   } catch {
     return [];
+  }
+}
+
+export async function getNotificationSocketTokenAction(): Promise<{ token?: string; error?: string }> {
+  try {
+    const token = await getSessionToken();
+    return { token: token || undefined };
+  } catch (error) {
+    return { error: (error as Error).message };
   }
 }
 
@@ -20,7 +30,6 @@ export async function markReadAction(id: string): Promise<{ error?: string }> {
     return { error: (error as Error).message };
   }
   revalidatePath('/notifications');
-  revalidatePath('/', 'layout');
   return {};
 }
 
@@ -32,6 +41,5 @@ export async function markAllReadAction(): Promise<{ error?: string }> {
     return { error: (error as Error).message };
   }
   revalidatePath('/notifications');
-  revalidatePath('/', 'layout');
   return {};
 }

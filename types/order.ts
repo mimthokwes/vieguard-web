@@ -137,4 +137,11 @@ export interface CreateOrderPayload {
     jenisJenjang?: string;
     consultationNote?: string;
   };
+  orderSizeEntries?: Array<{
+    studentName?: string;
+    gender?: string;
+    heightCm?: number;
+    size: string;
+    role?: string;
+  }>;
 }

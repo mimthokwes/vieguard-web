@@ -28,9 +28,9 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     queryFn: () => getNotificationsAction(),
     initialData: options.initialNotifications,
     enabled: options.enabled !== false,
-    staleTime: 20 * 1000,
-    refetchOnWindowFocus: true,
-    refetchInterval: 60 * 1000, // relaxed auto-sync every 60s
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
   const unreadCount = useMemo(() => {

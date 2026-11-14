@@ -50,6 +50,7 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
       orderRefs={orderRefs}
       operationalHours={store?.operationalHours}
       loadError={loadError}
+      initialIsBotActive={conversation?.isBotActive ?? true}
     />
   );
 }

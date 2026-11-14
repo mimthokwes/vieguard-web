@@ -7,7 +7,23 @@ import { createOrder } from '@/modules/order/services/order-service';
 import { getSessionUser } from '@/lib/session';
 import { toNumber } from '@/lib/format';
 import { encodeOrderId } from '@/lib/order-hash';
+import { formatOrderMeta } from '@/lib/order-status';
 import { Product } from '@/types/product';
+
+export interface BookingSizeFile {
+  fileName: string;
+  fileSize: number;
+  fileType: 'excel' | 'pdf';
+  totalCount?: number;
+  sizeCounts?: Record<string, number>;
+  rows?: Array<{
+    name: string;
+    gender?: string;
+    heightCm?: number;
+    size: string;
+    role?: string;
+  }>;
+}
 
 export interface BookingInput {
   productId: string;
@@ -18,6 +34,7 @@ export interface BookingInput {
   quantities: Record<string, number>;
   jenjang?: string;
   notes?: string;
+  sizeFile?: BookingSizeFile | null;
 }
 
 export interface BookingResult {
@@ -84,14 +101,43 @@ export async function submitBookingAction(input: BookingInput): Promise<BookingR
     });
   }
 
+  const totalQty = entries.reduce((s, [, q]) => s + q, 0);
+  const fileNote = input.sizeFile ? `Berkas Ukuran: ${input.sizeFile.fileName} (${input.sizeFile.fileType.toUpperCase()})` : undefined;
+  const combinedNotes = [
+    input.jenjang && `Jenjang: ${input.jenjang}`,
+    fileNote,
+    input.notes?.trim(),
+  ].filter(Boolean).join(' — ') || undefined;
+
+  const customDetail = input.mode === 'beli' ? {
+    jenisJenjang: input.jenjang,
+    designDescription: `Pesanan Pre-Order Pembelian: ${product.name}`,
+    consultationNote: formatOrderMeta({
+      packageName: `Pre-Order ${product.name}`,
+      rosterFile: input.sizeFile?.fileName,
+      rosterCount: input.sizeFile?.totalCount || totalQty,
+      notes: input.notes,
+    }),
+  } : undefined;
+
+  const orderSizeEntries = input.sizeFile?.rows?.map((r) => ({
+    studentName: r.name,
+    gender: r.gender,
+    heightCm: r.heightCm,
+    size: r.size,
+    role: r.role,
+  }));
+
   let orderId: string;
   try {
     const order = await createOrder({
       orderType: input.mode,
       requiresProduction: input.mode === 'beli',
-      notes: [input.jenjang && `Jenjang: ${input.jenjang}`, input.notes?.trim()].filter(Boolean).join(' — ') || undefined,
+      notes: combinedNotes,
       items,
       rentalDetail: input.mode === 'sewa' ? { pickupDate: input.pickupDate!, returnDate: input.returnDate! } : undefined,
+      customDetail,
+      orderSizeEntries,
     });
     orderId = order.id;
   } catch (error) {

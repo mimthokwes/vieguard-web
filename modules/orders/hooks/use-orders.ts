@@ -27,8 +27,9 @@ export function useOrders(options: UseOrdersOptions = {}) {
       return res.orders || [];
     },
     initialData: options.initialOrders,
-    staleTime: 20 * 1000,
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
   return {
@@ -71,18 +72,9 @@ export function useOrderDetail({ orderId, initialOrder, initialHistory }: UseOrd
         }
       : undefined,
     enabled: Boolean(orderId),
-    staleTime: 10 * 1000,
-    refetchOnWindowFocus: true,
-    refetchInterval: (q) => {
-      const current = q.state.data?.order;
-      if (!current) return false;
-
-      // Smart Conditional Polling: only poll if status is pending or awaiting payment confirmation
-      const isPending = current.status === 'pending';
-      const isWaitingPayment = current.payments?.some((p) => p.status === 'menunggu');
-
-      return isPending || isWaitingPayment ? 15000 : false;
-    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
   const order = query.data?.order || initialOrder;

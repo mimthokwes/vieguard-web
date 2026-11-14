@@ -15,17 +15,40 @@ interface ChatViewProps {
   orderRefs: { id: string; orderNumber: string; label: string }[];
   operationalHours?: string | null;
   loadError?: string;
+  initialIsBotActive?: boolean;
 }
 
-export function ChatView({ conversationId, initialMessages, userName, topic, orderRefs, operationalHours, loadError }: ChatViewProps) {
+export function ChatView({
+  conversationId,
+  initialMessages,
+  userName,
+  topic,
+  orderRefs,
+  operationalHours,
+  loadError,
+  initialIsBotActive = true,
+}: ChatViewProps) {
   // conversationId is required: without it the hook never opens the socket.
-  const { messages, online, error, sending, send } = useChatMessages(initialMessages, loadError, conversationId);
+  const { messages, online, error, sending, send, isBotActive, togglingBot, toggleBot } = useChatMessages(
+    initialMessages,
+    loadError,
+    conversationId,
+    initialIsBotActive,
+  );
 
-  const adminName = 'Admin';
+  const adminName = 'CS Vieguard';
 
   return (
     <main className="relative flex min-h-[calc(100dvh-4.25rem)] flex-1 w-full flex-col bg-surface pt-2.5 sm:pt-3 md:pt-0">
-      <ChatHeader adminName={adminName} online={online} topic={topic} operationalHours={operationalHours || DEFAULT_OPERATIONAL_HOURS} />
+      <ChatHeader
+        adminName={adminName}
+        online={online}
+        topic={topic}
+        operationalHours={operationalHours || DEFAULT_OPERATIONAL_HOURS}
+        isBotActive={isBotActive}
+        togglingBot={togglingBot}
+        onToggleBot={toggleBot}
+      />
       <ChatMessageList messages={messages} userName={userName} adminName={adminName} />
       <ChatComposer initialText={topic ? `[${topic}] ` : ''} error={error} sending={sending} orderRefs={orderRefs} onSend={send} />
     </main>
