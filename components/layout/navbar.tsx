@@ -49,7 +49,7 @@ function IconLink({
         isScrolled
           ? 'text-ink-soft hover:bg-beige-soft hover:text-primary'
           : isTransparent
-            ? 'text-ink hover:bg-white/40 hover:text-primary'
+            ? 'text-white hover:bg-white/20 hover:text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
             : 'text-ink-soft hover:bg-beige-soft hover:text-primary'
       }`}
     >
@@ -197,13 +197,13 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
             isScrolled
               ? 'w-[85%] max-w-6xl rounded-2xl bg-surface/95 backdrop-blur-md shadow-card border border-line/80 px-3 sm:px-5 py-1.5 sm:py-2'
               : isTransparent
-                ? 'w-full bg-transparent border-b border-transparent shadow-none px-3 sm:px-6 lg:px-8 py-2'
+                ? 'w-full bg-gradient-to-b from-black/80 via-black/40 to-transparent border-none shadow-none px-3 sm:px-6 lg:px-8 py-2'
                 : 'w-full bg-surface shadow-xs border-b border-line px-3 sm:px-6 lg:px-8 py-2'
           }`}
         >
           {/* Main Bar (Single row when scrolled, Row 1 of 2 when not scrolled) */}
           <div className="flex w-full items-center justify-between gap-2 sm:gap-4">
-            <Logo hideTextOnMobile className={isScrolled ? 'scale-95 origin-left' : ''} />
+            <Logo inverted={isTransparent} hideTextOnMobile className={isScrolled ? 'scale-95 origin-left' : ''} />
 
             {/* When SCROLLED: Tab list merged into this single top row */}
             {isScrolled && (
@@ -244,7 +244,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                     onChange={(e) => setSearchValue(e.target.value)}
                     placeholder="Cari seragam, topi, acara..."
                     className={`w-full rounded-md border py-1.5 pl-3 pr-14 text-sm text-ink outline-none transition-all placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 ${
-                      isTransparent ? 'border-black/15 bg-surface/95 shadow-xs' : 'border-line bg-surface'
+                      isTransparent ? 'border-transparent bg-surface/95 shadow-md backdrop-blur-xs' : 'border-line bg-surface'
                     }`}
                     aria-label="Cari produk"
                   />
@@ -299,7 +299,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                   mobileSearchOpen
                     ? 'bg-primary/10 text-primary'
                     : isTransparent && !isScrolled
-                      ? 'text-ink hover:bg-white/40 hover:text-primary'
+                      ? 'text-white hover:bg-white/20 hover:text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
                       : 'text-ink-soft hover:bg-beige-soft hover:text-primary'
                 }`}
               >
@@ -342,7 +342,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                           : isScrolled
                             ? 'text-ink-soft hover:bg-beige-soft hover:text-primary'
                             : isTransparent
-                              ? 'text-ink hover:bg-white/40 hover:text-primary'
+                              ? 'text-white hover:bg-white/20 hover:text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
                               : 'text-ink-soft hover:bg-beige-soft hover:text-primary'
                       }`}
                     >
@@ -352,10 +352,14 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                           alt={user.name}
                           referrerPolicy="no-referrer"
                           onError={() => setAvatarError(true)}
-                          className="size-7 rounded-full object-cover border border-gold-light shadow-xs"
+                          className={`size-7 rounded-full object-cover border shadow-xs ${
+                            isTransparent ? 'border-white/60 shadow-sm' : 'border-gold-light'
+                          }`}
                         />
                       ) : (
-                        <span className="flex size-7 items-center justify-center rounded-full border border-gold-light bg-surface shadow-xs">
+                        <span className={`flex size-7 items-center justify-center rounded-full border shadow-xs ${
+                          isTransparent ? 'border-white/60 bg-surface/95' : 'border-gold-light bg-surface'
+                        }`}>
                           <GoogleLogo className="size-4" />
                         </span>
                       )}
@@ -429,11 +433,28 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                 </>
               ) : (
                 <>
-                  <span className="hidden sm:block">
-                    <ButtonLink href="/login" size="sm" className={isScrolled ? 'h-8 px-3 text-xs' : ''}>
-                      {isScrolled ? 'Masuk' : 'Masuk / Daftar'}
+                  <div className="hidden sm:flex items-center gap-2">
+                    <Link
+                      href="/login"
+                      className={`inline-flex items-center justify-center font-bold whitespace-nowrap transition-colors duration-200 cursor-pointer rounded-lg px-3 ${
+                        isScrolled ? 'h-8 text-xs' : 'h-8 text-xs sm:text-sm'
+                      } ${
+                        isTransparent
+                          ? 'border border-white/40 text-white hover:bg-white/20 hover:text-gold hover:border-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
+                          : 'border border-line-strong bg-surface text-ink hover:bg-beige-soft hover:text-primary hover:border-primary/40 shadow-2xs'
+                      }`}
+                    >
+                      Masuk
+                    </Link>
+                    <ButtonLink
+                      href="/register"
+                      size="sm"
+                      variant={isTransparent ? 'gold' : 'primary'}
+                      className={isScrolled ? 'h-8 px-3 text-xs' : ''}
+                    >
+                      Daftar
                     </ButtonLink>
-                  </span>
+                  </div>
                   <Link
                     href="/login"
                     aria-label="Masuk ke Akun"
@@ -453,7 +474,9 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                   setAccountOpen(false);
                 }}
                 className={`flex size-8 sm:size-9 items-center justify-center rounded-lg transition-colors md:hidden ${
-                  isTransparent && !isScrolled ? 'text-ink hover:bg-white/40' : 'text-ink hover:bg-beige-soft'
+                  isTransparent && !isScrolled
+                    ? 'text-white hover:bg-white/20 hover:text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
+                    : 'text-ink hover:bg-beige-soft'
                 }`}
                 aria-label={mobileOpen ? 'Tutup menu' : 'Buka menu'}
                 aria-expanded={mobileOpen}
@@ -467,7 +490,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
           {!isScrolled && (
             <div
               className={`hidden w-full md:block transition-colors mt-1 ${
-                isTransparent ? 'border-t border-black/10' : 'border-t border-line/60'
+                isTransparent ? 'border-none' : 'border-t border-line/60'
               }`}
             >
               <nav
@@ -483,9 +506,11 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                       aria-current={active ? 'page' : undefined}
                       className={`whitespace-nowrap rounded-lg px-3 py-1 text-[15px] transition-colors ${
                         active
-                          ? 'bg-beige-soft font-bold text-primary shadow-xs'
+                          ? isTransparent
+                            ? 'bg-white/20 font-bold text-white shadow-xs backdrop-blur-xs'
+                            : 'bg-beige-soft font-bold text-primary shadow-xs'
                           : isTransparent
-                            ? 'font-semibold text-ink hover:bg-white/50 hover:text-primary'
+                            ? 'font-medium text-white/95 hover:text-white hover:bg-white/15 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
                             : 'font-medium text-ink-soft hover:bg-beige-soft hover:text-primary'
                       }`}
                     >
@@ -561,6 +586,25 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                   );
                 })}
               </ul>
+
+              {!user && (
+                <div className="mt-2 pt-2 border-t border-line flex flex-col gap-2 px-1">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex w-full items-center justify-center rounded-lg border border-line py-2 text-sm font-bold text-ink hover:bg-beige-soft"
+                  >
+                    Masuk
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex w-full items-center justify-center rounded-lg bg-primary py-2 text-sm font-bold text-on-primary shadow-xs hover:bg-primary-dark"
+                  >
+                    Daftar
+                  </Link>
+                </div>
+              )}
             </nav>
           )}
         </header>

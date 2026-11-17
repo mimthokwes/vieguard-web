@@ -96,15 +96,9 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
 
       {/* ─── Info Produk ─── */}
       <div className="flex flex-1 flex-col p-3.5">
-        {category?.name && (
-          <span className="text-[10px] font-bold tracking-wider uppercase text-gold-dark mb-1">
-            {category.name}
-          </span>
-        )}
-
-        {/* Nama Produk Jelas */}
+        {/* Nama Produk Jelas (Paling Atas & Lebih Besar) */}
         <Link href={href}>
-          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-ink transition-colors group-hover:text-primary">
+          <h3 className="line-clamp-2 text-base sm:text-[17px] font-bold leading-snug text-ink">
             {name}
           </h3>
         </Link>
@@ -119,8 +113,8 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
         {/* Spacer */}
         <div className="mt-auto" />
 
-        {/* ─── Harga & Tombol Pesan Full-Width ─── */}
-        <div className="mt-3.5 pt-2.5 border-t border-line/60 space-y-2">
+        {/* ─── Harga & Tombol Pesan Full-Width (Tanpa Garis Pembatas) ─── */}
+        <div className="mt-3 space-y-2">
           {/* Label Harga */}
           <div className="flex items-baseline justify-between">
             <span className="text-[11px] font-semibold text-ink-soft">Harga</span>

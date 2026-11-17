@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
-import hero from '@/public/hero-section.png';
+import hero from '@/public/hero-section.webp';
 import { HERO_FEATURES } from '../data';
 
 type Props = { isLoggedIn?: boolean };
@@ -23,6 +23,9 @@ export function HeroBanner({ isLoggedIn = false }: Props) {
         sizes="100vw"
         className="-z-20 object-cover object-center"
       />
+
+      {/* Vignette atas agar navbar transparan selalu kontras dan mudah dibaca */}
+      <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/75 via-black/35 to-transparent pointer-events-none -z-10" />
 
       <div className="mx-auto flex w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex max-w-2xl flex-col items-start gap-4 rounded-3xl bg-black/45 backdrop-blur-md p-6 sm:p-8 border border-white/15 shadow-2xl">
