@@ -15,4 +15,6 @@ export const CHAT_EVENTS = {
   join: 'conversation:join', // client -> server (conversationId)
   send: 'message:send',      // client -> server ({ conversationId, messageText })
   new: 'message:new',        // server -> client (ChatMessage, termasuk echo pesan sendiri)
+  setBot: 'conversation:set_bot', // client -> server ({ conversationId, isBotActive })
+  botStatus: 'conversation:bot_status', // server -> client ({ conversationId, isBotActive })
 } as const;

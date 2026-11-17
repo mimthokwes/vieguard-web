@@ -1,11 +1,13 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import { Gift } from 'lucide-react';
 import { Product } from '@/types/product';
 import { PageContainer } from '@/components/layout/page-header';
 import { canBuy, canRent, rentStock, buyStock } from '@/components/product/product-card';
 import { formatRupiah } from '@/lib/format';
 import { ProductGallery } from '../components/product-gallery';
-import { ProductTabs } from '../components/product-accordions';
+import { ProductTabs, SizeFileAttachment } from '../components/product-accordions';
 import { BookingPanel } from '../components/product-info-panel';
 
 interface ProductDetailViewProps {
@@ -29,28 +31,32 @@ export function ProductDetailView({ product, mode, initialDate, isLoggedIn, curr
   const stock = primaryMode === 'beli' ? buyStock(product) : rentStock(product);
   const price = primaryMode === 'beli' ? product.basePriceBuy : product.basePriceRent;
 
+  const [sizeFile, setSizeFile] = useState<SizeFileAttachment | null>(null);
+  const [activeTab, setActiveTab] = useState<'components' | 'sizes' | 'sanitation'>('components');
+
   return (
     <PageContainer>
-
       <div className="grid grid-cols-1 gap-6 pt-8 lg:grid-cols-[1fr_492px]">
         <div className="flex flex-col gap-8">
           <ProductGallery
             product={product}
             availabilityLabel={
-              mode === 'beli'
+              primaryMode === 'beli'
                 ? 'Tersedia untuk Pre-Order'
                 : stock > 0
-                ? primaryMode === 'beli'
-                  ? 'Tersedia untuk Dibeli'
-                  : 'Tersedia untuk Disewa'
+                ? 'Tersedia untuk Disewa'
                 : 'Stok Sedang Kosong'
             }
           />
 
           <section className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-line">
             <p className="flex flex-wrap items-center gap-2 text-xs text-ink-soft">
-              {product.category && <span className="rounded bg-beige-soft px-2 py-0.5 font-semibold text-primary">Kategori: {product.category.name}</span>}
-              <span>• {mode === 'beli' ? 'Skema Pre-Order (Dipesan Baru Dibuat)' : `Siap Pakai ${stock} Unit`}</span>
+              {product.category && (
+                <span className="rounded bg-beige-soft px-2 py-0.5 font-semibold text-primary">
+                  Kategori: {product.category.name}
+                </span>
+              )}
+              <span>• {primaryMode === 'beli' ? 'Skema Pre-Order (Dipesan Baru Dibuat)' : `Siap Pakai ${stock} Unit`}</span>
             </p>
             <h1 className="pt-3 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">{product.name}</h1>
             {primaryMode && (
@@ -68,7 +74,14 @@ export function ProductDetailView({ product, mode, initialDate, isLoggedIn, curr
             )}
           </section>
 
-          <ProductTabs product={product} />
+          <ProductTabs
+            product={product}
+            mode={primaryMode}
+            sizeFile={sizeFile}
+            onSizeFileChange={setSizeFile}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </div>
 
         <aside className="lg:sticky lg:top-28 lg:h-fit">
@@ -79,6 +92,13 @@ export function ProductDetailView({ product, mode, initialDate, isLoggedIn, curr
               initialDate={initialDate}
               isLoggedIn={isLoggedIn}
               loginHref={`/login?next=${encodeURIComponent(currentPath)}`}
+              sizeFile={sizeFile}
+              onSizeFileChange={setSizeFile}
+              onOpenSizeTab={() => {
+                setActiveTab('sizes');
+                const el = document.getElementById('product-tabs');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
             />
           ) : (
             <p className="rounded-2xl bg-surface p-6 text-sm text-ink-soft shadow-card ring-1 ring-line">

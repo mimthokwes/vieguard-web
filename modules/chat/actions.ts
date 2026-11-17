@@ -1,6 +1,6 @@
 "use server";
 
-import { getConversationMessages, getMyConversation, sendChatMessage, getChatSocketToken } from './services/chat-service';
+import { getConversationMessages, getMyConversation, sendChatMessage, getChatSocketToken, setConversationBotStatus } from './services/chat-service';
 import { ChatMessage } from '@/types/chat';
 
 // The conversation id always comes from the session's own conversation, never from the client,
@@ -12,6 +12,16 @@ export async function refreshMessagesAction(): Promise<{ messages?: ChatMessage[
     return { messages: await getConversationMessages(conversation.id) };
   } catch (error) {
     return { error: (error as Error).message };
+  }
+}
+
+export async function toggleBotAction(isBotActive: boolean): Promise<{ success: boolean; isBotActive?: boolean; error?: string }> {
+  try {
+    const conversation = await getMyConversation();
+    const updated = await setConversationBotStatus(conversation.id, isBotActive);
+    return { success: true, isBotActive: updated.isBotActive };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
   }
 }
 

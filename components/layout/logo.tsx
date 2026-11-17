@@ -24,13 +24,13 @@ export function Logo({ inverted = false, subtitle, hideTextOnMobile = false, cla
       <span className={`flex-col leading-none ${hideTextOnMobile ? 'hidden sm:flex' : 'flex'}`}>
         <span
           className={`font-display text-base sm:text-lg font-bold tracking-[0.14em] transition-colors ${
-            inverted ? 'text-white' : 'text-primary group-hover:text-primary-light'
+            inverted ? 'text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] group-hover:text-gold' : 'text-primary group-hover:text-primary-light'
           }`}
         >
           VIEGUARD
         </span>
         {subtitle && (
-          <span className={`mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${inverted ? 'text-white/60' : 'text-muted'}`}>
+          <span className={`mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${inverted ? 'text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-muted'}`}>
             {subtitle}
           </span>
         )}

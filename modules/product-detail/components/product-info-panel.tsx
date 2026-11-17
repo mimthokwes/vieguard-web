@@ -3,13 +3,31 @@
 import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BadgeCheck, CalendarDays, CalendarRange, Clock, Headset, Loader2, Minus, MessagesSquare, Plus, Send, ShieldCheck, ShoppingBag, Smartphone, Truck } from 'lucide-react';
+import {
+  BadgeCheck,
+  CalendarDays,
+  CalendarRange,
+  Clock,
+  FileSpreadsheet,
+  FileText,
+  Headset,
+  Loader2,
+  Minus,
+  MessagesSquare,
+  Plus,
+  Send,
+  ShieldCheck,
+  ShoppingBag,
+  Truck,
+  Upload,
+} from 'lucide-react';
 import { Product } from '@/types/product';
-import { Button, buttonClasses } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { formatRupiah, toNumber } from '@/lib/format';
 import { JENJANG_OPTIONS } from '@/modules/order/data';
 import { checkAvailabilityAction, submitBookingAction } from '../actions';
+import { SizeFileAttachment } from './product-accordions';
 
 type Mode = 'sewa' | 'beli';
 
@@ -27,10 +45,22 @@ interface BookingPanelProps {
   initialDate?: string;
   isLoggedIn: boolean;
   loginHref: string;
+  sizeFile?: SizeFileAttachment | null;
+  onSizeFileChange?: (file: SizeFileAttachment | null) => void;
+  onOpenSizeTab?: () => void;
 }
 
-/** Date + quantity booking card with live cost breakdown (Figma screen 13). */
-export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHref }: BookingPanelProps) {
+/** Date + quantity booking card with live cost breakdown. */
+export function BookingPanel({
+  product,
+  modes,
+  initialDate,
+  isLoggedIn,
+  loginHref,
+  sizeFile,
+  onSizeFileChange,
+  onOpenSizeTab,
+}: BookingPanelProps) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(modes[0]!);
   const start = initialDate && initialDate >= today() ? initialDate : addDays(today(), 3);
@@ -38,7 +68,9 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
   const [ret, setRet] = useState(addDays(start, 3));
   const [jenjang, setJenjang] = useState('');
   const hasVariants = product.variants.length > 0;
-  const [quantities, setQuantities] = useState<Record<string, number>>(() => (hasVariants ? ({} as Record<string, number>) : { '': 1 }));
+  const [quantities, setQuantities] = useState<Record<string, number>>(() =>
+    hasVariants ? ({} as Record<string, number>) : { '': 1 }
+  );
   const [availabilityResult, setAvailabilityResult] = useState<{ key: string; stock?: number; error?: string } | null>(null);
   const [error, setError] = useState('');
   const [pending, startTransition] = useTransition();
@@ -46,14 +78,43 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
   const days = Math.max(0, Math.round((new Date(ret).getTime() - new Date(pickup).getTime()) / 86400000));
   const totalQty = Object.values(quantities).reduce((s, q) => s + (q || 0), 0);
 
+  // Auto-sync quantities when an Excel size roster is parsed
+  useEffect(() => {
+    if (mode === 'beli' && sizeFile?.parsedRoster?.sizeCounts) {
+      const counts = sizeFile.parsedRoster.sizeCounts;
+      const nextQ: Record<string, number> = {};
+      if (hasVariants) {
+        for (const v of product.variants) {
+          const match = Object.keys(counts).find(
+            (k) => k.trim().toUpperCase() === v.size.trim().toUpperCase()
+          );
+          if (match && counts[match] !== undefined) {
+            nextQ[v.id] = counts[match]!;
+          }
+        }
+      } else {
+        const total = sizeFile.parsedRoster.rows.length;
+        if (total > 0) nextQ[''] = total;
+      }
+      if (Object.keys(nextQ).length > 0) {
+        setQuantities(nextQ);
+      }
+    }
+  }, [sizeFile, mode, hasVariants, product.variants]);
+
   const priceFor = (variantId: string) => {
     const v = product.variants.find((x) => x.id === variantId);
     return mode === 'sewa'
       ? toNumber(v?.priceRentOverride) || toNumber(product.basePriceRent)
       : toNumber(v?.priceBuyOverride) || toNumber(product.basePriceBuy);
   };
+
   const subtotal = useMemo(
-    () => Object.entries(quantities).reduce((s, [id, q]) => s + priceFor(id) * (q || 0) * (mode === 'sewa' ? days : 1), 0),
+    () =>
+      Object.entries(quantities).reduce(
+        (s, [id, q]) => s + priceFor(id) * (q || 0) * (mode === 'sewa' ? days : 1),
+        0
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [quantities, mode, days]
   );
@@ -77,12 +138,17 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
   }, [product.id, pickup, ret, mode, days]);
 
   const stockLimit = (variantId: string) => {
+    if (mode === 'beli') {
+      // Skema Pre-Order: tidak dibatasi oleh stok jadi gudang!
+      return 9999;
+    }
     const v = product.variants.find((x) => x.id === variantId);
     if (!v) return 999;
-    return mode === 'sewa' ? Math.max(0, v.stockRent - (v.stockInService ?? 0)) : Math.max(0, v.stockBuy);
+    return Math.max(0, v.stockRent - (v.stockInService ?? 0));
   };
 
-  const setQty = (id: string, q: number) => setQuantities((prev) => ({ ...prev, [id]: Math.max(0, Math.min(q, stockLimit(id))) }));
+  const setQty = (id: string, q: number) =>
+    setQuantities((prev) => ({ ...prev, [id]: Math.max(0, Math.min(q, stockLimit(id))) }));
 
   const submit = () => {
     setError('');
@@ -90,14 +156,19 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
       router.push(loginHref);
       return;
     }
+    if (mode === 'beli' && !sizeFile) {
+      setError('Harap unggah berkas daftar ukuran tim (Excel atau PDF) di tab Deskripsi Ukuran terlebih dahulu.');
+      return;
+    }
     if (totalQty === 0) {
-      setError('Isi jumlah unit yang dibutuhkan.');
+      setError('Tentukan jumlah unit yang dibutuhkan (atau sesuaikan dari berkas ukuran).');
       return;
     }
     if (mode === 'sewa' && availability.stock !== undefined && totalQty > availability.stock) {
       setError(`Stok tersedia pada tanggal tersebut hanya ${availability.stock} unit.`);
       return;
     }
+
     startTransition(async () => {
       const result = await submitBookingAction({
         productId: product.id,
@@ -106,6 +177,16 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
         returnDate: mode === 'sewa' ? ret : undefined,
         quantities,
         jenjang: jenjang || undefined,
+        sizeFile: sizeFile
+          ? {
+              fileName: sizeFile.fileName,
+              fileSize: sizeFile.fileSize,
+              fileType: sizeFile.fileType,
+              totalCount: sizeFile.parsedRoster?.rows.length || totalQty,
+              sizeCounts: sizeFile.parsedRoster?.sizeCounts,
+              rows: sizeFile.parsedRoster?.rows,
+            }
+          : undefined,
       });
       if (result?.needsLogin) router.push(loginHref);
       else if (result?.error) setError(result.error);
@@ -121,7 +202,7 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
           </span>
           <div>
             <h2 className="text-lg font-bold text-ink">{mode === 'sewa' ? 'Pemesanan Tanggal & Armada Sewa' : 'Pengajuan Pre-Order'}</h2>
-            <p className="text-xs text-ink-soft">{mode === 'sewa' ? 'Konfigurasi jadwal dan kuota seragam' : 'Pilih ukuran & ajukan pengecekan bahan'}</p>
+            <p className="text-xs text-ink-soft">{mode === 'sewa' ? 'Konfigurasi jadwal dan kuota seragam' : 'Lampirkan berkas ukuran & tentukan jumlah unit'}</p>
           </div>
         </div>
 
@@ -171,8 +252,69 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
           </>
         )}
 
+        {/* Bagian Berkas Ukuran (Khusus Pre-Order Pembelian) */}
+        {mode === 'beli' && (
+          <div className="pt-5">
+            <div className="flex items-center justify-between pb-2">
+              <label className="text-sm font-semibold text-ink">
+                Berkas Ukuran Siswa/Tim <span className="text-danger">*</span>
+              </label>
+              <span className="rounded bg-beige-soft px-2 py-0.5 text-[11px] font-semibold text-primary">
+                Wajib Pre-Order
+              </span>
+            </div>
+
+            {sizeFile ? (
+              <div className="flex items-center justify-between gap-2 rounded-xl border border-primary/25 bg-beige-soft p-3">
+                <div className="flex items-center gap-2.5 overflow-hidden">
+                  {sizeFile.fileType === 'excel' ? (
+                    <FileSpreadsheet className="size-5 shrink-0 text-success" />
+                  ) : (
+                    <FileText className="size-5 shrink-0 text-danger" />
+                  )}
+                  <div className="overflow-hidden">
+                    <p className="truncate text-xs font-bold text-ink">{sizeFile.fileName}</p>
+                    <p className="text-[11px] text-ink-soft">
+                      {sizeFile.parsedRoster?.rows.length ? `${sizeFile.parsedRoster.rows.length} siswa • ` : ''}
+                      Terlampir untuk Admin
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onSizeFileChange?.(null)}
+                  className="shrink-0 text-xs font-semibold text-danger hover:underline"
+                >
+                  Hapus
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-line bg-canvas p-3.5 text-center">
+                <p className="text-xs leading-relaxed text-ink-soft">
+                  Wajib melampirkan berkas rincian ukuran anggota tim (Excel atau PDF) sebelum mengajukan pesanan.
+                </p>
+                <button
+                  type="button"
+                  onClick={onOpenSizeTab}
+                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 text-xs font-bold text-primary ring-1 ring-line shadow-soft transition hover:bg-beige-soft"
+                >
+                  <Upload className="size-3.5" /> Unggah di Tab Deskripsi Ukuran
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Input Jumlah Unit (Tanpa pembatasan stok untuk Pre-Order) */}
         <div className="pt-4">
-          <p className="pb-2 text-sm font-semibold text-ink">{hasVariants ? 'Jumlah per Ukuran' : 'Jumlah Unit Dibutuhkan'}</p>
+          <div className="flex items-center justify-between pb-2">
+            <p className="text-sm font-semibold text-ink">
+              {mode === 'beli' ? 'Jumlah Kebutuhan per Ukuran' : hasVariants ? 'Jumlah per Ukuran' : 'Jumlah Unit Dibutuhkan'}
+            </p>
+            {mode === 'beli' && totalQty > 0 && (
+              <span className="text-xs font-bold text-primary">Total: {totalQty} Unit</span>
+            )}
+          </div>
           <ul className="flex flex-col gap-2">
             {(hasVariants ? product.variants : [{ id: '', size: 'Standar' }]).map((v) => {
               const limit = stockLimit(v.id);
@@ -181,7 +323,10 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
                 <li key={v.id || 'std'} className="flex items-center justify-between gap-3 rounded-xl bg-canvas px-3 py-2">
                   <span className="text-sm">
                     <b className="text-ink">{v.size}</b>
-                    {hasVariants && <span className="pl-2 text-xs text-muted">stok {limit}</span>}
+                    {/* HAPUS stok pada saat pembelian! Hanya tampilkan stok pada saat mode sewa! */}
+                    {mode === 'sewa' && hasVariants && (
+                      <span className="pl-2 text-xs text-muted">stok {limit}</span>
+                    )}
                   </span>
                   <span className="flex items-center gap-1">
                     <StepperButton label={`Kurangi ${v.size}`} onClick={() => setQty(v.id, q - 1)} disabled={q <= 0}>
@@ -276,7 +421,7 @@ export function BookingPanel({ product, modes, initialDate, isLoggedIn, loginHre
         <p className="pt-2 text-center text-[11px] text-ink-soft">
           {mode === 'sewa'
             ? 'Admin akan segera mengonfirmasi ketersediaan armada tanggal sewa Anda.'
-            : 'Admin akan memeriksa ketersediaan bahan kain ke supplier terlebih dahulu sebelum pembayaran DP dibuka.'}
+            : 'Admin akan memeriksa berkas ukuran & ketersediaan bahan kain sebelum pembayaran DP dibuka.'}
         </p>
       </section>
 

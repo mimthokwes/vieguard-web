@@ -32,6 +32,14 @@ export async function getConversationMessages(conversationId: string): Promise<C
   );
 }
 
+export async function setConversationBotStatus(conversationId: string, isBotActive: boolean): Promise<Conversation> {
+  return apiClient<Conversation>(`/chat/conversations/${conversationId}/bot`, {
+    method: 'PATCH',
+    body: { isBotActive },
+    token: await requireToken(),
+  });
+}
+
 /**
  * The website API accepts new messages over Socket.IO. Sending from the server keeps the
  * access token in its httpOnly cookie.

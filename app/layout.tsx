@@ -8,6 +8,7 @@ import { getStoreProfile } from '@/modules/home/services/store-service';
 import { getNotifications } from '@/modules/notifications/services/notification-service';
 import { getProfile } from '@/modules/profile/services/profile-service';
 import { QueryProvider } from '@/components/providers/query-provider';
+import { RealtimeProvider } from '@/components/providers/realtime-provider';
 
 const cinzel = Cinzel({
   subsets: ['latin'],
@@ -50,9 +51,11 @@ export default async function RootLayout({
     <html lang="id" className={`${cinzel.variable} ${jakarta.variable} `}>
       <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink antialiased">
         <QueryProvider>
-          <Navbar user={user} unreadCount={unreadCount} />
-          <div className="flex flex-1 flex-col">{children}</div>
-          <Footer store={store} />
+          <RealtimeProvider isLoggedIn={Boolean(user)}>
+            <Navbar user={user} unreadCount={unreadCount} />
+            <div className="flex flex-1 flex-col">{children}</div>
+            <Footer store={store} />
+          </RealtimeProvider>
         </QueryProvider>
       </body>
     </html>

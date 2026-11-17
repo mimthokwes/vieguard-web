@@ -19,7 +19,7 @@ export function ProductCardSkeleton() {
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-4 w-1/2" />
         {/* Harga */}
-        <div className="mt-2 border-t border-line pt-3">
+        <div className="mt-2 pt-1">
           <Skeleton className="h-5 w-24" />
           <Skeleton className="mt-1 h-3 w-20" />
         </div>

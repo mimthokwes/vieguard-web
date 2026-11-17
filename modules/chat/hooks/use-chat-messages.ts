@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { ChatMessage } from '@/types/chat';
-import { getSocketTokenAction, refreshMessagesAction, sendMessageAction } from '../actions';
+import { getSocketTokenAction, refreshMessagesAction, sendMessageAction, toggleBotAction } from '../actions';
 import {
   CHAT_EVENTS,
   FALLBACK_POLL_MS,
@@ -61,11 +61,14 @@ export function useChatMessages(
   initialMessages: ChatMessage[] = [],
   loadError?: string,
   conversationId?: string | number,
+  initialIsBotActive: boolean = true,
 ) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [isBotActive, setIsBotActive] = useState<boolean>(initialIsBotActive);
   const [online, setOnline] = useState(!loadError);
   const [error, setError] = useState(loadError ?? '');
   const [sending, setSending] = useState(false);
+  const [togglingBot, setTogglingBot] = useState(false);
   const socketRef = useRef<Socket | null>(null);
 
   const resync = useCallback(async () => {
@@ -111,6 +114,12 @@ export function useChatMessages(
 
     socket.on(CHAT_EVENTS.new, (msg: ChatMessage) => {
       if (String(msg.conversationId) === roomId) setMessages((m) => appendUnique(m, msg));
+    });
+
+    socket.on(CHAT_EVENTS.botStatus, (data: { conversationId: string; isBotActive: boolean }) => {
+      if (String(data.conversationId) === roomId) {
+        setIsBotActive(data.isBotActive);
+      }
     });
 
     // Refresh once when the tab becomes visible again (e.g. "read by admin" status).
@@ -170,5 +179,32 @@ export function useChatMessages(
     [sending, conversationId],
   );
 
-  return { messages, online, error, sending, send };
+  const toggleBot = useCallback(
+    async (active: boolean) => {
+      if (!conversationId || togglingBot) return false;
+      setTogglingBot(true);
+      try {
+        const socket = socketRef.current;
+        if (socket?.connected) {
+          socket.emit(CHAT_EVENTS.setBot, { conversationId: String(conversationId), isBotActive: active });
+          setIsBotActive(active);
+          return true;
+        }
+        const r = await toggleBotAction(active);
+        if (r.success) {
+          setIsBotActive(Boolean(r.isBotActive));
+          return true;
+        }
+        return false;
+      } catch (e) {
+        setError((e as Error).message || 'Gagal mengubah status bot.');
+        return false;
+      } finally {
+        setTogglingBot(false);
+      }
+    },
+    [conversationId, togglingBot],
+  );
+
+  return { messages, online, error, sending, send, isBotActive, togglingBot, toggleBot };
 }
