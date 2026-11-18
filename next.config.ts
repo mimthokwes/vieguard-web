@@ -1,7 +1,10 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: 'standalone',
+  cacheMaxMemorySize: 0, // Matikan in-memory cache bawaan Next.js (~50MB) demi hemat RAM STB
+  compress: false,
+  poweredByHeader: false,
   experimental: {
     serverActions: {
       // Payment proof photos are capped at 5MB in the action; leave room for multipart overhead.
@@ -9,7 +12,7 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== 'production',
     remotePatterns: [
       {
         protocol: 'http',
@@ -37,7 +40,6 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  
 };
 
 export default nextConfig;
