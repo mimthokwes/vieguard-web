@@ -20,10 +20,12 @@ const NETWORK_ERROR_MESSAGE = 'Server backend tidak dapat dihubungi. Pastikan ba
 
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
-    return (
-      process.env.NEXT_PUBLIC_API_URL ||
-      (process.env.NEXT_PUBLIC_API_HOST ? `${process.env.NEXT_PUBLIC_API_HOST}/api/v0/website` : 'http://localhost:5000/api/v0/website')
-    );
+    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+    if (process.env.NEXT_PUBLIC_API_HOST) return `${process.env.NEXT_PUBLIC_API_HOST}/api/v0/website`;
+    if (window.location.hostname.includes('vieguard.web.id')) {
+      return 'https://api.vieguard.web.id/api/v0/website';
+    }
+    return 'http://localhost:5000/api/v0/website';
   }
   return process.env.API_URL || 'http://localhost:5000/api/v0/website';
 }

@@ -1,5 +1,13 @@
 /** Origin server API (tanpa namespace), mis. http://localhost:5000 — isi di .env.local */
-export const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL ?? '';
+export const getSocketUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_SOCKET_URL) return process.env.NEXT_PUBLIC_SOCKET_URL;
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vieguard.web.id')) {
+    return 'https://api.vieguard.web.id';
+  }
+  return 'http://localhost:5000';
+};
+
+export const SOCKET_URL = typeof window !== 'undefined' ? getSocketUrl() : (process.env.NEXT_PUBLIC_SOCKET_URL ?? 'http://localhost:5000');
 
 /** Namespace Socket.IO untuk website customer. */
 export const SOCKET_NAMESPACE = '/ws/website';
