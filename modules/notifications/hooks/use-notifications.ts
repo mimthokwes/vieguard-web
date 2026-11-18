@@ -41,7 +41,13 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   }, [notifications, options.initialUnreadCount]);
 
   const markReadMutation = useMutation({
-    mutationFn: (id: string) => markReadAction(id),
+    mutationFn: async (id: string) => {
+      const res = await markReadAction(id);
+      if (res?.error) {
+        throw new Error(res.error);
+      }
+      return res;
+    },
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: ['notifications'] });
       const previous = queryClient.getQueryData<AppNotification[]>(['notifications']);
@@ -49,6 +55,11 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
         old.map((n) => (n.id === id ? { ...n, isRead: true } : n))
       );
       return { previous };
+    },
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<AppNotification[]>(['notifications'], (old = []) =>
+        old.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+      );
     },
     onError: (_err, _id, context) => {
       if (context?.previous) {
@@ -61,12 +72,21 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   });
 
   const markAllReadMutation = useMutation({
-    mutationFn: () => markAllReadAction(),
+    mutationFn: async () => {
+      const res = await markAllReadAction();
+      if (res?.error) {
+        throw new Error(res.error);
+      }
+      return res;
+    },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ['notifications'] });
       const previous = queryClient.getQueryData<AppNotification[]>(['notifications']);
       queryClient.setQueryData<AppNotification[]>(['notifications'], (old = []) => old.map((n) => ({ ...n, isRead: true })));
       return { previous };
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<AppNotification[]>(['notifications'], (old = []) => old.map((n) => ({ ...n, isRead: true })));
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {

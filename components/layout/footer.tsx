@@ -66,7 +66,11 @@ export function Footer({ store }: { store?: StoreProfile | null }) {
               )}
               <li className="flex items-start gap-2.5">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-gold-light" aria-hidden="true" />
-                <span>{store?.address || 'Indonesia'}</span>
+                <span>
+                  {store?.address && !store.address.toLowerCase().includes('malang')
+                    ? store.address
+                    : 'Jl. Percetakan Negara No. 18, Cempaka Putih, Jakarta Pusat, DKI Jakarta'}
+                </span>
               </li>
               {store?.operationalHours && (
                 <li className="flex items-center gap-2.5">
@@ -78,11 +82,10 @@ export function Footer({ store }: { store?: StoreProfile | null }) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-white/10 py-5 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
+        <div className="pb-8 pt-2 text-center text-xs text-white/60 sm:text-left">
           <p>
             © {year} {storeName}. Hak Cipta Dilindungi.
           </p>
-          <p>Dibuat untuk profesionalisme dan efisiensi manajemen garmen.</p>
         </div>
       </div>
     </footer>

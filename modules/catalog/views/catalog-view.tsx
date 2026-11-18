@@ -10,6 +10,7 @@ import { CatalogMode, ProductCard, canRent, canBuy, rentStock, buyStock } from '
 import { toNumber } from '@/lib/format';
 import { CatalogFilter, PRICE_OPTIONS, PriceKey, SortKey } from '../components/catalog-filter';
 import { useCatalog } from '../hooks/use-catalog';
+import { StaggerContainer, StaggerItem, FadeIn } from '@/components/ui/motion';
 
 const PAGE_SIZE = 12;
 const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
@@ -96,37 +97,43 @@ export function CatalogView({
 
   return (
     <main className="pt-6 pb-12 sm:pt-8">
-
-      <CatalogFilter
-        price={price}
-        onPrice={(v) => {
-          setPrice(v);
-          resetLimit();
-        }}
-        availableOnly={availableOnly}
-        onAvailableOnly={(v) => {
-          setAvailableOnly(v);
-          resetLimit();
-        }}
-        sort={sort}
-        onSort={setSort}
-        categories={categoryChips}
-        category={category}
-        onCategory={(id) => {
-          setCategory(id);
-          resetLimit();
-        }}
-        totalProducts={filtered.length}
-      />
+      <FadeIn duration={0.4} distance={12}>
+        <CatalogFilter
+          price={price}
+          onPrice={(v) => {
+            setPrice(v);
+            resetLimit();
+          }}
+          availableOnly={availableOnly}
+          onAvailableOnly={(v) => {
+            setAvailableOnly(v);
+            resetLimit();
+          }}
+          sort={sort}
+          onSort={setSort}
+          categories={categoryChips}
+          category={category}
+          onCategory={(id) => {
+            setCategory(id);
+            resetLimit();
+          }}
+          totalProducts={filtered.length}
+        />
+      </FadeIn>
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {visible.length > 0 ? (
           // Mobile: 2 kolom, tablet: 3 kolom, desktop: 4 kolom berjejer
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <StaggerContainer
+            className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+            staggerDelay={0.04}
+          >
             {visible.map((p) => (
-              <ProductCard key={p.id} product={p} mode={mode} detailHref={detailHref(p)} />
+              <StaggerItem key={p.id}>
+                <ProductCard product={p} mode={mode} detailHref={detailHref(p)} />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         ) : (
           <EmptyState
             icon={<PackageSearch className="size-7" aria-hidden="true" />}

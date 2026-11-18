@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getNotifications, markNotificationRead } from './services/notification-service';
+import { getNotifications, markNotificationRead, markAllNotificationsRead } from './services/notification-service';
 import { AppNotification } from '@/types/notification';
 import { getSessionToken } from '@/lib/session';
 
@@ -22,24 +22,23 @@ export async function getNotificationSocketTokenAction(): Promise<{ token?: stri
   }
 }
 
-export async function markReadAction(id: string): Promise<{ error?: string }> {
+export async function markReadAction(id: string): Promise<{ success?: boolean; error?: string }> {
   if (!/^\d+$/.test(id)) return { error: 'Notifikasi tidak valid.' };
   try {
     await markNotificationRead(id);
+    revalidatePath('/notifications');
+    return { success: true };
   } catch (error) {
     return { error: (error as Error).message };
   }
-  revalidatePath('/notifications');
-  return {};
 }
 
-export async function markAllReadAction(): Promise<{ error?: string }> {
+export async function markAllReadAction(): Promise<{ success?: boolean; error?: string }> {
   try {
-    const unread = (await getNotifications()).filter((n) => !n.isRead);
-    await Promise.all(unread.map((n) => markNotificationRead(n.id)));
+    await markAllNotificationsRead();
+    revalidatePath('/notifications');
+    return { success: true };
   } catch (error) {
     return { error: (error as Error).message };
   }
-  revalidatePath('/notifications');
-  return {};
 }

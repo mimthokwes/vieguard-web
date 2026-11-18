@@ -107,7 +107,7 @@ export function ProductTabs({
     const isPdf = ext.endsWith('.pdf') || file.type === 'application/pdf';
 
     if (!isExcel && !isPdf) {
-      setParseError('Format berkas tidak didukung. Harap unggah berkas Excel (.xlsx / .csv) atau PDF (.pdf).');
+      setParseError('Format berkas tidak didukung. Harap unggah berkas Excel (.xlsx) atau PDF (.pdf).');
       return;
     }
 
@@ -258,7 +258,7 @@ export function ProductTabs({
                       </div>
                       <h4 className="pt-3 text-base font-bold text-ink">Unggah Berkas Ukuran Anggota</h4>
                       <p className="pt-1 text-sm text-ink-soft max-w-md">
-                        Tarik & letakkan berkas <strong>Excel (.xlsx / .csv)</strong> atau <strong>PDF (.pdf)</strong> di sini, atau klik untuk memilih berkas dari perangkat.
+                        Tarik & letakkan berkas <strong>Excel (.xlsx)</strong> atau <strong>PDF (.pdf)</strong> di sini, atau klik untuk memilih berkas dari perangkat.
                       </p>
                       <span className="mt-3 rounded-full bg-beige-soft px-3 py-1 text-xs font-semibold text-primary">
                         Maksimal ukuran file: 10MB

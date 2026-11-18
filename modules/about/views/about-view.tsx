@@ -30,6 +30,7 @@ import { SubmitButton } from '@/components/ui/submit-button';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { PORTFOLIO_PROJECTS, categoryLabel } from '@/modules/portfolio/data';
 import { submitTestimonialAction, TestimonialActionState } from '../actions';
+import { FadeIn, StaggerContainer, StaggerItem } from '@/components/ui/motion';
 
 interface AboutViewProps {
   store: StoreProfile | null;
@@ -55,27 +56,30 @@ export function AboutView({ store, testimonials, user, completedOrders = [] }: A
   return (
     <PageContainer>
       <div className="space-y-10 pb-16">
-        <PageHeader
-          eyebrow="PROFIL USAHA"
-          title={`Tentang ${store?.storeName || 'Vieguard'}`}
-          description={
-            store?.description ||
-            'Konveksi, perlengkapan, dan persewaan seragam marching band terpercaya untuk sekolah dan instansi.'
-          }
-          aside={
-            <ButtonLink
-              href="/chat?topic=Konsultasi%20Profil%20Usaha"
-              variant="outline"
-              size="sm"
-              className="inline-flex items-center gap-2 !border-primary !text-primary hover:!bg-primary/5"
-            >
-              <MessagesSquare className="size-4" /> Chat Admin
-            </ButtonLink>
-          }
-        />
+        <FadeIn duration={0.4} distance={15}>
+          <PageHeader
+            eyebrow="PROFIL USAHA"
+            title={`Tentang ${store?.storeName || 'Vieguard'}`}
+            description={
+              store?.description ||
+              'Konveksi, perlengkapan, dan persewaan seragam marching band terpercaya untuk sekolah dan instansi.'
+            }
+            aside={
+              <ButtonLink
+                href="/chat?topic=Konsultasi%20Profil%20Usaha"
+                variant="outline"
+                size="sm"
+                className="inline-flex items-center gap-2 !border-primary !text-primary hover:!bg-primary/5"
+              >
+                <MessagesSquare className="size-4" /> Chat Admin
+              </ButtonLink>
+            }
+          />
+        </FadeIn>
 
         {/* ─── 1. Informasi Usaha & Workshop ─── */}
-        <section aria-label="Informasi Usaha" className="rounded-2xl bg-surface p-6 sm:p-8 shadow-card ring-1 ring-line">
+        <FadeIn delay={0.1} duration={0.5}>
+          <section aria-label="Informasi Usaha" className="rounded-2xl bg-surface p-6 sm:p-8 shadow-card ring-1 ring-line">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-6">
             <div className="flex items-center gap-3.5">
               <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -99,7 +103,9 @@ export function AboutView({ store, testimonials, user, completedOrders = [] }: A
                 <MapPin className="size-4" /> Alamat Workshop
               </span>
               <p className="pt-1 text-sm font-semibold leading-relaxed text-ink">
-                {store?.address || 'Jl. Merdeka No. 45, Kota Malang, Jawa Timur'}
+                {store?.address && !store.address.toLowerCase().includes('malang')
+                  ? store.address
+                  : 'Jl. Percetakan Negara No. 18, Cempaka Putih, Jakarta Pusat, DKI Jakarta'}
               </p>
               <p className="mt-auto pt-2 text-[11px] text-ink-soft">Kunjungan & konsultasi langsung</p>
             </div>
@@ -153,8 +159,10 @@ export function AboutView({ store, testimonials, user, completedOrders = [] }: A
             </ButtonLink>
           </div>
         </section>
+        </FadeIn>
 
         {/* ─── 2. Dokumentasi Foto Pelanggan ─── */}
+        <FadeIn delay={0.15} duration={0.5}>
         <section aria-labelledby="documentation-title" className="space-y-6">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end border-b border-line pb-4">
             <div>
@@ -228,8 +236,10 @@ export function AboutView({ store, testimonials, user, completedOrders = [] }: A
             ))}
           </div>
         </section>
+        </FadeIn>
 
         {/* ─── 3. Ulasan Pelanggan (Tanpa Filter Status) ─── */}
+        <FadeIn delay={0.15} duration={0.5}>
         <section aria-labelledby="testimonial-title" className="space-y-6">
           <div className="border-b border-line pb-4">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
@@ -435,6 +445,7 @@ export function AboutView({ store, testimonials, user, completedOrders = [] }: A
             </form>
           )}
         </section>
+        </FadeIn>
       </div>
     </PageContainer>
   );
