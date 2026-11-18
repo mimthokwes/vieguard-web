@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VieGuard Web
 
-## Getting Started
+Portal web resmi pelanggan untuk pemesanan, penyewaan, dan pembuatan kostum custom (drumband, parade, karnaval, dan event perayaan). Terintegrasi langsung dengan backend VieGuard dan aplikasi mobile manajemen admin.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🎯 Untuk Siapa Website Ini?
+
+Website ini dirancang khusus untuk memenuhi kebutuhan:
+* **Sekolah & Institusi**: Pemesanan seragam drumband/marching band dalam jumlah massal untuk satu tim/regu.
+* **Sanggar Seni & Komunitas**: Penyewaan kostum tari, parade budaya, atau karnaval tematik.
+* **Panitia Acara & EO**: Pengadaan kostum acara 17 Agustusan, festival daerah, atau maskot kegiatan.
+* **Pelanggan Umum**: Pembelian maupun sewa kostum satuan atau request pembuatan kostum custom dengan ukuran spesifik.
+
+---
+
+## 🚀 Fitur Utama
+
+### 1. Katalog & Sistem Penyewaan
+* **Katalog Lengkap**: Eksplorasi berbagai pilihan kostum dengan filter kategori, detail ukuran (S/M/L/XL/All Size), dan foto detail.
+* **Penyewaan Terjadwal**: Memilih tanggal mulai sewa dan tanggal pengembalian, lengkap dengan ketentuan dan perjanjian sewa resmi.
+
+### 2. Pesanan Custom (Jahit Khusus)
+* **Request Desain Sendiri**: Formulir pemesanan khusus untuk kostum yang belum ada di katalog.
+* **Upload Referensi**: Pelanggan dapat mengunggah foto sketsa, referensi model, dan menentukan detail ukuran perorangan/tim.
+
+### 3. Alur Pembayaran Fleksibel (DP & Pelunasan)
+* **Sistem Pembayaran Bertahap**: Mendukung pembayaran DP (Down Payment) di awal untuk pesanan borongan/custom, dan pelunasan saat kostum siap dikirim.
+* **Multi Metode Pembayaran**: Terintegrasi dengan Midtrans (QRIS, Virtual Account, Transfer Bank) serta upload bukti bayar manual.
+
+### 4. Pelacakan Pesanan & Progres Produksi
+* **Timeline Status Pesanan**: Pelanggan dapat memantau status pesanan secara transparan (Menunggu DP -> Proses Jahit/Produksi -> Siap Kirim -> Pelunasan -> Selesai).
+
+### 5. Konsultasi & Live Chat
+* **Chat Realtime**: Komunikasi langsung dengan pemilik/admin melalui Socket.IO untuk koordinasi ukuran, bahan, dan revisi.
+* **Asisten AI**: Konsultasi cerdas berbasis AI untuk rekomendasi kostum dan ide tema acara.
+
+### 6. Galeri Portofolio & Profil
+* Menampilkan dokumentasi karya kostum yang pernah diproduksi dan dipakai di berbagai festival.
+
+---
+
+## 🛠️ Teknologi yang Digunakan
+
+* **Framework**: Next.js 16 (App Router, Standalone Mode)
+* **Bahasa**: TypeScript
+* **Styling**: Tailwind CSS & Lucide Icons
+* **State & Data Fetching**: TanStack React Query & Axios
+* **Realtime**: Socket.IO Client
+* **Payment Gateway**: Midtrans Snap
+
+---
+
+## 📌 Info Penting & Menjalankan Project
+
+### 1. Prasyarat Lingkungan (.env)
+Pastikan file `.env` diisi dengan endpoint API yang sesuai:
+```env
+NEXT_PUBLIC_API_URL=https://api.vieguard.web.id/api/v0/website
+NEXT_PUBLIC_API_HOST=https://api.vieguard.web.id
+NEXT_PUBLIC_SOCKET_URL=https://api.vieguard.web.id
+NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=your_midtrans_client_key
+NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION=false
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Menjalankan di Mode Development (Lokal)
+```bash
+# Instal dependensi
+npm install
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Jalankan server pengembangan
+npm run dev
+```
+Akses di browser: `http://localhost:3000`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Build & Deployment (Docker / STB Server)
+Proyek ini dikonfigurasi untuk menghasilkan build mandiri (*standalone*) yang ringan dan hemat RAM untuk deployment di ARM64 / server lokal:
+```bash
+# Build production lokal
+npm run build
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Menjalankan hasil build standalone
+node .next/standalone/server.js
+```
+*Note: Image Docker otomatis dibuild dan dipush ke GitHub Container Registry (GHCR) via GitHub Actions setiap kali push ke branch `main`.*
