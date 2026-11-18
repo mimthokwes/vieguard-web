@@ -12,6 +12,8 @@ export const ROSTER_COLUMNS = [
   'Ukuran (XS/S/M/L/XL/XXL)',
   'Peran / Posisi',
   'Lingkar Dada (cm)',
+  'Lingkar Pinggang (cm)',
+  'Lebar Bahu (cm)',
   'Panjang Lengan (cm)',
   'Panjang Celana/Rok (cm)',
   'Lingkar Kepala Shako (cm)',
@@ -25,6 +27,12 @@ export interface RosterRow {
   heightCm?: number;
   size: string;
   role?: string;
+  chestCm?: number;
+  waistCm?: number;
+  shoulderCm?: number;
+  armCm?: number;
+  pantsCm?: number;
+  headCm?: number;
 }
 
 export interface RosterResult {
@@ -33,14 +41,16 @@ export interface RosterResult {
   rows: RosterRow[];
   invalidRows: number[];
   sizeCounts: Record<string, number>;
+  rawHeaders?: string[];
+  rawRows?: string[][];
 }
 
 export const MAX_ROSTER_BYTES = 10 * 1024 * 1024;
 
 export function rosterTemplateCsv(): string {
   const example = [
-    ['1', 'Contoh Nama Siswa', 'L', '160', 'M', 'Snare Drum', '86', '58', '98', '56'],
-    ['2', 'Contoh Nama Siswi', 'P', '152', 'S', 'Mayoret', '80', '54', '90', '54'],
+    ['1', 'Contoh Nama Siswa', 'L', '160', 'M', 'Snare Drum', '86', '74', '42', '58', '98', '56'],
+    ['2', 'Contoh Nama Siswi', 'P', '152', 'S', 'Mayoret', '80', '68', '38', '54', '90', '54'],
   ];
   return [ROSTER_COLUMNS, ...example].map((r) => r.map(csvCell).join(',')).join('\r\n');
 }
@@ -50,14 +60,12 @@ function csvCell(value: string) {
 }
 
 export function downloadRosterTemplate() {
-  // BOM so Excel opens the UTF-8 CSV with correct characters.
-  const blob = new Blob(['﻿' + rosterTemplateCsv()], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = 'template_ukuran_seragam_vieguard.csv';
+  a.href = '/templates/template_ukuran_seragam_vieguard.xlsx';
+  a.download = 'template_ukuran_seragam_vieguard.xlsx';
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
 }
 
 export async function parseRosterFile(file: File): Promise<RosterResult> {
@@ -81,10 +89,25 @@ function toRoster(file: File, table: string[][]): RosterResult {
   const col = (re: RegExp) => header.findIndex((h) => re.test(h));
   const iName = col(/nama/);
   const iGender = col(/kelamin|gender/);
-  const iHeight = col(/tinggi/);
+  const iHeight = col(/tinggi|\btb\b/);
   const iSize = col(/^ukuran|size/);
   const iRole = col(/peran|posisi|role/);
+  // Pastikan tidak mencocokkan 'tinggi badan'
+  const iChest = col(/dada|chest|lingkar.*badan|\bld\b/);
+  const iWaist = col(/pinggang|waist|\blp\b/);
+  const iShoulder = col(/bahu|shoulder|\blb\b/);
+  const iArm = col(/lengan|arm|\bpl\b/);
+  const iPants = col(/celana|rok|pants|\bpc\b/);
+  const iHead = col(/kepala|shako|head|\blk\b/);
+
   if (iSize === -1) throw new Error('Kolom "Ukuran" tidak ditemukan. Gunakan template resmi.');
+
+  const parseNum = (val: string | undefined): number | undefined => {
+    if (!val) return undefined;
+    const clean = val.replace(/[^0-9.]/g, '');
+    const n = Number(clean);
+    return Number.isFinite(n) && n > 0 ? Math.round(n) : undefined;
+  };
 
   const rows: RosterRow[] = [];
   const invalidRows: number[] = [];
@@ -100,15 +123,33 @@ function toRoster(file: File, table: string[][]): RosterResult {
       name,
       size,
       gender: iGender >= 0 ? (r[iGender] ?? '').trim().toUpperCase().slice(0, 1) || undefined : undefined,
-      heightCm: iHeight >= 0 ? Number(r[iHeight]) || undefined : undefined,
+      heightCm: iHeight >= 0 ? parseNum(r[iHeight]) : undefined,
       role: iRole >= 0 ? (r[iRole] ?? '').trim() || undefined : undefined,
+      chestCm: iChest >= 0 ? parseNum(r[iChest]) : undefined,
+      waistCm: iWaist >= 0 ? parseNum(r[iWaist]) : undefined,
+      shoulderCm: iShoulder >= 0 ? parseNum(r[iShoulder]) : undefined,
+      armCm: iArm >= 0 ? parseNum(r[iArm]) : undefined,
+      pantsCm: iPants >= 0 ? parseNum(r[iPants]) : undefined,
+      headCm: iHead >= 0 ? parseNum(r[iHead]) : undefined,
     });
   });
   if (rows.length === 0) throw new Error('Tidak ada baris data siswa yang valid di berkas.');
 
   const sizeCounts: Record<string, number> = {};
   for (const row of rows) sizeCounts[row.size] = (sizeCounts[row.size] ?? 0) + 1;
-  return { fileName: file.name, fileSize: file.size, rows, invalidRows, sizeCounts };
+
+  const rawHeaders = table[headerIdx] ?? [];
+  const rawRows = table.slice(headerIdx + 1).filter((r) => r.some((c) => c && c.trim()));
+
+  return {
+    fileName: file.name,
+    fileSize: file.size,
+    rows,
+    invalidRows,
+    sizeCounts,
+    rawHeaders,
+    rawRows,
+  };
 }
 
 /* ---------- CSV ---------- */

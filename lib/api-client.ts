@@ -63,8 +63,13 @@ export function invalidateApiCache(endpointPrefix?: string) {
     apiMemoryCache.clear();
     return;
   }
+  // Normalize and extract root segment: e.g. "/notifications/123/read" -> "/notifications"
+  const cleanEndpoint = endpointPrefix.split('?')[0];
+  const parts = cleanEndpoint.replace(/^https?:\/\/[^/]+/, '').split('/').filter(Boolean);
+  const rootResource = parts.length > 0 ? `/${parts[0]}` : endpointPrefix;
+
   for (const key of apiMemoryCache.keys()) {
-    if (key.includes(endpointPrefix)) {
+    if (key.includes(endpointPrefix) || key.includes(rootResource)) {
       apiMemoryCache.delete(key);
     }
   }

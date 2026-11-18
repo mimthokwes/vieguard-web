@@ -32,7 +32,7 @@ const GUIDE = [
   { icon: Ruler, title: '1. Gunakan Pita Ukur Fleksibel', body: 'Gunakan meteran jahit fleksibel (pita kain), jangan gunakan penggaris kaku atau pita tukang bangunan untuk menghindari deviasi lekuk tubuh.' },
   { icon: PersonStanding, title: '2. Ukuran Pas Badan (Bukan Baju Longgar)', body: 'Ukur pas di atas kaos tipis tanpa menarik pita terlalu kencang. Pola kami sudah mengalkulasi toleransi ruang gerak 4-6 cm.' },
   { icon: FileText, title: '3. Tuliskan Kode Ukuran Sesuai Standar', body: 'Masukkan angka dalam satuan sentimeter (cm). Untuk ukuran shako, gunakan keliling kepala tepat di atas alis telinga (contoh: 56, 58).' },
-  { icon: Save, title: '4. Simpan dalam Format .xlsx atau .csv', body: 'Pertahankan struktur header kolom dari template. Jangan mengubah urutan atau nama kolom bawaan.' },
+  { icon: Save, title: '4. Simpan dalam Format .xlsx (Excel)', body: 'Pertahankan struktur header kolom dari template. Jangan mengubah urutan atau nama kolom bawaan.' },
 ];
 
 interface StepRosterProps {
@@ -122,7 +122,7 @@ export function StepRoster({ draft, update, error, storePhone }: StepRosterProps
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
             <span className="mt-5 flex items-center gap-2 rounded-lg bg-beige-soft px-3 py-1.5 text-sm text-ink-soft">
-              <Info className="size-4" aria-hidden="true" /> Mendukung format .xlsx atau .csv (Maksimum 10MB)
+              <Info className="size-4" aria-hidden="true" /> Format resmi Excel .xlsx (Maksimum 10MB)
             </span>
             <div className="flex gap-6 pt-5 text-sm text-muted">
               <span className="flex items-center gap-1"><CircleCheck className="size-3.5" aria-hidden="true" /> Validasi Baris Otomatis</span>

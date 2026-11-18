@@ -22,7 +22,15 @@ export interface BookingSizeFile {
     heightCm?: number;
     size: string;
     role?: string;
+    chestCm?: number;
+    waistCm?: number;
+    shoulderCm?: number;
+    armCm?: number;
+    pantsCm?: number;
+    headCm?: number;
   }>;
+  rawHeaders?: string[];
+  rawRows?: string[][];
 }
 
 export interface BookingInput {
@@ -109,15 +117,45 @@ export async function submitBookingAction(input: BookingInput): Promise<BookingR
     input.notes?.trim(),
   ].filter(Boolean).join(' — ') || undefined;
 
-  const customDetail = input.mode === 'beli' ? {
+  const formatRoleWithMeasurements = (r: NonNullable<BookingSizeFile['rows']>[number]) => {
+    const parts: string[] = [];
+    if (r.chestCm) parts.push(`LD:${r.chestCm}`);
+    if (r.waistCm) parts.push(`LP:${r.waistCm}`);
+    if (r.shoulderCm) parts.push(`B:${r.shoulderCm}`);
+    if (r.armCm) parts.push(`PL:${r.armCm}`);
+    if (r.pantsCm) parts.push(`PC:${r.pantsCm}`);
+    if (r.headCm) parts.push(`LK:${r.headCm}`);
+
+    const tag = parts.length > 0 ? `[${parts.join(' ')}]` : '';
+    const baseRole = (r.role || '').trim();
+    if (!tag) return baseRole || undefined;
+    if (!baseRole) return tag.slice(0, 60);
+    const combined = `${baseRole} ${tag}`;
+    return combined.length <= 60 ? combined : `${baseRole.slice(0, Math.max(0, 58 - tag.length))} ${tag}`.slice(0, 60);
+  };
+
+  const rosterPayload = input.sizeFile ? {
+    fileName: input.sizeFile.fileName,
+    rawHeaders: input.sizeFile.rawHeaders,
+    rawRows: input.sizeFile.rawRows,
+    rows: input.sizeFile.rows,
+  } : undefined;
+
+  const rosterJson = rosterPayload ? JSON.stringify(rosterPayload) : undefined;
+  const baseConsultNote = formatOrderMeta({
+    packageName: `Pre-Order ${product.name}`,
+    rosterFile: input.sizeFile?.fileName,
+    rosterCount: input.sizeFile?.totalCount || totalQty,
+    notes: input.notes,
+  });
+  const fullConsultationNote = rosterJson
+    ? `${baseConsultNote}\n===ROSTER_JSON_START===\n${rosterJson}\n===ROSTER_JSON_END===`
+    : baseConsultNote;
+
+  const customDetail = (input.mode === 'beli' || input.sizeFile) ? {
     jenisJenjang: input.jenjang,
     designDescription: `Pesanan Pre-Order Pembelian: ${product.name}`,
-    consultationNote: formatOrderMeta({
-      packageName: `Pre-Order ${product.name}`,
-      rosterFile: input.sizeFile?.fileName,
-      rosterCount: input.sizeFile?.totalCount || totalQty,
-      notes: input.notes,
-    }),
+    consultationNote: fullConsultationNote,
   } : undefined;
 
   const orderSizeEntries = input.sizeFile?.rows?.map((r) => ({
@@ -125,7 +163,7 @@ export async function submitBookingAction(input: BookingInput): Promise<BookingR
     gender: r.gender,
     heightCm: r.heightCm,
     size: r.size,
-    role: r.role,
+    role: formatRoleWithMeasurements(r),
   }));
 
   let orderId: string;

@@ -1,5 +1,5 @@
 import { unstable_rethrow } from 'next/navigation';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, invalidateApiCache } from '@/lib/api-client';
 import { getSessionToken } from '@/lib/session';
 import { AppNotification } from '@/types/notification';
 
@@ -11,7 +11,13 @@ export async function getNotifications(): Promise<AppNotification[]> {
   if (!token) return [];
 
   try {
-    return (await apiClient<AppNotification[]>('/notifications', { token })) || [];
+    return (
+      (await apiClient<AppNotification[]>('/notifications', {
+        token,
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      })) || []
+    );
   } catch (error) {
     unstable_rethrow(error);
     console.error('[getNotifications Error]:', error);
@@ -27,4 +33,22 @@ export async function markNotificationRead(id: string): Promise<void> {
     method: 'PATCH',
     token,
   });
+  invalidateApiCache('/notifications');
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  const token = await getSessionToken();
+  if (!token) return;
+
+  try {
+    await apiClient('/notifications/read-all', {
+      method: 'PATCH',
+      token,
+    });
+  } catch {
+    // Fallback if backend hasn't been updated with read-all route yet
+    const unread = (await getNotifications()).filter((n) => !n.isRead);
+    await Promise.all(unread.map((n) => markNotificationRead(n.id)));
+  }
+  invalidateApiCache('/notifications');
 }

@@ -2,14 +2,20 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CATEGORIES } from '../data';
 import { SectionHeading } from './section-heading';
+import { FadeIn, StaggerContainer, StaggerItem } from '@/components/ui/motion';
 
 export function CategoryGrid() {
   return (
     <section aria-label="Kategori" className="flex flex-col gap-5">
-      <SectionHeading title="Belanja per kategori" href="/catalog" linkLabel="Lihat semua kategori" />
-      <ul className="grid grid-cols-4 gap-x-2 gap-y-5 lg:grid-cols-8">
+      <FadeIn>
+        <SectionHeading title="Belanja per kategori" href="/catalog" linkLabel="Lihat semua kategori" />
+      </FadeIn>
+      <StaggerContainer
+        className="grid grid-cols-4 gap-x-2 gap-y-5 lg:grid-cols-8"
+        staggerDelay={0.04}
+      >
         {CATEGORIES.map(({ label, href, image }) => (
-          <li key={label}>
+          <StaggerItem key={label}>
             <Link href={href} prefetch={false} className="group flex flex-col items-center gap-2.5 text-center">
               <span className="relative block size-16 overflow-hidden rounded-full border border-line-strong bg-beige-soft transition-colors group-hover:border-primary sm:size-20">
                 <Image
@@ -22,9 +28,9 @@ export function CategoryGrid() {
               </span>
               <span className="text-xs font-medium text-ink-soft group-hover:text-ink">{label}</span>
             </Link>
-          </li>
+          </StaggerItem>
         ))}
-      </ul>
+      </StaggerContainer>
     </section>
   );
 }

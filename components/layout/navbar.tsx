@@ -29,7 +29,7 @@ function IconLink({
   count = 0,
   hasDot = false,
   isTransparent = false,
-  isScrolled = false,
+  isCompact = false,
   children,
 }: {
   href: string;
@@ -37,7 +37,7 @@ function IconLink({
   count?: number;
   hasDot?: boolean;
   isTransparent?: boolean;
-  isScrolled?: boolean;
+  isCompact?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -46,7 +46,7 @@ function IconLink({
       aria-label={count > 0 ? `${label}, ${count}` : label}
       title={label}
       className={`relative flex size-8 sm:size-9 items-center justify-center transition-colors rounded-lg ${
-        isScrolled
+        isCompact
           ? 'text-ink-soft hover:bg-beige-soft hover:text-primary'
           : isTransparent
             ? 'text-white hover:bg-white/20 hover:text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
@@ -118,6 +118,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const isHome = pathname === '/';
+  const isCompact = !isHome || isScrolled;
   const isTransparent = isHome && !isScrolled && !mobileOpen && !mobileSearchOpen;
 
   // Listen to scroll to update compact 85% vs full-width state
@@ -183,30 +184,30 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
   return (
     <>
       {/* Spacer placeholder for non-home pages to prevent layout shift under fixed navbar */}
-      {!isHome && <div className="h-14 md:h-24 w-full shrink-0" aria-hidden="true" />}
+      {!isHome && <div className="h-16 md:h-20 w-full shrink-0" aria-hidden="true" />}
 
       {/* Floating Centered Wrapper */}
       <div
         className={`fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-all duration-300 ease-out ${
-          isScrolled ? 'pt-2 sm:pt-3' : 'pt-0'
+          isCompact ? 'pt-2 sm:pt-3' : 'pt-0'
         }`}
       >
         <header
           ref={headerRef}
           className={`pointer-events-auto transition-all duration-300 ease-out relative ${
-            isScrolled
+            isCompact
               ? 'w-[85%] max-w-6xl rounded-2xl bg-surface/95 backdrop-blur-md shadow-card border border-line/80 px-3 sm:px-5 py-1.5 sm:py-2'
               : isTransparent
                 ? 'w-full bg-gradient-to-b from-black/80 via-black/40 to-transparent border-none shadow-none px-3 sm:px-6 lg:px-8 py-2'
                 : 'w-full bg-surface shadow-xs border-b border-line px-3 sm:px-6 lg:px-8 py-2'
           }`}
         >
-          {/* Main Bar (Single row when scrolled, Row 1 of 2 when not scrolled) */}
+          {/* Main Bar (Single row when compact, Row 1 of 2 when not compact) */}
           <div className="flex w-full items-center justify-between gap-2 sm:gap-4">
-            <Logo inverted={isTransparent} hideTextOnMobile className={isScrolled ? 'scale-95 origin-left' : ''} />
+            <Logo inverted={isTransparent} hideTextOnMobile className={isCompact ? 'scale-95 origin-left' : ''} />
 
-            {/* When SCROLLED: Tab list merged into this single top row */}
-            {isScrolled && (
+            {/* When COMPACT: Tab list merged into this single top row */}
+            {isCompact && (
               <div className="hidden flex-1 items-center justify-center md:flex px-2">
                 <nav
                   className="scrollbar-none flex items-center justify-center gap-1 lg:gap-2 xl:gap-3 overflow-x-auto"
@@ -233,8 +234,8 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
               </div>
             )}
 
-            {/* When NOT SCROLLED: Full Desktop Search form */}
-            {!isScrolled && (
+            {/* When NOT COMPACT: Full Desktop Search form */}
+            {!isCompact && (
               <form onSubmit={handleSearchSubmit} className="mx-4 hidden max-w-md flex-1 md:flex">
                 <div className="relative w-full">
                   <input
@@ -259,10 +260,10 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
               </form>
             )}
 
-            {/* Right Side items: Compact Search (when scrolled) + Action buttons */}
+            {/* Right Side items: Compact Search (when compact) + Action buttons */}
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              {/* When SCROLLED: Compact Search form */}
-              {isScrolled && (
+              {/* When COMPACT: Compact Search form */}
+              {isCompact && (
                 <form onSubmit={handleSearchSubmit} className="hidden items-center md:flex mr-1">
                   <div className="relative w-32 lg:w-40 xl:w-48 transition-all">
                     <input
@@ -298,7 +299,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                 className={`flex size-8 sm:size-9 items-center justify-center rounded-lg transition-colors md:hidden ${
                   mobileSearchOpen
                     ? 'bg-primary/10 text-primary'
-                    : isTransparent && !isScrolled
+                    : isTransparent
                       ? 'text-white hover:bg-white/20 hover:text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
                       : 'text-ink-soft hover:bg-beige-soft hover:text-primary'
                 }`}
@@ -309,8 +310,8 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
               {user ? (
                 <>
                   {/* Obrolan */}
-                  <IconLink href="/chat" label="Obrolan" isTransparent={isTransparent && !isScrolled} isScrolled={isScrolled}>
-                    <MessageCircle className={isScrolled ? 'size-4 sm:size-5' : 'size-5'} />
+                  <IconLink href="/chat" label="Obrolan" isTransparent={isTransparent} isCompact={isCompact}>
+                    <MessageCircle className={isCompact ? 'size-4 sm:size-5' : 'size-5'} />
                   </IconLink>
 
                   {/* Pesanan / Keranjang */}
@@ -318,10 +319,10 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                     href="/orders"
                     label="Pesan"
                     count={cartCount}
-                    isTransparent={isTransparent && !isScrolled}
-                    isScrolled={isScrolled}
+                    isTransparent={isTransparent}
+                    isCompact={isCompact}
                   >
-                    <ShoppingCart className={isScrolled ? 'size-4 sm:size-5' : 'size-5'} />
+                    <ShoppingCart className={isCompact ? 'size-4 sm:size-5' : 'size-5'} />
                   </IconLink>
 
                   {/* Dropdown Akun */}
@@ -339,7 +340,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                       className={`relative flex size-8 sm:size-9 items-center justify-center transition-colors rounded-lg ${
                         accountOpen
                           ? 'bg-beige-soft text-primary'
-                          : isScrolled
+                          : isCompact
                             ? 'text-ink-soft hover:bg-beige-soft hover:text-primary'
                             : isTransparent
                               ? 'text-white hover:bg-white/20 hover:text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
@@ -437,7 +438,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                     <Link
                       href="/login"
                       className={`inline-flex items-center justify-center font-bold whitespace-nowrap transition-colors duration-200 cursor-pointer rounded-lg px-3 ${
-                        isScrolled ? 'h-8 text-xs' : 'h-8 text-xs sm:text-sm'
+                        isCompact ? 'h-8 text-xs' : 'h-8 text-xs sm:text-sm'
                       } ${
                         isTransparent
                           ? 'border border-white/40 text-white hover:bg-white/20 hover:text-gold hover:border-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
@@ -450,7 +451,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                       href="/register"
                       size="sm"
                       variant={isTransparent ? 'gold' : 'primary'}
-                      className={isScrolled ? 'h-8 px-3 text-xs' : ''}
+                      className={isCompact ? 'h-8 px-3 text-xs' : ''}
                     >
                       Daftar
                     </ButtonLink>
@@ -474,7 +475,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                   setAccountOpen(false);
                 }}
                 className={`flex size-8 sm:size-9 items-center justify-center rounded-lg transition-colors md:hidden ${
-                  isTransparent && !isScrolled
+                  isTransparent
                     ? 'text-white hover:bg-white/20 hover:text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]'
                     : 'text-ink hover:bg-beige-soft'
                 }`}
@@ -486,8 +487,8 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
             </div>
           </div>
 
-          {/* Row 2: Desktop Navigation Links (Only shown when NOT scrolled) */}
-          {!isScrolled && (
+          {/* Row 2: Desktop Navigation Links (Only shown when NOT compact) */}
+          {!isCompact && (
             <div
               className={`hidden w-full md:block transition-colors mt-1 ${
                 isTransparent ? 'border-none' : 'border-t border-line/60'

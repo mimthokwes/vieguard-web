@@ -185,6 +185,8 @@ export function BookingPanel({
               totalCount: sizeFile.parsedRoster?.rows.length || totalQty,
               sizeCounts: sizeFile.parsedRoster?.sizeCounts,
               rows: sizeFile.parsedRoster?.rows,
+              rawHeaders: sizeFile.parsedRoster?.rawHeaders,
+              rawRows: sizeFile.parsedRoster?.rawRows,
             }
           : undefined,
       });
