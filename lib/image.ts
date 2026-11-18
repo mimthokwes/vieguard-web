@@ -12,7 +12,11 @@ export function formatImageUrl(path?: string | null): string {
     return path;
   }
 
-  const apiHost = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:5000';
+  const apiHost =
+    process.env.NEXT_PUBLIC_API_HOST ||
+    (typeof window !== 'undefined' && window.location.hostname.includes('vieguard.web.id')
+      ? 'https://api.vieguard.web.id'
+      : 'http://localhost:5000');
   return `${apiHost}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
