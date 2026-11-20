@@ -10,7 +10,7 @@ export function PromoCards({ isLoggedIn = false }: Props) {
       <StaggerContainer className="grid grid-cols-1 gap-4 md:grid-cols-3" staggerDelay={0.1}>
         {/* KOTAK 1: PILIHAN MODEL & DESAIN */}
         <StaggerItem>
-          <article className="group relative flex flex-col justify-between rounded-2xl border border-line bg-surface p-5 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-gold hover:shadow-card h-full">
+          <article className="group relative flex flex-col justify-between rounded-2xl border border-line bg-surface p-5 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-primary hover:shadow-card h-full">
             <div>
               <div className="flex items-baseline justify-between mb-2">
                 <span className="font-mono text-2xl font-black tracking-tight text-primary">
@@ -41,7 +41,7 @@ export function PromoCards({ isLoggedIn = false }: Props) {
 
         {/* KOTAK 2: PENDATAAN UKURAN & BAHAN */}
         <StaggerItem>
-          <article className="group relative flex flex-col justify-between rounded-2xl border border-line bg-surface p-5 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-gold hover:shadow-card h-full">
+          <article className="group relative flex flex-col justify-between rounded-2xl border border-line bg-surface p-5 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-primary hover:shadow-card h-full">
             <div>
               <div className="flex items-baseline justify-between mb-2">
                 <span className="font-mono text-2xl font-black tracking-tight text-primary">
@@ -72,7 +72,7 @@ export function PromoCards({ isLoggedIn = false }: Props) {
 
         {/* KOTAK 3: PRODUKSI PRESISI & HASIL PARADE */}
         <StaggerItem>
-          <article className="group relative flex flex-col justify-between rounded-2xl border border-ink bg-ink text-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-gold hover:shadow-card h-full">
+          <article className="group relative flex flex-col justify-between rounded-2xl border border-ink bg-ink text-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-primary hover:shadow-card h-full">
             <div>
               <div className="flex items-baseline justify-between mb-2">
                 <span className="font-mono text-2xl font-black tracking-tight text-gold">
