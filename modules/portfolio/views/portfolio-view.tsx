@@ -78,7 +78,7 @@ export function PortfolioView() {
                 setPage(1);
               }}
               placeholder="Cari proyek..."
-              className="h-11 w-full rounded-lg bg-beige-soft pl-11 pr-4 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary"
+              className="h-11 w-full rounded-lg border border-transparent bg-beige-soft pl-11 pr-4 text-sm text-ink placeholder:text-muted outline-none transition-colors focus:border-primary focus:bg-surface"
             />
           </label>
           <label className="md:w-56">

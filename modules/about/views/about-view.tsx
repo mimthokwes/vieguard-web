@@ -64,20 +64,10 @@ export function AboutView({ store, testimonials, user, completedOrders = [] }: A
               store?.description ||
               'Konveksi, perlengkapan, dan persewaan seragam marching band terpercaya untuk sekolah dan instansi.'
             }
-            aside={
-              <ButtonLink
-                href="/chat?topic=Konsultasi%20Profil%20Usaha"
-                variant="outline"
-                size="sm"
-                className="inline-flex items-center gap-2 !border-primary !text-primary hover:!bg-primary/5"
-              >
-                <MessagesSquare className="size-4" /> Chat Admin
-              </ButtonLink>
-            }
           />
         </FadeIn>
 
-        {/* ─── 1. Informasi Usaha & Workshop ─── */}
+        {/* ─── 1. Informasi Usaha & Konveksi ─── */}
         <FadeIn delay={0.1} duration={0.5}>
           <section aria-label="Informasi Usaha" className="rounded-2xl bg-surface p-6 sm:p-8 shadow-card ring-1 ring-line">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-6">
@@ -86,13 +76,13 @@ export function AboutView({ store, testimonials, user, completedOrders = [] }: A
                 <Building2 className="size-6" />
               </span>
               <div>
-                <h2 className="text-xl font-bold text-ink">{store?.storeName || 'Vieguard Marching Band'}</h2>
-                <p className="text-xs text-ink-soft">Workshop resmi & layanan konsultasi seragam</p>
+                <h2 className="text-xl font-bold text-ink">{store?.storeName || 'Kantor & Konveksi Vieguard'}</h2>
+                <p className="text-xs text-ink-soft">Pusat konveksi resmi & layanan konsultasi seragam</p>
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 sm:self-auto">
               <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-              Workshop Aktif & Siap Melayani
+              Konveksi Aktif & Siap Melayani
             </span>
           </div>
 
@@ -100,7 +90,7 @@ export function AboutView({ store, testimonials, user, completedOrders = [] }: A
             {/* Alamat */}
             <div className="flex flex-col gap-1.5 rounded-xl bg-beige-soft/50 p-4 border border-line/60">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
-                <MapPin className="size-4" /> Alamat Workshop
+                <MapPin className="size-4" /> Alamat Konveksi
               </span>
               <p className="pt-1 text-sm font-semibold leading-relaxed text-ink">
                 {store?.address && !store.address.toLowerCase().includes('malang')

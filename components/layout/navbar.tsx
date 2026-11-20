@@ -244,7 +244,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                     placeholder="Cari seragam, topi, acara..."
-                    className={`w-full rounded-md border py-1.5 pl-3 pr-14 text-sm text-ink outline-none transition-all placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 ${
+                    className={`w-full rounded-md border py-1.5 pl-3 pr-14 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-primary ${
                       isTransparent ? 'border-transparent bg-surface/95 shadow-md backdrop-blur-xs' : 'border-line bg-surface'
                     }`}
                     aria-label="Cari produk"
@@ -265,14 +265,14 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
               {/* When COMPACT: Compact Search form */}
               {isCompact && (
                 <form onSubmit={handleSearchSubmit} className="hidden items-center md:flex mr-1">
-                  <div className="relative w-32 lg:w-40 xl:w-48 transition-all">
+                  <div className="relative w-36 lg:w-44 xl:w-52">
                     <input
                       type="search"
                       id="navbar-search-compact"
                       value={searchValue}
                       onChange={(e) => setSearchValue(e.target.value)}
                       placeholder="Cari..."
-                      className="h-8 w-full rounded-md border border-line bg-canvas/90 py-1 pl-2.5 pr-8 text-xs text-ink outline-none transition-all placeholder:text-muted focus:w-44 lg:focus:w-52 focus:border-primary focus:bg-surface focus:ring-1 focus:ring-primary/20"
+                      className="h-8 w-full rounded-md border border-line bg-canvas/90 py-1 pl-2.5 pr-8 text-xs text-ink outline-none transition-colors placeholder:text-muted focus:border-primary focus:bg-surface"
                       aria-label="Cari produk"
                     />
                     <button
@@ -540,7 +540,7 @@ export function Navbar({ user, unreadCount = 0, cartCount = 0 }: NavbarProps) {
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                     placeholder="Cari seragam, topi, acara..."
-                    className="w-full rounded-lg border border-line bg-canvas py-1.5 pl-3 pr-10 text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-line bg-canvas py-1.5 pl-3 pr-10 text-sm text-ink outline-none transition-colors focus:border-primary"
                     aria-label="Cari produk"
                   />
                   <button

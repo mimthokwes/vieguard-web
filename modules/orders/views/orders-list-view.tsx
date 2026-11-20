@@ -157,7 +157,7 @@ export function OrdersListView({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari nomor pesanan atau instansi..."
-              className="h-11 w-full rounded-lg bg-beige-soft pl-10 pr-3 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary sm:w-72"
+              className="h-11 w-full rounded-lg border border-transparent bg-beige-soft pl-10 pr-3 text-sm text-ink placeholder:text-muted outline-none transition-colors focus:border-primary focus:bg-surface sm:w-72"
             />
           </label>
           <label className="relative">

@@ -59,14 +59,14 @@ export function ProductCard({ product, detailHref, mode = 'all' }: ProductCardPr
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/40">
       {/* ─── Foto Produk ─── */}
-      <Link href={href} className="relative block aspect-4/3 w-full overflow-hidden bg-beige-soft" tabIndex={-1} aria-hidden="true">
+      <Link href={href} className="relative block aspect-4/3 w-full overflow-hidden bg-surface" tabIndex={-1} aria-hidden="true">
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            className="object-contain object-top origin-top transition-transform duration-500 group-hover:scale-[1.03]"
             unoptimized
           />
         ) : (

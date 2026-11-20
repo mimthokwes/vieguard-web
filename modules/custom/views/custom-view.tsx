@@ -1,42 +1,32 @@
 "use client";
 
-import React, { useActionState, useState } from 'react';
+import React, { useActionState, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
-  Award,
   CheckCircle2,
-  FileImage,
-  Headset,
-  HelpCircle,
+  Download,
+  Eye,
+  EyeOff,
+  FileSpreadsheet,
+  FileText,
   ImagePlus,
   Link2,
+  Loader2,
   MessagesSquare,
-  Palette,
-  PencilRuler,
-  Scissors,
+  Ruler,
   Send,
-  ShieldCheck,
-  Sparkles,
   Trash2,
   UploadCloud,
 } from 'lucide-react';
 import { PageContainer, PageHeader } from '@/components/layout/page-header';
-import { ButtonLink } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Input, Select, Textarea } from '@/components/ui/input';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { SubmitButton } from '@/components/ui/submit-button';
 import { submitCustomOrder, OrderActionState } from '@/modules/order/actions';
 import { JENJANG_OPTIONS } from '@/modules/order/data';
-
-const MATERIAL_PRESETS = [
-  { name: 'American Drill 1919', note: 'Tegap, kuat, & awet' },
-  { name: 'Nagata Drill Premium', note: 'Halus, rapat, & adem' },
-  { name: 'Tessa / High Twist', note: 'Rapi & tidak mudah kusut' },
-  { name: 'Beludru / Velvet Import', note: 'Mewah & mengkilap' },
-  { name: 'Satin Bridal', note: 'Halus & kilau lembut' },
-  { name: 'Kain Khusus Lainnya', note: 'Sesuai permintaan' },
-];
+import { downloadRosterTemplate, parseRosterFile, RosterResult } from '@/lib/roster/roster';
 
 const CATEGORY_OPTIONS = [
   'Seragam Pasukan Drumband',
@@ -48,18 +38,50 @@ const CATEGORY_OPTIONS = [
   'Lainnya',
 ];
 
+const MATERIAL_OPTIONS = [
+  { value: 'Katun', label: 'Katun (Adem, nyaman, & menyerap keringat)' },
+  { value: 'Rayon', label: 'Rayon (Lembut, jatuh, & sejuk di kulit)' },
+  { value: 'Linen', label: 'Linen (Kuat, bertekstur elegan, & serat alami)' },
+  { value: 'Tencel', label: 'Tencel (Halus mewah, adem, & ramah lingkungan)' },
+  { value: 'custom', label: 'Pilihan Sendiri (Tulis jenis kain sendiri)' },
+];
+
+export interface SizeFileAttachment {
+  fileName: string;
+  fileSize: number;
+  fileType: 'excel' | 'pdf';
+  parsedRoster?: RosterResult | null;
+  rawFile?: File;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 const initialState: OrderActionState = {};
 
 interface CustomViewProps {
-  accessories: { name: string; description?: string | null }[];
+  accessories?: { name: string; description?: string | null }[];
   isLoggedIn?: boolean;
 }
 
-export function CustomView({ accessories, isLoggedIn = true }: CustomViewProps) {
+export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewProps) {
   const [state, formAction] = useActionState(submitCustomOrder, initialState);
   const [description, setDescription] = useState('');
-  const [selectedMaterial, setSelectedMaterial] = useState<string>('American Drill 1919');
+  const [materialType, setMaterialType] = useState<string>('Katun');
+  const [customMaterial, setCustomMaterial] = useState<string>('');
+  const [quantity, setQuantity] = useState<number>(1);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+
+  // Size file attachment state
+  const [sizeFile, setSizeFile] = useState<SizeFileAttachment | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [showRosterPreview, setShowRosterPreview] = useState(false);
+  const sizeFileInputRef = useRef<HTMLInputElement>(null);
 
   const err = state.fieldErrors ?? {};
 
@@ -79,6 +101,52 @@ export function CustomView({ accessories, isLoggedIn = true }: CustomViewProps) 
 
   const removePreview = (index: number) => {
     setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSizeFile = async (file: File) => {
+    setParseError(null);
+    const lower = file.name.toLowerCase();
+    const isExcel = lower.endsWith('.xlsx') || lower.endsWith('.xls') || lower.endsWith('.csv');
+    const isPdf = lower.endsWith('.pdf');
+
+    if (!isExcel && !isPdf) {
+      setParseError('Format berkas tidak didukung. Harap unggah berkas .xlsx, .xls, .csv, atau .pdf.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setParseError('Ukuran berkas maksimal 10MB.');
+      return;
+    }
+
+    if (isExcel) {
+      setParsing(true);
+      try {
+        const roster = await parseRosterFile(file);
+        setSizeFile({
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: 'excel',
+          parsedRoster: roster,
+          rawFile: file,
+        });
+        if (roster.rows.length > 0) {
+          setQuantity(roster.rows.length);
+        }
+      } catch (err: any) {
+        setParseError(err.message || 'Gagal membaca isi berkas Excel. Pastikan format kolom sesuai template resmi.');
+      } finally {
+        setParsing(false);
+      }
+    } else {
+      setSizeFile({
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: 'pdf',
+        parsedRoster: null,
+        rawFile: file,
+      });
+    }
   };
 
   return (
@@ -142,6 +210,8 @@ export function CustomView({ accessories, isLoggedIn = true }: CustomViewProps) 
                     type="number"
                     min={1}
                     required
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value) || 1)}
                     placeholder="Jumlah stel"
                     rightSlot={<span className="pr-3 text-xs font-semibold text-ink-soft">Stel</span>}
                     error={err.quantity}
@@ -167,38 +237,43 @@ export function CustomView({ accessories, isLoggedIn = true }: CustomViewProps) 
               </div>
             </SectionCard>
 
-            {/* 02. Bahan */}
+            {/* 02. Pilihan Bahan (Dropdown Awam & Opsi Custom) */}
             <SectionCard step="02" title="Pilihan Bahan">
               <div className="space-y-4">
-                <input type="hidden" name="material" value={selectedMaterial} />
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {MATERIAL_PRESETS.map((m) => {
-                    const isSelected = selectedMaterial === m.name;
-                    return (
-                      <button
-                        type="button"
-                        key={m.name}
-                        onClick={() => setSelectedMaterial(m.name)}
-                        className={`flex flex-col text-left rounded-xl p-3 transition ring-1 ${
-                          isSelected
-                            ? 'bg-beige-soft ring-2 ring-primary text-primary shadow-sm'
-                            : 'bg-surface ring-line text-ink hover:bg-beige-soft/60'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between font-bold text-sm">
-                          {m.name}
-                          {isSelected && <CheckCircle2 className="size-4 text-primary" />}
-                        </span>
-                        <span className="mt-0.5 text-xs text-ink-soft">{m.note}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <Select
+                  label="Pilihan Jenis Bahan *"
+                  name="materialSelect"
+                  value={materialType}
+                  onChange={(e) => setMaterialType(e.target.value)}
+                >
+                  {MATERIAL_OPTIONS.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </Select>
+
+                {materialType === 'custom' && (
+                  <Input
+                    label="Nama Bahan Pilihan Sendiri *"
+                    name="customMaterialText"
+                    required
+                    value={customMaterial}
+                    onChange={(e) => setCustomMaterial(e.target.value)}
+                    placeholder="Tuliskan jenis kain yang Anda inginkan (misal: Drill American, Velvet, Satin, dll.)"
+                  />
+                )}
+
+                <input
+                  type="hidden"
+                  name="material"
+                  value={materialType === 'custom' ? customMaterial.trim() : materialType}
+                />
 
                 <Input
-                  label="Catatan Bahan (Opsional)"
+                  label="Catatan Karakteristik Bahan (Opsional)"
                   name="materialDetail"
-                  placeholder="Jenis kain tambahan jika ada"
+                  placeholder="Contoh: Tekstur tebal, warna doff, tidak mudah kusut"
                 />
               </div>
             </SectionCard>
@@ -273,50 +348,280 @@ export function CustomView({ accessories, isLoggedIn = true }: CustomViewProps) 
               </div>
             </SectionCard>
 
-            {/* 04. Aksesoris */}
-            {accessories.length > 0 && (
-              <SectionCard step="04" title="Aksesoris (Opsional)">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {accessories.map((a) => (
-                    <label
-                      key={a.name}
-                      className="flex cursor-pointer items-start gap-3 rounded-xl bg-surface p-3 ring-1 ring-line transition hover:bg-beige-soft has-[:checked]:ring-2 has-[:checked]:ring-primary"
-                    >
-                      <input
-                        type="checkbox"
-                        name="accessories"
-                        value={a.name}
-                        className="mt-0.5 size-4 shrink-0 accent-primary"
-                      />
-                      <span className="text-xs">
-                        <strong className="block text-sm text-ink">{a.name}</strong>
-                        {a.description && <span className="text-ink-soft">{a.description}</span>}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </SectionCard>
-            )}
-
-            {/* 05. Jadwal & Catatan */}
-            <SectionCard step="05" title="Jadwal & Catatan">
-              <div className="space-y-4">
-                <Input
-                  label="Target Tanggal Acara *"
-                  name="eventDate"
-                  type="date"
-                  required
-                  min={new Date().toISOString().slice(0, 10)}
-                  hint="Disarankan minimal H-30 acara."
-                  error={err.eventDate}
-                />
-
+            {/* 04. Aksesoris Tambahan (Kolom Input Teks) */}
+            <SectionCard step="04" title="Aksesoris Tambahan (Opsional)">
+              <div className="space-y-3">
                 <Textarea
-                  label="Catatan Tambahan (Opsional)"
-                  name="consultationNote"
-                  rows={2}
-                  placeholder="Catatan untuk tim penjahit"
+                  label="Daftar Aksesoris yang Dibutuhkan"
+                  name="accessoriesInput"
+                  rows={3}
+                  placeholder="Tuliskan aksesoris yang Anda butuhkan, contoh: Topi Shako 30 pcs, Sarung Tangan Putih 30 pasang, Sayap Mayoret, Selempang Dada Emas, dll."
+                  hint="Tuliskan semua aksesoris yang Anda perlukan. Pisahkan dengan tanda koma (,) atau baris baru."
                 />
+              </div>
+            </SectionCard>
+
+            {/* 05. Upload Berkas Ukuran & Tanggal Acara */}
+            <SectionCard step="05" title="Upload Berkas Ukuran & Tanggal Acara">
+              <div className="space-y-6">
+                {/* Info Card & Unduh Template */}
+                <div className="rounded-xl border border-primary/20 bg-beige-soft p-5">
+                  <div className="flex items-start gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
+                      <Ruler className="size-5" />
+                    </span>
+                    <div>
+                      <h3 className="text-base font-bold text-primary">Berkas Ukuran Anggota (Excel / PDF)</h3>
+                      <p className="pt-1 text-sm leading-relaxed text-ink-soft">
+                        Unggah daftar nama dan ukuran anggota tim menggunakan template <strong>Excel resmi</strong> atau berkas <strong>PDF</strong>.
+                        Sistem akan otomatis mendeteksi jumlah kebutuhan dan rincian ukuran per siswa agar langsung masuk ke pesanan di sistem kami.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line/60 pt-4">
+                    <span className="text-xs text-ink-soft">
+                      Belum punya format ukuran? Unduh template Excel terstandar:
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={downloadRosterTemplate}
+                      className="!border-primary !text-primary hover:!bg-primary/10"
+                    >
+                      <Download className="size-3.5" /> Unduh Template Excel
+                    </Button>
+                  </div>
+                </div>
+
+                {parseError && (
+                  <div className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-xs text-danger">
+                    {parseError}
+                  </div>
+                )}
+
+                {/* Upload Area atau Kartu Berkas Terunggah */}
+                {!sizeFile ? (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragging(true);
+                    }}
+                    onDragLeave={() => setDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragging(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) handleSizeFile(file);
+                    }}
+                    onClick={() => sizeFileInputRef.current?.click()}
+                    className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
+                      dragging
+                        ? 'border-primary bg-beige-soft'
+                        : 'border-line bg-canvas hover:border-primary hover:bg-beige-soft/40'
+                    }`}
+                  >
+                    <input
+                      ref={sizeFileInputRef}
+                      type="file"
+                      accept=".xlsx,.xls,.csv,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleSizeFile(file);
+                      }}
+                    />
+
+                    {parsing ? (
+                      <div className="flex flex-col items-center gap-2 py-4">
+                        <Loader2 className="size-8 animate-spin text-primary" />
+                        <p className="text-sm font-semibold text-ink">Sedang memproses berkas ukuran...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex size-14 items-center justify-center rounded-2xl bg-surface shadow-soft ring-1 ring-line">
+                          <UploadCloud className="size-7 text-primary" />
+                        </div>
+                        <h4 className="pt-3 text-base font-bold text-ink">Unggah Berkas Ukuran Anggota</h4>
+                        <p className="pt-1 text-sm text-ink-soft max-w-md">
+                          Tarik dan lepas berkas Excel (.xlsx, .csv) atau PDF di sini, atau klik untuk memilih berkas dari perangkat Anda.
+                        </p>
+                        <span className="mt-3 inline-flex items-center rounded-full bg-beige-soft px-3 py-1 text-xs font-semibold text-primary">
+                          Maksimal 10MB
+                        </span>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-line bg-canvas p-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${
+                            sizeFile.fileType === 'excel' ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'
+                          }`}
+                        >
+                          {sizeFile.fileType === 'excel' ? (
+                            <FileSpreadsheet className="size-6" />
+                          ) : (
+                            <FileText className="size-6" />
+                          )}
+                        </div>
+                        <div className="overflow-hidden">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate font-bold text-ink text-sm sm:text-base">{sizeFile.fileName}</p>
+                            <span
+                              className={`rounded px-2 py-0.5 text-[11px] font-bold uppercase ${
+                                sizeFile.fileType === 'excel'
+                                  ? 'bg-success/15 text-success'
+                                  : 'bg-danger/15 text-danger'
+                              }`}
+                            >
+                              {sizeFile.fileType}
+                            </span>
+                          </div>
+                          <p className="pt-0.5 text-xs text-ink-soft">
+                            Ukuran: {formatFileSize(sizeFile.fileSize)} •{' '}
+                            <span className="font-semibold text-success">Berkas Terlampir untuk Admin</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => sizeFileInputRef.current?.click()}
+                        >
+                          Ganti Berkas
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => setSizeFile(null)}
+                          className="flex size-9 items-center justify-center rounded-lg border border-line text-ink-soft transition hover:border-danger hover:bg-danger/10 hover:text-danger"
+                          title="Hapus Berkas"
+                          aria-label="Hapus Berkas"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                        <input
+                          ref={sizeFileInputRef}
+                          type="file"
+                          accept=".xlsx,.xls,.csv,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleSizeFile(file);
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Ringkasan jika berkas Excel */}
+                    {sizeFile.parsedRoster && (
+                      <div className="mt-4 border-t border-line pt-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
+                          <p className="text-xs font-semibold text-ink-soft">
+                            Terdeteksi: <strong className="text-ink">{sizeFile.parsedRoster.rows.length} data siswa</strong>
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setShowRosterPreview((v) => !v)}
+                            className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                          >
+                            {showRosterPreview ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                            {showRosterPreview ? 'Sembunyikan Tabel' : 'Lihat Rincian Data'}
+                          </button>
+                        </div>
+
+                        {/* Rincian per Ukuran */}
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(sizeFile.parsedRoster.sizeCounts).map(([size, count]) => (
+                            <span
+                              key={size}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-bold text-ink"
+                            >
+                              <span>Ukuran {size}:</span>
+                              <span className="text-primary">{count} unit</span>
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Tabel Preview */}
+                        {showRosterPreview && (
+                          <div className="mt-4 max-h-60 overflow-y-auto rounded-xl border border-line bg-surface">
+                            <table className="w-full text-left text-xs">
+                              <thead className="sticky top-0 bg-canvas border-b border-line text-ink-soft">
+                                <tr>
+                                  <th className="p-2.5">No</th>
+                                  <th className="p-2.5">Nama Siswa</th>
+                                  <th className="p-2.5">L/P</th>
+                                  <th className="p-2.5">Tinggi</th>
+                                  <th className="p-2.5">Ukuran</th>
+                                  <th className="p-2.5">Peran</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-line">
+                                {sizeFile.parsedRoster.rows.map((row, idx) => (
+                                  <tr key={idx} className="hover:bg-canvas/50">
+                                    <td className="p-2.5 text-ink-soft">{idx + 1}</td>
+                                    <td className="p-2.5 font-medium text-ink">{row.name}</td>
+                                    <td className="p-2.5 text-ink-soft">{row.gender || '-'}</td>
+                                    <td className="p-2.5 text-ink-soft">{row.heightCm ? `${row.heightCm} cm` : '-'}</td>
+                                    <td className="p-2.5 font-bold text-primary">{row.size}</td>
+                                    <td className="p-2.5 text-ink-soft">{row.role || '-'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Hidden input data roster yang akan diparsing oleh server action */}
+                <input
+                  type="hidden"
+                  name="rosterPayload"
+                  value={
+                    sizeFile
+                      ? JSON.stringify({
+                          fileName: sizeFile.fileName,
+                          fileSize: sizeFile.fileSize,
+                          fileType: sizeFile.fileType,
+                          totalCount: sizeFile.parsedRoster?.rows.length || quantity,
+                          sizeCounts: sizeFile.parsedRoster?.sizeCounts,
+                          rows: sizeFile.parsedRoster?.rows,
+                          rawHeaders: sizeFile.parsedRoster?.rawHeaders,
+                          rawRows: sizeFile.parsedRoster?.rawRows,
+                        })
+                      : ''
+                  }
+                />
+
+                {/* Target Tanggal Acara & Catatan Tambahan */}
+                <div className="border-t border-line pt-4 space-y-4">
+                  <Input
+                    label="Target Tanggal Acara *"
+                    name="eventDate"
+                    type="date"
+                    required
+                    min={new Date().toISOString().slice(0, 10)}
+                    hint="Disarankan minimal H-30 acara agar proses produksi tepat waktu."
+                    error={err.eventDate}
+                  />
+
+                  <Textarea
+                    label="Catatan Tambahan (Opsional)"
+                    name="consultationNote"
+                    rows={2}
+                    placeholder="Catatan tambahan untuk tim penjahit dan desainer VieGuard"
+                  />
+                </div>
               </div>
             </SectionCard>
           </div>
@@ -327,9 +632,21 @@ export function CustomView({ accessories, isLoggedIn = true }: CustomViewProps) 
               <div>
                 <h3 className="font-bold text-ink text-base">Kirim Permohonan</h3>
                 <p className="mt-1 text-xs text-ink-soft">
-                  Desain akan ditinjau admin untuk konfirmasi kelayakan produksi.
+                  Desain dan berkas ukuran akan ditinjau admin untuk konfirmasi kelayakan produksi & penawaran resmi.
                 </p>
               </div>
+
+              {sizeFile && (
+                <div className="rounded-xl border border-line bg-beige-soft/60 p-3 text-xs">
+                  <p className="font-semibold text-ink">Berkas Ukuran Terpasang:</p>
+                  <p className="truncate font-bold text-primary mt-0.5">{sizeFile.fileName}</p>
+                  <p className="text-ink-soft mt-0.5">
+                    {sizeFile.parsedRoster?.rows.length
+                      ? `${sizeFile.parsedRoster.rows.length} Siswa Terdaftar`
+                      : `${sizeFile.fileType.toUpperCase()} Terlampir`}
+                  </p>
+                </div>
+              )}
 
               {isLoggedIn ? (
                 <SubmitButton

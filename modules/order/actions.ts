@@ -86,7 +86,14 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
 
   const get = (k: string) => String(formData.get(k) ?? '').trim();
   const quantity = Number(get('quantity')) || 1;
-  const accessories = formData.getAll('accessories').map(String);
+  const accessoriesInput = get('accessoriesInput');
+  const accessoriesListFromInput = accessoriesInput
+    ? accessoriesInput.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean)
+    : [];
+  const accessories = [
+    ...accessoriesListFromInput,
+    ...formData.getAll('accessories').map(String),
+  ];
   const material = get('material');
   const materialDetail = get('materialDetail');
   const fullMaterial = [material, materialDetail].filter(Boolean).join(' — ');
@@ -112,35 +119,95 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
     fieldErrors.designReference = 'Masukkan tautan yang diawali http:// atau https://';
   if (Object.keys(fieldErrors).length > 0) return { error: 'Periksa kembali isian formulir.', fieldErrors };
 
+  const rosterJsonRaw = get('rosterPayload');
+  let rosterPayload: any = null;
+  if (rosterJsonRaw) {
+    try {
+      rosterPayload = JSON.parse(rosterJsonRaw);
+    } catch {}
+  }
+
+  const formatRoleWithMeasurements = (r: any) => {
+    const parts: string[] = [];
+    if (r.chestCm) parts.push(`LD:${r.chestCm}`);
+    if (r.waistCm) parts.push(`LP:${r.waistCm}`);
+    if (r.shoulderCm) parts.push(`B:${r.shoulderCm}`);
+    if (r.armCm) parts.push(`PL:${r.armCm}`);
+    if (r.pantsCm) parts.push(`PC:${r.pantsCm}`);
+    if (r.headCm) parts.push(`LK:${r.headCm}`);
+
+    const tag = parts.length > 0 ? `[${parts.join(' ')}]` : '';
+    const baseRole = (r.role || '').trim();
+    if (!tag) return baseRole || undefined;
+    if (!baseRole) return tag.slice(0, 60);
+    const combined = `${baseRole} ${tag}`;
+    return combined.length <= 60 ? combined : `${baseRole.slice(0, Math.max(0, 58 - tag.length))} ${tag}`.slice(0, 60);
+  };
+
+  const orderSizeEntries = rosterPayload?.rows?.map((r: any) => ({
+    studentName: r.name,
+    gender: r.gender,
+    heightCm: r.heightCm,
+    size: r.size,
+    role: formatRoleWithMeasurements(r),
+  }));
+
+  const rosterJson = rosterPayload ? JSON.stringify({
+    fileName: rosterPayload.fileName,
+    rawHeaders: rosterPayload.rawHeaders,
+    rawRows: rosterPayload.rawRows,
+    rows: rosterPayload.rows,
+  }) : undefined;
+
+  const user = await getSessionUser();
+
+  const baseConsultNote = formatOrderMeta({
+    packageName: 'Pesanan Custom (Pre-Order Desain Sendiri)',
+    institution: values.institution,
+    pic: user?.name,
+    phone: user?.phone ?? undefined,
+    eventDate: values.eventDate,
+    material: fullMaterial || undefined,
+    accessories,
+    rosterFile: rosterPayload?.fileName,
+    rosterCount: rosterPayload?.rows?.length || quantity,
+    notes: consultationNote || undefined,
+  });
+
+  const fullConsultationNote = rosterJson
+    ? `${baseConsultNote}\n===ROSTER_JSON_START===\n${rosterJson}\n===ROSTER_JSON_END===`
+    : baseConsultNote;
+
+  const items = rosterPayload?.sizeCounts && Object.keys(rosterPayload.sizeCounts).length > 0
+    ? Object.entries(rosterPayload.sizeCounts as Record<string, number>).map(([size, q]) => ({
+        itemType: 'product' as const,
+        quantity: q,
+        size,
+        unitPrice: 0,
+      }))
+    : [{ itemType: 'product' as const, quantity, unitPrice: 0 }];
+
   const combinedDescription = [
     category && `Kategori: ${category}`,
     fullMaterial && `Preferensi Bahan: ${fullMaterial}`,
+    rosterPayload?.fileName && `Berkas Ukuran: ${rosterPayload.fileName} (${rosterPayload.rows?.length || quantity} Siswa)`,
     `\nDeskripsi Desain & Model:\n${values.description}`,
   ]
     .filter(Boolean)
     .join('\n');
 
-  const user = await getSessionUser();
   let orderId: string;
   try {
     const order = await createOrder({
       orderType: 'custom',
       requiresProduction: true,
-      items: [{ itemType: 'product', quantity, unitPrice: 0 }],
+      items,
+      orderSizeEntries,
       customDetail: {
         designReference: values.designReference || undefined,
         designDescription: combinedDescription,
         jenisJenjang: values.jenjang || undefined,
-        consultationNote: formatOrderMeta({
-          packageName: 'Pesanan Custom (Pre-Order Desain Sendiri)',
-          institution: values.institution,
-          pic: user?.name,
-          phone: user?.phone ?? undefined,
-          eventDate: values.eventDate,
-          material: fullMaterial || undefined,
-          accessories,
-          notes: consultationNote || undefined,
-        }),
+        consultationNote: fullConsultationNote,
       },
     });
     orderId = order.id;
