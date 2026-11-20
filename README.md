@@ -4,7 +4,7 @@ Portal web resmi pelanggan untuk pemesanan, penyewaan, dan pembuatan kostum cust
 
 ---
 
-## 🎯 Untuk Siapa Website Ini?
+## Target Pengguna
 
 Website ini dirancang khusus untuk memenuhi kebutuhan:
 * **Sekolah & Institusi**: Pemesanan seragam drumband/marching band dalam jumlah massal untuk satu tim/regu.
@@ -14,7 +14,7 @@ Website ini dirancang khusus untuk memenuhi kebutuhan:
 
 ---
 
-## 🚀 Fitur Utama
+## Fitur Utama
 
 ### 1. Katalog & Sistem Penyewaan
 * **Katalog Lengkap**: Eksplorasi berbagai pilihan kostum dengan filter kategori, detail ukuran (S/M/L/XL/All Size), dan foto detail.
@@ -40,7 +40,7 @@ Website ini dirancang khusus untuk memenuhi kebutuhan:
 
 ---
 
-## 🛠️ Teknologi yang Digunakan
+## Teknologi yang Digunakan
 
 * **Framework**: Next.js 16 (App Router, Standalone Mode)
 * **Bahasa**: TypeScript
@@ -51,7 +51,7 @@ Website ini dirancang khusus untuk memenuhi kebutuhan:
 
 ---
 
-## 📌 Info Penting & Menjalankan Project
+## Panduan Lingkungan & Deployment
 
 ### 1. Prasyarat Lingkungan (.env)
 Pastikan file `.env` diisi dengan endpoint API yang sesuai:

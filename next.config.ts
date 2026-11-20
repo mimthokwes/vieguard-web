@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== 'production',
     remotePatterns: [
       {
+        protocol: 'https',
+        hostname: 'api.vieguard.web.id',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'vieguard.web.id',
+        pathname: '/uploads/**',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
         port: '5000',
