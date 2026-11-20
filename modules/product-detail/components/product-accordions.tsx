@@ -2,7 +2,6 @@
 
 import React, { useRef, useState } from 'react';
 import {
-  Archive,
   Check,
   Download,
   Eye,
@@ -11,8 +10,6 @@ import {
   FileText,
   Loader2,
   Ruler,
-  ShieldCheck,
-  SprayCan,
   Trash2,
   UploadCloud,
 } from 'lucide-react';
@@ -28,18 +25,6 @@ export interface SizeFileAttachment {
   fileType: 'excel' | 'pdf';
   parsedRoster?: RosterResult | null;
 }
-
-const SANITATION = [
-  { title: 'Pencucian Higienis', body: 'Setiap unit dicuci dan disetrika uap suhu tinggi setelah dikembalikan.' },
-  { title: 'Inspeksi Fungsi & Jahitan', body: 'Kancing, resleting, dan ornamen diperiksa sebelum unit siap disewa kembali.' },
-  { title: 'Garment Bag Tersegel', body: 'Tiap stel disimpan terpisah pada tas transparan anti-debu dengan label nomor stel.' },
-];
-
-const PRODUCTION_GUARANTEES = [
-  { title: 'Pola Pas & Presisi', body: 'Setiap seragam dipotong berdasarkan rekap ukuran tubuh anggota tim Anda.' },
-  { title: 'Material Kain Berkualitas', body: 'Bahan drill / wool touch premium pilihan dengan jahitan rapi ganda dan tahan lama.' },
-  { title: 'Quality Control Menyeluruh', body: 'Inspeksi kancing, resleting, bordir, dan detail keliman sebelum proses pengiriman.' },
-];
 
 /** Splits a product description into checklist lines when it is written as a list. */
 function componentLines(description?: string | null) {
@@ -62,8 +47,8 @@ interface ProductTabsProps {
   mode?: 'sewa' | 'beli';
   sizeFile?: SizeFileAttachment | null;
   onSizeFileChange?: (file: SizeFileAttachment | null) => void;
-  activeTab?: 'components' | 'sizes' | 'sanitation';
-  onTabChange?: (tab: 'components' | 'sizes' | 'sanitation') => void;
+  activeTab?: 'components' | 'sizes';
+  onTabChange?: (tab: 'components' | 'sizes') => void;
 }
 
 export function ProductTabs({
@@ -74,7 +59,7 @@ export function ProductTabs({
   activeTab: controlledTab,
   onTabChange,
 }: ProductTabsProps) {
-  const [internalTab, setInternalTab] = useState<'components' | 'sizes' | 'sanitation'>('components');
+  const [internalTab, setInternalTab] = useState<'components' | 'sizes'>('components');
   const tab = controlledTab ?? internalTab;
   const setTab = onTabChange ?? setInternalTab;
 
@@ -86,16 +71,11 @@ export function ProductTabs({
   const [showRosterPreview, setShowRosterPreview] = useState(false);
 
   const TABS = [
-    { key: 'components' as const, label: 'Komponen yang Didapat', icon: Archive },
+    { key: 'components' as const, label: 'Deskripsi', icon: FileText },
     {
       key: 'sizes' as const,
-      label: mode === 'beli' ? 'Deskripsi Ukuran' : 'Panduan Ukuran Armada',
+      label: mode === 'beli' ? 'Deskripsi Ukuran' : 'Panduan Ukuran',
       icon: Ruler,
-    },
-    {
-      key: 'sanitation' as const,
-      label: mode === 'beli' ? 'Jaminan Kualitas' : 'Protokol Sanitasi',
-      icon: mode === 'beli' ? ShieldCheck : SprayCan,
     },
   ];
 
@@ -148,7 +128,8 @@ export function ProductTabs({
 
   return (
     <section id="product-tabs" className="overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-line">
-      <div className="flex overflow-x-auto bg-canvas px-4 scrollbar-none" role="tablist">
+      {/* Tab Navigasi: 2 Tab menyesuaikan lebar layar secara proporsional (50% - 50%) tanpa horizontal scroll */}
+      <div className="grid grid-cols-2 w-full border-b border-line bg-canvas" role="tablist">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -156,27 +137,36 @@ export function ProductTabs({
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-4 text-[15px] font-semibold transition-colors ${
-              tab === key ? 'border-primary text-primary' : 'border-transparent text-ink-soft hover:text-primary'
+            className={`flex items-center justify-center gap-2 border-b-2 px-2 py-3.5 sm:px-4 sm:py-4 text-xs sm:text-sm md:text-base font-semibold transition-colors text-center ${
+              tab === key
+                ? 'border-primary text-primary bg-surface/60'
+                : 'border-transparent text-ink-soft hover:text-primary hover:bg-surface/30'
             }`}
           >
-            <Icon className="size-4" aria-hidden="true" /> {label}
+            <Icon className="size-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">{label}</span>
           </button>
         ))}
       </div>
-      <div className="p-6" role="tabpanel">
-        {tab === 'components' &&
-          (lines.length > 0 ? (
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {lines.map((l) => (
-                <CheckItem key={l} title={l} />
-              ))}
-            </ul>
-          ) : (
-            <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink-soft">
-              {product.description || 'Detail komponen akan diinformasikan admin saat konfirmasi pesanan.'}
+      <div className="p-4 sm:p-6" role="tabpanel">
+        {tab === 'components' && (
+          <div className="flex flex-col gap-4">
+            <h3 className="text-base sm:text-lg font-bold text-ink">Deskripsi Produk</h3>
+            <p className="whitespace-pre-line text-sm sm:text-[15px] leading-relaxed text-ink-soft">
+              {product.description || 'Deskripsi rincian produk akan diinformasikan admin saat konfirmasi pesanan.'}
             </p>
-          ))}
+            {lines.length > 0 && (
+              <div className="pt-2">
+                <h4 className="mb-3 text-xs sm:text-sm font-bold uppercase tracking-wider text-ink-soft">Rincian Komponen</h4>
+                <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  {lines.map((l) => (
+                    <CheckItem key={l} title={l} />
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
         {tab === 'sizes' && (
           mode === 'beli' ? (
@@ -431,14 +421,6 @@ export function ProductTabs({
               <p className="text-[15px] text-ink-soft">Ukuran tersedia dalam satu ukuran standar. Konsultasikan kebutuhan khusus lewat Obrolan.</p>
             )
           )
-        )}
-
-        {tab === 'sanitation' && (
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {(mode === 'beli' ? PRODUCTION_GUARANTEES : SANITATION).map((s) => (
-              <CheckItem key={s.title} title={s.title} body={s.body} />
-            ))}
-          </ul>
         )}
       </div>
     </section>
