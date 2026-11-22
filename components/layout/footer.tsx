@@ -18,8 +18,6 @@ const SERVICE_LINKS = [
 const HELP_LINKS = [
   { label: 'Status Pesanan & Sewa', href: '/orders' },
   { label: 'Pusat Konsultasi Desain', href: '/chat' },
-  { label: 'Kebijakan Penyewaan', href: '/rental#kebijakan' },
-  { label: 'Syarat & Ketentuan', href: '/register' },
 ];
 
 export function Footer({ store }: { store?: StoreProfile | null }) {
@@ -40,7 +38,7 @@ export function Footer({ store }: { store?: StoreProfile | null }) {
             <Logo inverted />
             <p className="text-sm leading-5.75 text-white/75">
               {store?.description ||
-                'Solusi pengadaan dan penjahitan seragam profesional serta layanan penyewaan busana berkualitas tinggi dengan standar pengerjaan terpercaya.'}
+                'Siap tampil percaya diri dan memukau di setiap parade, karnaval, dan pentas sekolah bersama busana berkualitas dari VIEGUARD.'}
             </p>
           </div>
 

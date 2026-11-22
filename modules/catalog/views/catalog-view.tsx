@@ -10,7 +10,7 @@ import { CatalogMode, ProductCard, canRent, canBuy, rentStock, buyStock } from '
 import { toNumber } from '@/lib/format';
 import { CatalogFilter, PRICE_OPTIONS, PriceKey, SortKey } from '../components/catalog-filter';
 import { useCatalog } from '../hooks/use-catalog';
-import { StaggerContainer, StaggerItem, FadeIn } from '@/components/ui/motion';
+import { FadeIn } from '@/components/ui/motion';
 
 const PAGE_SIZE = 12;
 const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
@@ -124,16 +124,18 @@ export function CatalogView({
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {visible.length > 0 ? (
           // Mobile: 2 kolom, tablet: 3 kolom, desktop: 4 kolom berjejer
-          <StaggerContainer
-            className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
-            staggerDelay={0.04}
-          >
-            {visible.map((p) => (
-              <StaggerItem key={p.id}>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {visible.map((p, idx) => (
+              <FadeIn
+                key={p.id}
+                delay={Math.min((idx % PAGE_SIZE) * 0.03, 0.2)}
+                distance={12}
+                duration={0.35}
+              >
                 <ProductCard product={p} mode={mode} detailHref={detailHref(p)} />
-              </StaggerItem>
+              </FadeIn>
             ))}
-          </StaggerContainer>
+          </div>
         ) : (
           <EmptyState
             icon={<PackageSearch className="size-7" aria-hidden="true" />}

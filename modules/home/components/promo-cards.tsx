@@ -61,7 +61,7 @@ export function PromoCards({ isLoggedIn = false }: Props) {
             </div>
 
             <Link
-              href={isLoggedIn ? '/order' : '/login'}
+              href={isLoggedIn ? '/profile' : '/login?next=/profile'}
               className="mt-4 flex items-center justify-between text-xs font-bold text-primary group-hover:underline"
             >
               <span>Mulai Isi Ukuran</span>
