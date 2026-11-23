@@ -20,9 +20,10 @@ export function HeroBanner({ isLoggedIn = false }: Props) {
         alt="Kostum Marching Band Vieguard"
         fill
         priority
+        quality={95}
         placeholder="blur"
         sizes="100vw"
-        className="-z-20 object-cover object-center"
+        className="-z-20 object-cover object-top"
       />
 
       {/* Vignette atas agar navbar transparan selalu kontras dan mudah dibaca */}
