@@ -21,6 +21,7 @@ import {
   Shirt,
   ShoppingBag,
   TrendingUp,
+  XCircle,
 } from 'lucide-react';
 import { Order, OrderStatusHistory } from '@/types/order';
 import { StoreProfile } from '@/types/store';
@@ -124,7 +125,15 @@ export function OrderTrackingView({
         </div>
 
         {order.status === 'dibatalkan' ? (
-          <p className="pt-6 text-sm font-semibold text-danger">Pesanan ini telah dibatalkan.</p>
+          <div className="mt-6 flex items-start gap-3 rounded-xl border border-danger/30 bg-danger/10 p-4 text-xs text-danger sm:text-sm">
+            <XCircle className="size-5 shrink-0 text-danger mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-bold">Pesanan ini telah ditolak / dibatalkan oleh admin.</p>
+              <p className="mt-0.5 text-xs text-danger/80">
+                Silakan lihat rincian alasan penolakan pada kartu di samping atau hubungi admin jika memerlukan informasi lebih lanjut.
+              </p>
+            </div>
+          </div>
         ) : (
           <FlowTimeline order={order} />
         )}
@@ -321,7 +330,9 @@ export function OrderTrackingView({
                 <div className="flex items-center justify-between rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-xs">
                   <div>
                     <span className="block text-[11px] text-ink-soft">Kesiapan Bahan:</span>
-                    {order.status === 'pending' ? (
+                    {order.status === 'dibatalkan' ? (
+                      <span className="font-bold text-danger">Tidak diproses (Dibatalkan)</span>
+                    ) : order.status === 'pending' ? (
                       <span className="font-bold text-warning-dark">Dicek ke supplier</span>
                     ) : (
                       <span className="font-bold text-success">Terkonfirmasi aman</span>
@@ -381,10 +392,109 @@ export function OrderTrackingView({
         </div>
 
         <aside className="flex flex-col gap-6">
-          <PaymentCard order={order} />
+          {order.status === 'dibatalkan' ? (
+            <OrderCancellationCard order={order} history={history} />
+          ) : (
+            <PaymentCard order={order} />
+          )}
         </aside>
       </div>
     </PageContainer>
+  );
+}
+
+function getRejectionReason(order: Order, history?: OrderStatusHistory[]): { reason: string; date?: string } {
+  const allHistory = [...(history && history.length > 0 ? history : order.statusHistory ?? [])].reverse();
+
+  // 1. Cari riwayat yang bertuliskan 'dibatalkan' atau 'tolak' dengan catatan (note)
+  const cancelEntry = allHistory.find(
+    (h) =>
+      (h.statusLabel?.toLowerCase().includes('dibatalkan') || h.statusLabel?.toLowerCase().includes('tolak')) &&
+      h.note &&
+      h.note.trim().length > 0
+  );
+
+  if (cancelEntry?.note?.trim()) {
+    return { reason: cancelEntry.note.trim(), date: cancelEntry.createdAt };
+  }
+
+  // 2. Cari riwayat status terakhir yang memiliki note
+  const lastWithNote = allHistory.find((h) => h.note && h.note.trim().length > 0);
+  if (lastWithNote?.note?.trim()) {
+    return { reason: lastWithNote.note.trim(), date: lastWithNote.createdAt };
+  }
+
+  // 3. Fallback jika tidak ada note khusus
+  return {
+    reason: order.notes?.trim() || 'Pesanan telah dibatalkan oleh pihak pengelola. Silakan hubungi admin untuk informasi lebih detail.',
+    date: order.updatedAt,
+  };
+}
+
+function OrderCancellationCard({ order, history }: { order: Order; history?: OrderStatusHistory[] }) {
+  const { reason, date } = getRejectionReason(order, history);
+  const total = toNumber(order.totalPrice);
+  const chatHref = `/chat?topic=${encodeURIComponent(`Pesanan ${order.orderNumber} (Dibatalkan)`)}`;
+
+  return (
+    <section className="rounded-2xl border border-danger/30 bg-surface p-6 shadow-card ring-1 ring-danger/20 sm:p-7">
+      <div className="flex items-start justify-between gap-3 border-b border-line pb-4">
+        <div>
+          <span className="flex items-center gap-2 text-base font-bold text-danger sm:text-lg">
+            <XCircle className="size-5 shrink-0" aria-hidden="true" /> Pesanan Ditolak
+          </span>
+          <p className="pt-1 text-xs text-ink-soft">Pesanan ini tidak dapat diproses ke tahap pembayaran.</p>
+        </div>
+        <Badge tone="danger">Dibatalkan</Badge>
+      </div>
+
+      <div className="mt-5 space-y-4">
+        <div className="rounded-xl border border-danger/30 bg-danger/5 p-4 text-xs leading-relaxed">
+          <span className="block font-bold text-danger uppercase tracking-wider text-[11px]">
+            Alasan Penolakan dari Admin:
+          </span>
+          <p className="mt-2 text-sm text-ink break-words [overflow-wrap:anywhere] whitespace-pre-wrap font-medium leading-relaxed">
+            {reason}
+          </p>
+          {date && (
+            <span className="mt-2.5 block text-[11px] text-ink-soft">
+              Waktu pembatalan: {formatDateTime(date)}
+            </span>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-line bg-canvas p-3.5 text-xs text-ink-soft">
+          <div className="flex justify-between items-center">
+            <span>Total Tagihan:</span>
+            <span className="font-extrabold text-ink line-through">{total > 0 ? formatRupiah(total) : '-'}</span>
+          </div>
+          <p className="mt-1 text-[11px] text-ink-soft">
+            Tidak ada pembayaran yang ditagihkan untuk pesanan yang ditolak.
+          </p>
+        </div>
+
+        <div className="pt-1 flex flex-col gap-2">
+          <Link
+            href={chatHref}
+            className={buttonClasses({
+              variant: 'outline',
+              className: 'w-full justify-center gap-2 !border-primary !text-primary hover:!bg-primary/10',
+            })}
+          >
+            <MessageSquare className="size-4" aria-hidden="true" /> Hubungi Admin via Chat
+          </Link>
+          <Link
+            href={order.orderType === 'custom' ? '/custom' : order.orderType === 'sewa' ? '/rentals' : '/products'}
+            className={buttonClasses({
+              variant: 'soft',
+              className: 'w-full justify-center gap-2 text-ink',
+            })}
+          >
+            Buat Pesanan Baru
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 

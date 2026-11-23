@@ -540,6 +540,11 @@ export function PaymentCard({ order }: { order: Order }) {
         </div>
       ) : pending ? (
         <p className="mt-4 text-sm text-warning">Bukti pembayaran sedang diverifikasi admin.</p>
+      ) : order.status === 'dibatalkan' ? (
+        <div className="mt-4 rounded-xl border border-danger/30 bg-danger/5 p-4 text-xs text-danger">
+          <p className="font-bold">Pesanan ini telah ditolak / dibatalkan oleh admin.</p>
+          <p className="mt-1 text-ink-soft">Tidak ada tagihan atau pembayaran yang dapat diproses.</p>
+        </div>
       ) : order.status === 'pending' ? (
         <div className="mt-4 rounded-xl border border-warning/30 bg-warning-bg/40 p-3.5 text-xs text-ink-soft">
           <p className="flex items-center gap-1.5 font-bold text-warning-dark">
