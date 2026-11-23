@@ -65,9 +65,10 @@ const initialState: OrderActionState = {};
 interface CustomViewProps {
   accessories?: { name: string; description?: string | null }[];
   isLoggedIn?: boolean;
+  userAddress?: string | null;
 }
 
-export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewProps) {
+export function CustomView({ accessories = [], isLoggedIn = true, userAddress }: CustomViewProps) {
   const [state, formAction] = useActionState(submitCustomOrder, initialState);
   const [description, setDescription] = useState('');
   const [materialType, setMaterialType] = useState<string>('Katun');
@@ -619,15 +620,15 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
                   }
                 />
 
-                {/* Target Tanggal Acara & Catatan Tambahan */}
+                {/* Tanggal Dibutuhkan & Catatan Tambahan */}
                 <div className="border-t border-line pt-4 space-y-4">
                   <Input
-                    label="Target Tanggal / Rentang Waktu Acara *"
+                    label="Tanggal Dibutuhkan (Target Pemakaian) *"
                     name="eventDate"
-                    type="text"
+                    type="date"
                     required
-                    placeholder="Contoh: 24 Nov - 30 Nov 2026 atau 24 November 2026"
-                    hint="Tuliskan tanggal atau rentang waktu acara seragam akan digunakan (misal: 24 Nov - 30 Nov 2026)."
+                    min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                    hint="Pilih tanggal seragam dibutuhkan / target selesai diproduksi."
                     error={err.eventDate}
                   />
 
@@ -665,13 +666,27 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
               )}
 
               {isLoggedIn ? (
-                <SubmitButton
-                  label="Kirim Pengajuan"
-                  loadingLabel="Mengirim..."
-                  icon={<Send className="size-4" />}
-                  fullWidth
-                  size="lg"
-                />
+                !userAddress || !userAddress.trim() ? (
+                  <div className="space-y-3">
+                    <div className="rounded-xl border border-warning/30 bg-warning-bg p-3.5 text-xs text-ink leading-relaxed">
+                      <p className="font-semibold text-primary">Alamat Belum Terisi</p>
+                      <p className="mt-1">
+                        Mohon lengkapi alamat pengiriman di profil akun Anda terlebih dahulu sebelum mengajukan pesanan.
+                      </p>
+                    </div>
+                    <ButtonLink href="/profile?next=/custom" variant="primary" fullWidth size="lg">
+                      Lengkapi Alamat di Profil
+                    </ButtonLink>
+                  </div>
+                ) : (
+                  <SubmitButton
+                    label="Kirim Pengajuan"
+                    loadingLabel="Mengirim..."
+                    icon={<Send className="size-4" />}
+                    fullWidth
+                    size="lg"
+                  />
+                )
               ) : (
                 <div className="space-y-2">
                   <ButtonLink href="/login?next=/custom" variant="primary" fullWidth size="lg">

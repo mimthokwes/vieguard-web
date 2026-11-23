@@ -21,6 +21,7 @@ export default async function CustomPage() {
     <CustomView
       accessories={accessories}
       isLoggedIn={Boolean(user)}
+      userAddress={user?.address || null}
     />
   );
 }

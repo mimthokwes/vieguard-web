@@ -82,7 +82,14 @@ export async function submitStandardOrder(input: StandardOrderInput): Promise<Or
 }
 
 export async function submitCustomOrder(_prev: OrderActionState, formData: FormData): Promise<OrderActionState> {
-  if (!(await getSessionUser())) return { error: 'Sesi berakhir. Silakan masuk kembali.' };
+  const user = await getSessionUser();
+  if (!user) return { error: 'Sesi berakhir. Silakan masuk kembali.' };
+  if (!user.address || !user.address.trim()) {
+    return {
+      error: 'Mohon lengkapi alamat pengiriman di profil akun Anda terlebih dahulu.',
+      fieldErrors: { address: 'Alamat pengiriman belum diisi di profil.' },
+    };
+  }
 
   const get = (k: string) => String(formData.get(k) ?? '').trim();
   const quantity = Number(get('quantity')) || 1;
@@ -159,13 +166,12 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
     rows: rosterPayload.rows,
   }) : undefined;
 
-  const user = await getSessionUser();
-
   const baseConsultNote = formatOrderMeta({
     packageName: 'Pesanan Custom (Pre-Order Desain Sendiri)',
     institution: values.institution,
     pic: user?.name,
     phone: user?.phone ?? undefined,
+    address: user?.address?.trim() ?? undefined,
     eventDate: values.eventDate,
     material: fullMaterial || undefined,
     accessories,
@@ -224,6 +230,7 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
     const order = await createOrder({
       orderType: 'custom',
       requiresProduction: true,
+      deadlineDate: values.eventDate,
       items,
       orderSizeEntries,
       customDetail: {

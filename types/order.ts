@@ -128,6 +128,7 @@ export interface CreateOrderItemPayload {
 export interface CreateOrderPayload {
   orderType: OrderType;
   requiresProduction?: boolean;
+  deadlineDate?: string;
   notes?: string;
   items: CreateOrderItemPayload[];
   rentalDetail?: { pickupDate: string; returnDate: string };
