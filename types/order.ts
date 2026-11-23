@@ -136,6 +136,7 @@ export interface CreateOrderPayload {
     designDescription?: string;
     jenisJenjang?: string;
     consultationNote?: string;
+    referencePhotoUrls?: string[];
   };
   orderSizeEntries?: Array<{
     studentName?: string;

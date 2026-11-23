@@ -72,8 +72,9 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
   const [description, setDescription] = useState('');
   const [materialType, setMaterialType] = useState<string>('Katun');
   const [customMaterial, setCustomMaterial] = useState<string>('');
-  const [quantity, setQuantity] = useState<number>(1);
+  const [quantity, setQuantity] = useState<string>('20');
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [selectedRefFiles, setSelectedRefFiles] = useState<File[]>([]);
 
   // Size file attachment state
   const [sizeFile, setSizeFile] = useState<SizeFileAttachment | null>(null);
@@ -88,7 +89,9 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    Array.from(files).forEach((file) => {
+    const newFiles = Array.from(files);
+    setSelectedRefFiles((prev) => [...prev, ...newFiles]);
+    newFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -97,10 +100,19 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
       };
       reader.readAsDataURL(file);
     });
+    e.target.value = '';
   };
 
   const removePreview = (index: number) => {
     setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+    setSelectedRefFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCustomFormSubmit = (formData: FormData) => {
+    for (const file of selectedRefFiles) {
+      formData.append('referencePhotos', file);
+    }
+    formAction(formData);
   };
 
   const handleSizeFile = async (file: File) => {
@@ -131,7 +143,7 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
           rawFile: file,
         });
         if (roster.rows.length > 0) {
-          setQuantity(roster.rows.length);
+          setQuantity(String(roster.rows.length));
         }
       } catch (err: any) {
         setParseError(err.message || 'Gagal membaca isi berkas Excel. Pastikan format kolom sesuai template resmi.');
@@ -169,7 +181,7 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
         />
 
         {/* ─── Formulir Pemesanan Custom ─── */}
-        <form action={formAction} className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+        <form action={handleCustomFormSubmit} className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
           <div className="space-y-6">
             <ErrorMessage message={state.error} />
 
@@ -207,13 +219,17 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
                   <Input
                     label="Jumlah Kebutuhan"
                     name="quantity"
-                    type="number"
-                    min={1}
+                    type="text"
+                    inputMode="numeric"
                     required
                     value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value) || 1)}
-                    placeholder="Jumlah stel"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setQuantity(val);
+                    }}
+                    placeholder="Contoh: 20"
                     rightSlot={<span className="pr-3 text-xs font-semibold text-ink-soft">Stel</span>}
+                    hint="Bebas masukkan angka jumlah kebutuhan (misal 20, 30, atau 50 stel)."
                     error={err.quantity}
                   />
                 </div>
@@ -371,9 +387,9 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
                       <Ruler className="size-5" />
                     </span>
                     <div>
-                      <h3 className="text-base font-bold text-primary">Berkas Ukuran Anggota (Excel / PDF)</h3>
+                      <h3 className="text-base font-bold text-primary">Berkas Ukuran (Excel / PDF)</h3>
                       <p className="pt-1 text-sm leading-relaxed text-ink-soft">
-                        Unggah daftar nama dan ukuran anggota tim menggunakan template <strong>Excel resmi</strong> atau berkas <strong>PDF</strong>.
+                        Unggah daftar nama dan ukuran seragam menggunakan template <strong>Excel resmi</strong> atau berkas <strong>PDF</strong>.
                         Sistem akan otomatis mendeteksi jumlah kebutuhan dan rincian ukuran per siswa agar langsung masuk ke pesanan di sistem kami.
                       </p>
                     </div>
@@ -443,7 +459,7 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
                         <div className="flex size-14 items-center justify-center rounded-2xl bg-surface shadow-soft ring-1 ring-line">
                           <UploadCloud className="size-7 text-primary" />
                         </div>
-                        <h4 className="pt-3 text-base font-bold text-ink">Unggah Berkas Ukuran Anggota</h4>
+                        <h4 className="pt-3 text-base font-bold text-ink">Unggah Berkas Ukuran</h4>
                         <p className="pt-1 text-sm text-ink-soft max-w-md">
                           Tarik dan lepas berkas Excel (.xlsx, .csv) atau PDF di sini, atau klik untuk memilih berkas dari perangkat Anda.
                         </p>
@@ -593,7 +609,7 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
                           fileName: sizeFile.fileName,
                           fileSize: sizeFile.fileSize,
                           fileType: sizeFile.fileType,
-                          totalCount: sizeFile.parsedRoster?.rows.length || quantity,
+                          totalCount: sizeFile.parsedRoster?.rows.length || (Number(quantity) || 1),
                           sizeCounts: sizeFile.parsedRoster?.sizeCounts,
                           rows: sizeFile.parsedRoster?.rows,
                           rawHeaders: sizeFile.parsedRoster?.rawHeaders,
@@ -606,12 +622,12 @@ export function CustomView({ accessories = [], isLoggedIn = true }: CustomViewPr
                 {/* Target Tanggal Acara & Catatan Tambahan */}
                 <div className="border-t border-line pt-4 space-y-4">
                   <Input
-                    label="Target Tanggal Acara *"
+                    label="Target Tanggal / Rentang Waktu Acara *"
                     name="eventDate"
-                    type="date"
+                    type="text"
                     required
-                    min={new Date().toISOString().slice(0, 10)}
-                    hint="Disarankan minimal H-30 acara agar proses produksi tepat waktu."
+                    placeholder="Contoh: 24 Nov - 30 Nov 2026 atau 24 November 2026"
+                    hint="Tuliskan tanggal atau rentang waktu acara seragam akan digunakan (misal: 24 Nov - 30 Nov 2026)."
                     error={err.eventDate}
                   />
 

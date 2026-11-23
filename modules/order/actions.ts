@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { createOrder } from './services/order-service';
+import { createOrder, uploadReferencePhotos } from './services/order-service';
 import { getSessionUser } from '@/lib/session';
 import { formatOrderMeta } from '@/lib/order-status';
 import { encodeOrderId } from '@/lib/order-hash';
@@ -196,6 +196,29 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
     .filter(Boolean)
     .join('\n');
 
+  // Upload reference photos if provided by customer
+  const rawRefFiles = formData.getAll('referencePhotos');
+  const validRefFiles = rawRefFiles.filter(
+    (f): f is File => typeof f === 'object' && f !== null && 'size' in f && (f as File).size > 0
+  );
+  let referencePhotoUrls: string[] = [];
+  if (validRefFiles.length > 0) {
+    try {
+      const uploadForm = new FormData();
+      for (const file of validRefFiles) {
+        uploadForm.append('referencePhotos', file);
+      }
+      const uploadRes = await uploadReferencePhotos(uploadForm);
+      if (uploadRes?.imageUrls && Array.isArray(uploadRes.imageUrls)) {
+        referencePhotoUrls = uploadRes.imageUrls;
+      }
+    } catch (uploadErr) {
+      console.error('Gagal mengunggah foto referensi:', uploadErr);
+    }
+  }
+
+  const primaryDesignReference = values.designReference || (referencePhotoUrls.length > 0 ? referencePhotoUrls[0] : undefined);
+
   let orderId: string;
   try {
     const order = await createOrder({
@@ -204,10 +227,11 @@ export async function submitCustomOrder(_prev: OrderActionState, formData: FormD
       items,
       orderSizeEntries,
       customDetail: {
-        designReference: values.designReference || undefined,
+        designReference: primaryDesignReference,
         designDescription: combinedDescription,
         jenisJenjang: values.jenjang || undefined,
         consultationNote: fullConsultationNote,
+        referencePhotoUrls: referencePhotoUrls.length > 0 ? referencePhotoUrls : undefined,
       },
     });
     orderId = order.id;
