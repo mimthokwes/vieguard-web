@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Clock, FileText, Hourglass, MessageSquare, PackageCheck, ShieldCheck, TrendingUp, Warehouse } from 'lucide-react';
+import { Clock, Download, FileText, Hourglass, MessageSquare, PackageCheck, ShieldCheck, TrendingUp, Warehouse } from 'lucide-react';
 import { Order } from '@/types/order';
 import { buttonClasses } from '@/components/ui/button';
 import { formatDate, formatRupiah, toNumber } from '@/lib/format';
@@ -102,10 +102,23 @@ export function OrderCard({ order }: { order: Order }) {
           </div>
 
           {meta.rosterFile && (
-            <p className="mt-4 flex w-fit items-center gap-2 rounded-lg bg-beige-soft px-4 py-2 text-sm text-ink-soft">
-              <FileText className="size-4 text-primary" aria-hidden="true" /> Berkas Terkait:{' '}
-              <span className="font-semibold text-primary underline">{meta.rosterFile}</span>
-            </p>
+            <div className="mt-4 flex max-w-full flex-wrap items-center gap-2 text-sm text-ink-soft">
+              <span className="flex items-center gap-1.5 font-medium text-ink-soft shrink-0">
+                <FileText className="size-4 text-primary shrink-0" aria-hidden="true" /> File Ukuran:
+              </span>
+              <a
+                href={meta.rosterFile.startsWith('http') ? meta.rosterFile : '/templates/template_ukuran_seragam_vieguard.xlsx'}
+                target={meta.rosterFile.startsWith('http') ? '_blank' : undefined}
+                rel={meta.rosterFile.startsWith('http') ? 'noopener noreferrer' : undefined}
+                download={meta.rosterFile.startsWith('http') ? undefined : meta.rosterFile}
+                className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-primary/25 bg-beige-soft px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary hover:bg-primary/10 active:scale-95"
+                title={meta.rosterFile}
+              >
+                <Download className="size-3.5 shrink-0" aria-hidden="true" />
+                <span className="sm:hidden">Unduh File</span>
+                <span className="hidden sm:inline max-w-[200px] truncate md:max-w-xs">{meta.rosterFile}</span>
+              </a>
+            </div>
           )}
 
           <div className="mt-auto flex flex-col gap-4 pt-5 lg:flex-row lg:items-end lg:justify-between">

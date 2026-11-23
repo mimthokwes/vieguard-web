@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Clock,
   CreditCard,
+  Download,
   FileText,
   Images,
   MessageSquare,
@@ -245,9 +246,21 @@ export function OrderTrackingView({
                     </p>
                   )}
                   {meta.rosterFile && (
-                    <p>
-                      Berkas Terlampir: <b className="text-ink">{meta.rosterFile}</b>
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-ink-soft shrink-0">File Ukuran:</span>
+                      <a
+                        href={meta.rosterFile.startsWith('http') ? meta.rosterFile : '/templates/template_ukuran_seragam_vieguard.xlsx'}
+                        target={meta.rosterFile.startsWith('http') ? '_blank' : undefined}
+                        rel={meta.rosterFile.startsWith('http') ? 'noopener noreferrer' : undefined}
+                        download={meta.rosterFile.startsWith('http') ? undefined : meta.rosterFile}
+                        className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-primary/25 bg-beige-soft px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:border-primary hover:bg-primary/10"
+                        title={meta.rosterFile}
+                      >
+                        <Download className="size-3.5 shrink-0" aria-hidden="true" />
+                        <span className="sm:hidden">Unduh File</span>
+                        <span className="hidden sm:inline max-w-[180px] truncate md:max-w-xs">{meta.rosterFile}</span>
+                      </a>
+                    </div>
                   )}
                   {order.notes && (
                     <p className="sm:col-span-2">
