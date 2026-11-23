@@ -1,9 +1,13 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
   Calculator,
   Check,
+  ChevronLeft,
+  ChevronRight,
   CircleCheck,
   FileText,
   Headset,
@@ -17,6 +21,8 @@ import {
   RefreshCw,
   Route,
   ScrollText,
+  X,
+  ZoomIn,
 } from 'lucide-react';
 import { Order } from '@/types/order';
 import { StoreProfile } from '@/types/store';
@@ -24,6 +30,7 @@ import { PageContainer } from '@/components/layout/page-header';
 import { buttonClasses } from '@/components/ui/button';
 import { CopyButton } from '@/components/ui/copy-button';
 import { formatDate, formatDateTime } from '@/lib/format';
+import { formatImageUrl } from '@/lib/image';
 import { parseOrderMeta, totalQuantity } from '@/lib/order-status';
 
 const STAGES = [
@@ -64,15 +71,50 @@ export function QuoteStatusView({
   const remaining = daysUntil(meta.eventDate);
   const active = 1; // stage index: the order is waiting for the tailor's review
 
-  // Cari foto referensi dari orderPhotos terlebih dahulu, atau designReference
-  const referencePhoto =
-    order.orderPhotos?.find((p) => p.category === 'referensi')?.imageUrl ||
-    order.orderPhotos?.[0]?.imageUrl ||
-    (detail?.designReference && /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(detail.designReference) ? detail.designReference : null) ||
-    (detail?.designReference && (detail.designReference.startsWith('http') || detail.designReference.startsWith('/')) ? detail.designReference : null);
+  // Kumpulkan foto referensi dari orderPhotos (foto yang diunggah saat pesan custom) atau designReference
+  const referencePhotos = useMemo(() => {
+    const urls: string[] = [];
+    if (order.orderPhotos && order.orderPhotos.length > 0) {
+      for (const p of order.orderPhotos) {
+        if (p.imageUrl && p.imageUrl.trim()) {
+          const formatted = formatImageUrl(p.imageUrl);
+          if (!urls.includes(formatted)) urls.push(formatted);
+        }
+      }
+    }
+    if (detail?.designReference && detail.designReference.trim()) {
+      const formatted = formatImageUrl(detail.designReference);
+      if (!urls.includes(formatted)) urls.push(formatted);
+    }
+    return urls;
+  }, [order.orderPhotos, detail?.designReference]);
+
+  const primaryReference = referencePhotos.length > 0 ? referencePhotos[0] : null;
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+
+  // Kunci scroll body saat modal preview foto terbuka dan tangani tombol navigasi keyboard
+  useEffect(() => {
+    if (!isPreviewOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsPreviewOpen(false);
+      } else if (e.key === 'ArrowLeft' && referencePhotos.length > 1) {
+        setActivePhotoIndex((prev) => (prev > 0 ? prev - 1 : referencePhotos.length - 1));
+      } else if (e.key === 'ArrowRight' && referencePhotos.length > 1) {
+        setActivePhotoIndex((prev) => (prev < referencePhotos.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isPreviewOpen, referencePhotos.length]);
 
   const rawDesc = detail?.designDescription || order.notes || '';
-  const customerDescription = React.useMemo(() => {
+  const customerDescription = useMemo(() => {
     if (!rawDesc) return '';
     const marker = 'Deskripsi Desain & Model:';
     const idx = rawDesc.indexOf(marker);
@@ -195,37 +237,42 @@ export function QuoteStatusView({
             </div>
             <div className="flex flex-col gap-6 pt-6 md:flex-row">
               <figure className="w-full shrink-0 md:w-56">
-                <div className="relative h-72 overflow-hidden rounded-xl bg-beige-soft">
-                  {referencePhoto ? (
+                <div
+                  className={`relative h-72 overflow-hidden rounded-xl bg-beige-soft ${primaryReference ? 'cursor-pointer group' : ''}`}
+                  onClick={() => {
+                    if (primaryReference) setIsPreviewOpen(true);
+                  }}
+                  title={primaryReference ? 'Klik untuk memperbesar preview foto' : undefined}
+                >
+                  {primaryReference ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={referencePhoto} alt="Referensi Desain" className="size-full object-cover" />
+                    <img
+                      src={primaryReference}
+                      alt="Referensi Desain"
+                      className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
                   ) : (
                     <Image src="/images/portfolio/project-3.webp" alt="Contoh Konsep" fill sizes="224px" className="object-cover" />
                   )}
-                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-primary-deep/90 to-transparent px-3 pb-3 pt-10 text-white">
+                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-primary-deep/90 to-transparent px-3 pb-3 pt-10 text-white pointer-events-none">
                     <span className="block text-xs font-semibold uppercase text-white/70">Lampiran Visual</span>
-                    <span className="block text-sm font-bold">{referencePhoto ? 'Referensi Desain' : 'Contoh Konsep'}</span>
+                    <span className="block text-sm font-bold">{primaryReference ? 'Referensi Desain' : 'Contoh Konsep'}</span>
                   </span>
+                  {primaryReference && (
+                    <span className="absolute right-2.5 top-2.5 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 shadow-md">
+                      <ZoomIn className="size-4" />
+                    </span>
+                  )}
                 </div>
-                {referencePhoto ? (
-                  <a
-                    href={referencePhoto}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 block truncate text-center text-xs font-semibold text-primary underline"
+                {primaryReference && (
+                  <button
+                    type="button"
+                    onClick={() => setIsPreviewOpen(true)}
+                    className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-line bg-canvas py-2 text-center text-xs font-semibold text-primary transition-colors hover:bg-beige-soft cursor-pointer"
                   >
-                    Buka gambar referensi
-                  </a>
-                ) : detail?.designReference ? (
-                  <a
-                    href={detail.designReference}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 block truncate text-center text-xs font-semibold text-primary underline"
-                  >
-                    Buka tautan referensi
-                  </a>
-                ) : null}
+                    <ZoomIn className="size-3.5" /> Lihat Preview Foto
+                  </button>
+                )}
               </figure>
               <div className="flex flex-1 flex-col gap-3">
                 <dl className="grid grid-cols-1 gap-5 rounded-xl bg-beige-soft p-6 sm:grid-cols-2">
@@ -362,6 +409,76 @@ export function QuoteStatusView({
           </Link>
         </aside>
       </div>
+
+      {/* Modal Preview Foto Penuh (Lightbox) */}
+      {isPreviewOpen && primaryReference && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Preview Referensi Desain"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsPreviewOpen(false)}
+        >
+          {/* Bar Atas: Informasi & Tombol Tutup */}
+          <div className="absolute inset-x-4 top-4 z-20 flex items-center justify-between text-white pointer-events-none sm:inset-x-8 sm:top-6">
+            <span className="pointer-events-auto rounded-full bg-white/10 px-3.5 py-1 text-xs font-medium backdrop-blur-md">
+              Referensi Desain {referencePhotos.length > 1 ? `(${activePhotoIndex + 1} / ${referencePhotos.length})` : ''}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsPreviewOpen(false);
+              }}
+              className="pointer-events-auto flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 cursor-pointer"
+              aria-label="Tutup preview"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          {/* Area Tengah: Foto Referensi Tampil Penuh */}
+          <div
+            className="relative flex max-h-[85vh] max-w-[92vw] items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={referencePhotos[activePhotoIndex] || primaryReference}
+              alt="Preview Referensi Desain"
+              className="max-h-[85vh] max-w-[92vw] select-none rounded-xl object-contain shadow-2xl"
+            />
+          </div>
+
+          {/* Tombol Navigasi jika foto lebih dari 1 */}
+          {referencePhotos.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActivePhotoIndex((prev) => (prev > 0 ? prev - 1 : referencePhotos.length - 1));
+                }}
+                className="absolute left-4 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25 cursor-pointer"
+                aria-label="Foto sebelumnya"
+              >
+                <ChevronLeft className="size-6" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActivePhotoIndex((prev) => (prev < referencePhotos.length - 1 ? prev + 1 : 0));
+                }}
+                className="absolute right-4 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25 cursor-pointer"
+                aria-label="Foto selanjutnya"
+              >
+                <ChevronRight className="size-6" />
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </PageContainer>
   );
 }
