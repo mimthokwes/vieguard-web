@@ -23,15 +23,17 @@ export function HeroBanner({ isLoggedIn = false }: Props) {
         quality={95}
         placeholder="blur"
         sizes="100vw"
-        className="-z-20 object-cover object-top"
+        className="-z-20 object-cover object-[65%_top] sm:object-top"
       />
 
       {/* Vignette atas agar navbar transparan selalu kontras dan mudah dibaca */}
       <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/75 via-black/35 to-transparent pointer-events-none -z-10" />
+      {/* Vignette bawah agar transisi ke section berikutnya halus */}
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/90 to-transparent pointer-events-none -z-10" />
 
       <div className="mx-auto flex w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn delay={0.15} duration={0.6} distance={24} className="w-full">
-          <div className="flex max-w-2xl flex-col items-start gap-4 rounded-3xl bg-black/45 backdrop-blur-md p-6 sm:p-8 border border-white/15 shadow-2xl">
+          <div className="flex max-w-2xl flex-col items-start gap-4 rounded-3xl bg-black/55 sm:bg-black/45 backdrop-blur-md p-5 sm:p-8 border border-white/15 shadow-2xl">
             <p className="text-xs font-bold tracking-wide text-gold [text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]">Wujudkan. Tampil. Juara.</p>
             <h1
               id="hero-title"
