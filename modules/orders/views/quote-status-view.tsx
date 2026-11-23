@@ -63,7 +63,26 @@ export function QuoteStatusView({
   const detail = order.customOrderDetail;
   const remaining = daysUntil(meta.eventDate);
   const active = 1; // stage index: the order is waiting for the tailor's review
-  const isImageRef = !!detail?.designReference && /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(detail.designReference);
+
+  // Cari foto referensi dari orderPhotos terlebih dahulu, atau designReference
+  const referencePhoto =
+    order.orderPhotos?.find((p) => p.category === 'referensi')?.imageUrl ||
+    order.orderPhotos?.[0]?.imageUrl ||
+    (detail?.designReference && /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(detail.designReference) ? detail.designReference : null) ||
+    (detail?.designReference && (detail.designReference.startsWith('http') || detail.designReference.startsWith('/')) ? detail.designReference : null);
+
+  const rawDesc = detail?.designDescription || order.notes || '';
+  const customerDescription = React.useMemo(() => {
+    if (!rawDesc) return '';
+    const marker = 'Deskripsi Desain & Model:';
+    const idx = rawDesc.indexOf(marker);
+    if (idx !== -1) {
+      const extracted = rawDesc.slice(idx + marker.length).trim();
+      if (extracted) return extracted;
+    }
+    return rawDesc.replace(/^(?:Kategori|Preferensi Bahan|Berkas Ukuran):[^\r\n]*\r?\n?/gim, '').trim();
+  }, [rawDesc]);
+
   const phone = store?.whatsappNumber || store?.phone;
   const chatHref = `/chat?topic=${encodeURIComponent(`Penawaran ${order.orderNumber}`)}`;
 
@@ -177,18 +196,27 @@ export function QuoteStatusView({
             <div className="flex flex-col gap-6 pt-6 md:flex-row">
               <figure className="w-full shrink-0 md:w-56">
                 <div className="relative h-72 overflow-hidden rounded-xl bg-beige-soft">
-                  {isImageRef ? (
+                  {referencePhoto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={detail!.designReference!} alt="Lampiran desain" className="size-full object-cover" />
+                    <img src={referencePhoto} alt="Referensi Desain" className="size-full object-cover" />
                   ) : (
-                    <Image src="/images/portfolio/project-3.webp" alt="" fill sizes="224px" className="object-cover" />
+                    <Image src="/images/portfolio/project-3.webp" alt="Contoh Konsep" fill sizes="224px" className="object-cover" />
                   )}
                   <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-primary-deep/90 to-transparent px-3 pb-3 pt-10 text-white">
                     <span className="block text-xs font-semibold uppercase text-white/70">Lampiran Visual</span>
-                    <span className="block text-sm font-bold">{detail?.designReference ? 'Referensi Desain Klien' : 'Contoh Konsep'}</span>
+                    <span className="block text-sm font-bold">{referencePhoto ? 'Referensi Desain' : 'Contoh Konsep'}</span>
                   </span>
                 </div>
-                {detail?.designReference && !isImageRef && (
+                {referencePhoto ? (
+                  <a
+                    href={referencePhoto}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 block truncate text-center text-xs font-semibold text-primary underline"
+                  >
+                    Buka gambar referensi
+                  </a>
+                ) : detail?.designReference ? (
                   <a
                     href={detail.designReference}
                     target="_blank"
@@ -197,7 +225,7 @@ export function QuoteStatusView({
                   >
                     Buka tautan referensi
                   </a>
-                )}
+                ) : null}
               </figure>
               <div className="flex flex-1 flex-col gap-3">
                 <dl className="grid grid-cols-1 gap-5 rounded-xl bg-beige-soft p-6 sm:grid-cols-2">
@@ -229,12 +257,14 @@ export function QuoteStatusView({
                     </div>
                   )}
                 </dl>
-                {(detail?.designDescription || order.notes) && (
-                  <div className="flex gap-3 rounded-xl bg-canvas p-5">
+                {customerDescription && (
+                  <div className="flex min-w-0 max-w-full gap-3 rounded-xl bg-canvas p-5 overflow-hidden">
                     <NotebookPen className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-                    <div>
-                      <p className="text-sm font-semibold text-ink">Catatan Khusus Penjahitan:</p>
-                      <p className="text-[15px] leading-6 text-ink-soft">{detail?.designDescription || order.notes}</p>
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <p className="text-sm font-semibold text-ink">Deskripsi</p>
+                      <p className="mt-1 text-[14.5px] leading-relaxed text-ink-soft break-words [overflow-wrap:anywhere] whitespace-pre-line">
+                        {customerDescription}
+                      </p>
                     </div>
                   </div>
                 )}
